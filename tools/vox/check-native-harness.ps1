@@ -43,4 +43,3 @@ try {
     }
 } finally { foreach ($name in $flags) { [Environment]::SetEnvironmentVariable($name, $saved[$name]) } }
 Write-Output 'Native evidence windows/query errors and five Cargo environment guards: PASS'
-
