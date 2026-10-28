@@ -3,13 +3,49 @@
 #define IPC_EMP_HEAVY_LIMB_DAMAGE (64.9 / 6)
 #define IPC_EMP_LIGHT_LIMB_DAMAGE (39.93 / 6)
 
+/obj/item/bodypart
+	/// A surgically selected shell belongs to this limb rather than the wearer's preferences.
+	var/ipc_chassis_override
+
+/// Only models with the sprites needed by this physical bodypart may be selected.
+/obj/item/bodypart/proc/get_ipc_customization_choices()
+	if(!IS_ROBOTIC_LIMB(src) || IS_STUMP(src) || !(body_zone in GLOB.all_body_zones))
+		return list()
+	var/is_head = body_zone == BODY_ZONE_HEAD
+	if(is_head && !istype(src, /obj/item/bodypart/head/robot/ipc))
+		return list()
+	var/datum/preference/choiced/ipc/preference = GLOB.preference_entries[is_head ? /datum/preference/choiced/ipc/head : /datum/preference/choiced/ipc/chassis]
+	return preference.get_choices()
+
+/// Change only a limb's shell; its hardware, damage and mechanical properties stay intact.
+/obj/item/bodypart/proc/set_ipc_chassis(chassis_name)
+	if(!(chassis_name in get_ipc_customization_choices()))
+		return FALSE
+	var/datum/ipc_chassis/chassis = GLOB.ipc_chassis[chassis_name]
+	if(isnull(ipc_chassis_override) && initial(limb_id) != SPECIES_IPC)
+		RegisterSignal(src, COMSIG_BODYPART_GET_LIMB_ICON, PROC_REF(on_get_ipc_limb_icon))
+	ipc_chassis_override = chassis_name
+	if(istype(src, /obj/item/bodypart/head/robot/ipc))
+		var/obj/item/bodypart/head/robot/ipc/head = src
+		head.ipc_head_name = chassis_name
+		head.ipc_display_name = sanitize_inlist(head.ipc_display_name, get_ipc_display_choices(chassis_name), get_default_ipc_display(chassis_name))
+	icon = chassis.icon
+	change_appearance(chassis.icon, SPECIES_IPC, FALSE, FALSE)
+	return TRUE
+
+/obj/item/bodypart/proc/on_get_ipc_limb_icon(datum/source, list/limb_images)
+	SIGNAL_HANDLER
+
+	if(limb_id == SPECIES_IPC && !isnull(ipc_chassis_override))
+		color_ipc_limb(limb_images)
+
 /obj/item/bodypart/proc/update_ipc_appearance()
 	var/mob/living/carbon/human/human = owner
 	if(!istype(human))
 		return
 	var/is_head = body_zone == BODY_ZONE_HEAD
 	var/feature_key = is_head ? FEATURE_IPC_HEAD : FEATURE_IPC_CHASSIS
-	var/datum/ipc_chassis/chassis = GLOB.ipc_chassis[human.dna.features[feature_key]]
+	var/datum/ipc_chassis/chassis = GLOB.ipc_chassis[ipc_chassis_override || human.dna.features[feature_key]]
 	if(isnull(chassis) || (is_head && !chassis.has_head) || (!is_head && !chassis.has_body))
 		chassis = GLOB.ipc_chassis[/datum/ipc_chassis/morpheus::name]
 	icon_static = chassis.icon
@@ -52,6 +88,9 @@
 	if(!.)
 		return
 	ipc_head_name = update_ipc_appearance()
+	if(!isnull(ipc_chassis_override))
+		ipc_display_name = sanitize_inlist(ipc_display_name, get_ipc_display_choices(ipc_head_name), get_default_ipc_display(ipc_head_name))
+		return
 	var/mob/living/carbon/human/human = owner
 	ipc_display_name = sanitize_inlist(human.dna.features[FEATURE_IPC_SCREEN], get_ipc_display_choices(ipc_head_name), get_default_ipc_display(ipc_head_name))
 	ipc_display_color = sanitize_hexcolor(human.dna.features[FEATURE_IPC_SCREEN_COLOR], default = COLOR_BLACK)
@@ -61,7 +100,6 @@
 
 /obj/item/bodypart/head/robot/ipc/generate_icon_key()
 	. = ..()
-	. += species_color
 	. += list(ipc_head_name, ipc_display_name, ipc_display_color, ipc_display_color_secondary, ipc_antenna_name, ipc_antenna_color)
 	. += "[!isnull(owner) && owner.stat != DEAD]"
 	. += "[owner?.obscured_slots & HIDEHAIR]"
@@ -114,10 +152,6 @@
 		return
 	update_ipc_appearance()
 
-/obj/item/bodypart/chest/robot/ipc/generate_icon_key()
-	. = ..()
-	. += species_color
-
 /obj/item/bodypart/chest/robot/ipc/get_limb_icon(dropped)
 	. = ..()
 	color_ipc_limb(.)
@@ -139,10 +173,6 @@
 	if(!.)
 		return
 	update_ipc_appearance()
-
-/obj/item/bodypart/arm/left/robot/ipc/generate_icon_key()
-	. = ..()
-	. += species_color
 
 /obj/item/bodypart/arm/left/robot/ipc/get_limb_icon(dropped)
 	. = ..()
@@ -166,10 +196,6 @@
 		return
 	update_ipc_appearance()
 
-/obj/item/bodypart/arm/right/robot/ipc/generate_icon_key()
-	. = ..()
-	. += species_color
-
 /obj/item/bodypart/arm/right/robot/ipc/get_limb_icon(dropped)
 	. = ..()
 	color_ipc_limb(.)
@@ -192,10 +218,6 @@
 		return
 	update_ipc_appearance()
 
-/obj/item/bodypart/leg/left/robot/ipc/generate_icon_key()
-	. = ..()
-	. += species_color
-
 /obj/item/bodypart/leg/left/robot/ipc/get_limb_icon(dropped)
 	. = ..()
 	color_ipc_limb(.)
@@ -217,10 +239,6 @@
 	if(!.)
 		return
 	update_ipc_appearance()
-
-/obj/item/bodypart/leg/right/robot/ipc/generate_icon_key()
-	. = ..()
-	. += species_color
 
 /obj/item/bodypart/leg/right/robot/ipc/get_limb_icon(dropped)
 	. = ..()
