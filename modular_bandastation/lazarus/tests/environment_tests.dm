@@ -69,6 +69,8 @@
 	TEST_ASSERT_EQUAL(get_turf(user), finish, "A valid linked ladder must move the climber to its exit.")
 	TEST_ASSERT_EQUAL(get_turf(pulled), finish, "A ladder must bring the original pulled object.")
 	user.forceMove(start)
+	// The accelerated fixture can finish a climb within one loaded CI tick.
+	user.add_or_update_variable_actionspeed_modifier(/datum/actionspeed_modifier/base, multiplicative_slowdown = 1)
 	INVOKE_ASYNC(entrance, TYPE_PROC_REF(/atom, attack_hand), user, list())
 	TEST_ASSERT(LAZYACCESS(user.do_afters, DOAFTER_SOURCE_CLIMBING_LADDER), "The climb must actually be waiting before its exit is deleted.")
 	qdel(exit)
