@@ -1,4 +1,5 @@
-/// Search is available even on healthy patients, preserving the risk of a mistaken extraction.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Search is available even on healthy patients, preserving the risk of a mistaken extraction. */
 /datum/surgery_operation/limb/lazarus_check_anomalies
 	name = "Поиск аномалий Лазаря"
 	desc = "Извлечь паразита из грудной полости. На здоровом пациенте серьёзно повреждает ткани."
@@ -12,11 +13,13 @@
 	return image('modular_bandastation/lazarus/icons/treacherous_flesh.dmi', "spawner")
 
 /datum/surgery_operation/limb/lazarus_check_anomalies/state_check(obj/item/bodypart/limb)
-	return limb.body_zone == BODY_ZONE_CHEST && ishuman(limb.owner)
+	if(limb.body_zone != BODY_ZONE_CHEST || !ishuman(limb.owner))
+		return FALSE
+	return istype(get_area(limb.owner), /area/lazarus) || lazarus_host_infested(limb.owner)
 
 /datum/surgery_operation/limb/lazarus_check_anomalies/on_success(obj/item/bodypart/limb, mob/living/surgeon, obj/item/tool, list/operation_args)
 	var/mob/living/carbon/human/patient = limb.owner
-	if(!istype(patient))
+	if(!istype(patient) || !state_check(limb))
 		return
 	if(patient.treacherous_flesh)
 		patient.visible_message(span_boldwarning("[surgeon] вытаскивает из тела [patient] нечто ужасное!"))
@@ -32,3 +35,4 @@
 		patient.adjust_tox_loss(25)
 	patient.adjust_stamina_loss(100)
 	patient.emote("scream")
+// AI EDIT END

@@ -785,7 +785,10 @@
 		return
 
 	var/oldPlantName = myseed.plantname
-	var/polymorph_seed = pick(subtypesof(/obj/item/seeds))
+	// AI EDIT START - Use the native spawn blacklist for random plant transformations.
+	// BANDASTATION EDIT - Keep event-only seeds out of ordinary botany polymorphs.
+	var/polymorph_seed = pick(get_sane_item_types(/obj/item/seeds))
+	// AI EDIT END
 	set_seed(new polymorph_seed(src))
 
 	hardmutate()

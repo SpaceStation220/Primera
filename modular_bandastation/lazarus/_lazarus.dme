@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 #include "_defines.dm"
 #include "_lazarus.dm"
 #include "treacherous_flesh/treacherous_flesh_mob.dm"
@@ -47,3 +48,4 @@
 #include "treacherous_flesh/treacherous_flesh_testers.dm"
 #include "turfs/lazarus_floors.dm"
 #include "turfs/lazarus_walls.dm"
+// AI EDIT END

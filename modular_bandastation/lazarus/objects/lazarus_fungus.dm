@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /** Replenishing scrapings used by the colony's Lazarus chemistry. */
 /obj/effect/decal/cleanable/fungus
 	name = "космический грибок"
@@ -59,7 +60,7 @@
 
 /obj/effect/spawner/random/fungus
 	name = "fungus 100% chance"
-	icon_state = "fungus"
+	icon_state = "plant"
 	color = "#D5820B"
 	loot = list(/obj/effect/decal/cleanable/fungus)
 
@@ -78,6 +79,7 @@
 /** Raw fungus is a risky chemical ingredient rather than edible mushrooms. */
 /datum/reagent/fungus
 	name = "Space fungus"
+	chemical_flags = REAGENT_NO_RANDOM_RECIPE
 	description = "Соскоб неизвестного грибка, растущего на стенах колонии."
 	color = "#C87D28"
 	taste_description = "плесень"
@@ -134,3 +136,4 @@
 		else
 			affected_mob.Stun(rand(4 SECONDS, 8 SECONDS))
 			affected_mob.Knockdown(rand(4 SECONDS, 8 SECONDS))
+// AI EDIT END

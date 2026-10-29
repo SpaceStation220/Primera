@@ -1,11 +1,14 @@
-/// Active parasites and unclaimed eggs both prevent duplicate infections.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Active parasites and unclaimed eggs both prevent duplicate infections. */
 /proc/lazarus_host_infested(mob/living/carbon/human/host)
+	if(QDELETED(host))
+		return FALSE
 	if(!QDELETED(host.treacherous_flesh))
 		return host.treacherous_flesh
 	var/obj/effect/mob_spawn/ghost_role/treacherous_flesh/egg = locate() in host
 	return !QDELETED(egg)
 
-/// Keeps infection markers private and independent of the ordinary antagonist HUD.
+/** Keeps infection markers private and independent of the ordinary antagonist HUD. */
 /proc/lazarus_update_infection_marker(mob/living/carbon/human/host)
 	if(QDELETED(host))
 		return
@@ -25,7 +28,7 @@
 /datum/atom_hud/alternate_appearance/basic/treacherous_flesh/mobShouldSee(mob/viewer)
 	return istype(viewer, /mob/living/treacherous_flesh) || istype(viewer, /mob/living/basic/flesh_biomorph) || viewer.mind?.has_antag_datum(/datum/antagonist/treacherous_flesh) || (isobserver(viewer) && (viewer.client?.holder || SSticker.current_state >= GAME_STATE_FINISHED))
 
-/// Non-airborne incubation preserves the original six-stage growth and chemical cure.
+/** Non-airborne incubation preserves the original six-stage growth and chemical cure. */
 /datum/disease/treacherous_flesh
 	name = "Инкубация биоассимилятора"
 	max_stages = 6
@@ -61,9 +64,9 @@
 	notify_ghosts("Зародыш коварной плоти появился внутри организма [host].", source = egg, click_interact = TRUE)
 	cure()
 
-/// An actual infectious reagent so existing food, medicine and fluid transfer paths work.
+/** An actual infectious reagent so existing food, medicine and fluid transfer paths work. */
 /datum/reagent/treacherous_flesh
-	name = "Клетки коварной плоти"
+	name = "Treacherous Flesh Cells"
 	description = "Опасные клетки паразита, способные ассимилировать живого органического носителя."
 	color = "#2c0d0d"
 	taste_description = "flesh"
@@ -73,11 +76,13 @@
 	if(!ishuman(exposed_mob) || exposed_mob.stat == DEAD || reac_volume <= 0 || !(exposed_mob.mob_biotypes & MOB_ORGANIC))
 		return
 	var/mob/living/carbon/human/host = exposed_mob
+	if(!istype(get_area(host), /area/lazarus))
+		return
 	if(lazarus_host_infested(host) || (locate(/datum/disease/treacherous_flesh) in host.diseases))
 		return
 	host.ForceContractDisease(new /datum/disease/treacherous_flesh, make_copy = FALSE, del_on_fail = TRUE)
 
-/// Called by the native pickup signal after the carrier actually obtains an item.
+/** Called by the native pickup signal after the carrier actually obtains an item. */
 /mob/living/treacherous_flesh/proc/contaminate_item(mob/living/carbon/human/source, obj/item/picked_up)
 	SIGNAL_HANDLER
 	if(!infecting || source != host || !(istype(picked_up, /obj/item/food) || istype(picked_up, /obj/item/reagent_containers)) || !picked_up.reagents)
@@ -91,7 +96,7 @@
 		reagents.remove_all(needed - space)
 	reagents.add_reagent(/datum/reagent/treacherous_flesh, needed)
 
-/// A successful real operation spreads infection to its patient, including limb operations.
+/** A successful real operation spreads infection to its patient, including limb operations. */
 /mob/living/treacherous_flesh/proc/contaminate_patient(mob/living/carbon/human/source, datum/surgery_operation/operation, atom/movable/operating_on, obj/item/tool)
 	SIGNAL_HANDLER
 	if(!infecting || source != host)
@@ -103,3 +108,4 @@
 	if(!istype(patient) || patient.stat == DEAD || !(patient.mob_biotypes & MOB_ORGANIC) || lazarus_host_infested(patient) || (locate(/datum/disease/treacherous_flesh) in patient.diseases))
 		return
 	patient.ForceContractDisease(new /datum/disease/treacherous_flesh, make_copy = FALSE, del_on_fail = TRUE)
+// AI EDIT END

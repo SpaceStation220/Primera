@@ -411,6 +411,12 @@ Used by the AI doomsday and the self-destruct nuke.
 	// check that the total z count of all maps matches the list of traits
 	var/total_z = 0
 	var/list/parsed_maps = list()
+	// BANDASTATION ADDITION START - Fit oversized maps before calculating centered load offsets.
+	// AI EDIT START - Resize after existing z-level turf lists are initialized to avoid duplicate area entries.
+	var/required_maxx = world.maxx
+	var/required_maxy = world.maxy
+	// AI EDIT END
+	// BANDASTATION ADDITION END
 	for (var/file in files)
 		var/full_path = "_maps/[path]/[file]"
 		var/datum/parsed_map/pm = new(file(full_path))
@@ -420,6 +426,18 @@ Used by the AI doomsday and the self-destruct nuke.
 			continue
 		parsed_maps[pm] = total_z  // save the start Z of this file
 		total_z += bounds[MAP_MAXZ] - bounds[MAP_MINZ] + 1
+		// BANDASTATION ADDITION START - Keep the full bounds of every map in the group.
+		// AI EDIT START - Prevent negative centered offsets when a map exceeds the current world dimensions.
+		required_maxx = max(required_maxx, bounds[MAP_MAXX])
+		required_maxy = max(required_maxy, bounds[MAP_MAXY])
+		// AI EDIT END
+		// BANDASTATION ADDITION END
+	// BANDASTATION ADDITION START - Expand once before allocating new map levels.
+	// AI EDIT START - Use the native resize bookkeeping only after default z-level containment exists.
+	world.increase_max_x(required_maxx)
+	world.increase_max_y(required_maxy)
+	// AI EDIT END
+	// BANDASTATION ADDITION END
 
 	if (!length(traits))  // null or empty - default
 		for (var/i in 1 to total_z)

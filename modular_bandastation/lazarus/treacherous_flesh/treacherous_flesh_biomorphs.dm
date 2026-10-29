@@ -1,4 +1,5 @@
-/// Flesh creatures use native basic-mob AI and keep their player through splitting.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Flesh creatures use native basic-mob AI and keep their player through splitting. */
 /mob/living/basic/flesh_biomorph
 	name = "биоморф"
 	icon = 'modular_bandastation/lazarus/icons/treacherous_flesh.dmi'
@@ -92,7 +93,7 @@
 		if(!airlock.locked)
 			return TRUE
 
-/// Hiding also changes draw order, allowing the smallest body to crawl under doors.
+/** Hiding also changes draw order, allowing the smallest body to crawl under doors. */
 /datum/action/cooldown/mob_cooldown/sneak/lazarus
 	name = "Спрятаться"
 	desc = "Скрыться под предметами и пролезать под незаболтированными шлюзами."
@@ -152,7 +153,7 @@
 	GRANT_ACTION(/datum/action/cooldown/biomorph/plant_weeds)
 	GRANT_ACTION(/datum/action/cooldown/biomorph/build_structure)
 
-/// Player-driven construction uses native cooldowns and do_after ownership checks.
+/** Player-driven construction uses native cooldowns and do_after ownership checks. */
 /datum/action/cooldown/biomorph
 	button_icon = 'modular_bandastation/lazarus/icons/lazarus_actions.dmi'
 	background_icon = 'modular_bandastation/lazarus/icons/lazarus_actions.dmi'
@@ -184,10 +185,11 @@
 	button_icon_state = "resin_wall-0"
 	cooldown_time = 10 SECONDS
 
+/** Grows the selected structure after rechecking the builder, location and native cooldown. */
 /datum/action/cooldown/biomorph/build_structure/Activate(atom/target)
 	var/mob/living/builder = owner
 	var/turf/location = get_turf(builder)
-	var/choice = select_structure(builder)
+	var/choice = tgui_input_list(builder, "Что вырастить?", name, list("Мясистая стена", "Мясистая дверь"))
 	if(QDELETED(builder) || builder != owner || HAS_TRAIT(builder, TRAIT_INCAPACITATED) || !isturf(builder.loc) || builder.loc != location || !choice || !IsAvailable())
 		return FALSE
 	if(isspaceturf(location) || (locate(/obj/structure/alien/resin) in location) || (locate(/obj/structure/alien/resin/door/meaty) in location))
@@ -203,6 +205,4 @@
 			new /obj/structure/alien/resin/door/meaty(location)
 	StartCooldown()
 	return TRUE
-
-/datum/action/cooldown/biomorph/build_structure/proc/select_structure(mob/living/builder)
-	return tgui_input_list(builder, "Что вырастить?", name, list("Мясистая стена", "Мясистая дверь"))
+// AI EDIT END

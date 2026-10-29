@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /obj/effect/spawner/random/lazarus
 	icon = 'modular_bandastation/lazarus/icons/mapping.dmi'
 	icon_state = "lootmark"
@@ -121,3 +122,4 @@
 		/obj/item/reagent_containers/cup/soda_cans/sodawater = 10,
 		/obj/item/reagent_containers/cup/soda_cans/lazarus_kvass = 10,
 	)
+// AI EDIT END

@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 #define GEOTHERMAL_GEN_OUTPUT 300
 #define GEOTHERMAL_GEN_BROKEN 1
 #define GEOTHERMAL_GEN_CABLES 2
@@ -131,3 +132,4 @@
 #undef GEOTHERMAL_GEN_WRENCH
 #undef GEOTHERMAL_GEN_SCREWDRIVER
 #undef GEOTHERMAL_GEN_ACTIVE
+// AI EDIT END

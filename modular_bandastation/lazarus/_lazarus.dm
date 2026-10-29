@@ -1,4 +1,5 @@
-/// Optional survival-horror map, adapted from ThaumicNik's IceEvent.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Optional survival-horror map, adapted from ThaumicNik's IceEvent. */
 /datum/modpack/lazarus
 	name = "Эвент «Проект Лазарь»"
 	desc = "Ледяная колония, выживание и Коварная плоть."
@@ -9,18 +10,14 @@
 	if(selected_map?.defaulted && config.defaultmap && !config.defaultmap.defaulted)
 		selected_map = config.defaultmap
 	if(selected_map?.map_name == LAZARUS_MAP_NAME)
-		// LoadGroup centers against existing world bounds before expanding them.
-		// Fit the full 400x350 colony first, avoiding negative offsets and clipped settlements.
-		world.increase_max_x(400)
-		world.increase_max_y(350)
+		GLOB.wood_recipes += new /datum/stack_recipe("деревянный потолок", /obj/item/lazarus_wooden_ceiling, 40, 1, 20, crafting_flags = NONE, category = CAT_STRUCTURE)
 	var/list/snow_steps = list(list('modular_bandastation/lazarus/sound/snowstep1.ogg', 'modular_bandastation/lazarus/sound/snowstep2.ogg', 'modular_bandastation/lazarus/sound/snowstep3.ogg', 'modular_bandastation/lazarus/sound/snowstep4.ogg'), 50, 1)
 	GLOB.footstep["lazarus_snow"] = snow_steps
 	GLOB.barefootstep["lazarus_snow"] = snow_steps
 	GLOB.clawfootstep["lazarus_snow"] = snow_steps
-	GLOB.wood_recipes += new /datum/stack_recipe("деревянный потолок", /obj/item/lazarus_wooden_ceiling, 40, 1, 20, crafting_flags = NONE, category = CAT_STRUCTURE)
 	RegisterSignal(SSdcs, COMSIG_GLOB_JOB_AFTER_SPAWN, PROC_REF(on_job_spawn))
 
-/// Apply event equipment and cryosleep only to colonists on the event map.
+/** Apply event equipment and cryosleep only to colonists on the event map. */
 /datum/modpack/lazarus/proc/on_job_spawn(datum/source, datum/job/job, mob/living/spawned, client/player_client)
 	SIGNAL_HANDLER
 	if(!ishuman(spawned) || !istype(get_area(spawned), /area/lazarus))
@@ -35,3 +32,4 @@
 		colonist.Sleeping(10 SECONDS)
 		colonist.set_eye_blur_if_lower(12 SECONDS)
 		colonist.adjust_drowsiness(25 SECONDS)
+// AI EDIT END

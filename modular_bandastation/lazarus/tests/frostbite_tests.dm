@@ -1,4 +1,5 @@
-/// Restore the test turf even if a cold assertion stops its test early.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Restore the test turf even if a cold assertion stops its test early. */
 /datum/unit_test/lazarus_frostbite
 	var/area/previous_area
 	var/area/lazarus/event_area
@@ -48,7 +49,7 @@
 	TEST_ASSERT_EQUAL(colonist.frostbite, 1234, "Event cold must stop outside Lazarus.")
 	TEST_ASSERT(!colonist.has_alert("lazarus_frostbite"), "The event HUD must clear outside Lazarus.")
 
-/// Map availability uses the native job check, without modifying ordinary maps.
+/** Map availability uses the native job check, without modifying ordinary maps. */
 /datum/unit_test/lazarus_jobs/Run()
 	var/datum/map_config/colony = new
 	colony.map_name = LAZARUS_MAP_NAME
@@ -66,3 +67,4 @@
 		var/mob/living/carbon/human/consistent/colonist = allocate(/mob/living/carbon/human/consistent)
 		colonist.equipOutfit(outfit)
 		TEST_ASSERT_NOTNULL(colonist.w_uniform, "The event outfit [outfit] did not equip its uniform.")
+// AI EDIT END

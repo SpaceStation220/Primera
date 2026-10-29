@@ -1,3 +1,7 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/datum/outfit/lazarus
+	name = "Lazarus"
+
 /datum/outfit/lazarus/corpse
 	name = "Lazarus Placeholder"
 
@@ -104,3 +108,4 @@
 			remaining_loot -= loot_type
 		if(loot_type)
 			backpack_contents[loot_type] = (backpack_contents[loot_type] || 0) + 1
+// AI EDIT END

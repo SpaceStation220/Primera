@@ -1,4 +1,5 @@
-/// The original host keeps their own mind, antagonist datums and memories here.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** The original host keeps their own mind, antagonist datums and memories here. */
 /mob/living/trapped_mind
 	name = "Заключённый разум"
 	density = FALSE
@@ -32,7 +33,7 @@
 /mob/living/trapped_mind/emote(act, m_type = null, message = null, intentional = FALSE, force_silence = FALSE)
 	return FALSE
 
-/// Moves minds, rather than swapping ckeys and leaving their identities behind.
+/** Moves minds, rather than swapping ckeys and leaving their identities behind. */
 /mob/living/treacherous_flesh/proc/take_control()
 	if(QDELETED(host) || trapped_mind || !host.mind || !mind || host.stat == DEAD)
 		return FALSE
@@ -51,7 +52,7 @@
 	resist_action.Grant(trapped_mind)
 	return TRUE
 
-/// Restores both players even if control ends by surgery, a cure or deletion.
+/** Restores both players even if control ends by surgery, a cure or deletion. */
 /mob/living/treacherous_flesh/proc/restore_control()
 	if(!trapped_mind)
 		return
@@ -112,3 +113,4 @@
 		return FALSE
 	parasite.restore_control()
 	return TRUE
+// AI EDIT END

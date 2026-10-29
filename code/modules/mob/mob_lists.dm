@@ -17,6 +17,11 @@
 ///Removes the mob reference from the list of all mobs alive. If mob is cliented, it removes it from the list of all living player-mobs.
 /mob/proc/remove_from_alive_mob_list()
 	GLOB.alive_mob_list -= src
+	// BANDASTATION ADDITION START - Body transfers also register antagonists without a client.
+	// AI EDIT START - Release global antagonist references on death and deletion regardless of client ownership.
+	remove_from_current_living_antags()
+	// AI EDIT END
+	// BANDASTATION ADDITION END
 	if(client)
 		remove_from_current_living_players()
 

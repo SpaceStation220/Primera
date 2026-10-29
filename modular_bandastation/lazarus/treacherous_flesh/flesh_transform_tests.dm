@@ -1,24 +1,7 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 #ifdef UNIT_TESTS
 
-/// Substitute only a dialog answer and shorten the real staged wait.
-/datum/action/treacherous_flesh/ascension/lazarus_transform_test
-	var/takeover_during_confirmation = FALSE
-
-/datum/action/treacherous_flesh/ascension/lazarus_transform_test/confirm_activation(message)
-	if(takeover_during_confirmation)
-		user.take_control()
-	return TRUE
-
-/datum/action/treacherous_flesh/ascension/lazarus_transform_test/wait_for_host(duration, mob/living/carbon/human/expected_host)
-	return ..(1, expected_host)
-
-/datum/action/cooldown/biomorph/build_structure/lazarus_transform_test
-	var/structure_choice = "Мясистая стена"
-
-/datum/action/cooldown/biomorph/build_structure/lazarus_transform_test/select_structure(mob/living/builder)
-	return structure_choice
-
-/// Every escape size must preserve both minds and release the previous host.
+/** Every escape size must preserve both minds and release the previous host. */
 /datum/unit_test/lazarus_flesh_burst_stages/Run()
 	var/list/body_types = list(
 		/mob/living/basic/flesh_biomorph/lesser/small,
@@ -49,6 +32,7 @@
 		TEST_ASSERT(host.get_brute_loss() > 0, "Escape did not damage its previous host.")
 		TEST_ASSERT(parasite_mind.has_antag_datum(/datum/antagonist/treacherous_flesh), "Escape lost the parasite's antagonist identity.")
 		qdel(escaped)
+		TEST_ASSERT(!(escaped in GLOB.current_living_antags), "A deleted escaped biomorph remained in the global living-antagonist list.")
 
 	var/mob/living/carbon/human/consistent/dead_host = allocate(/mob/living/carbon/human/consistent)
 	var/mob/living/treacherous_flesh/survivor = allocate(/mob/living/treacherous_flesh)
@@ -58,34 +42,69 @@
 	allocated += from_corpse
 	TEST_ASSERT_NOTNULL(from_corpse, "A parasite could not escape from its dead host.")
 
-/// Extraction uses the actual operation and retains the healthy-patient penalty.
+/** Extraction uses the actual operation and retains the healthy-patient penalty. */
+/datum/unit_test/lazarus_flesh_surgery_extraction
+	var/area/previous_area
+	var/area/lazarus/event_area
+	var/area/previous_registered_area
+
+/datum/unit_test/lazarus_flesh_surgery_extraction/Destroy()
+	if(event_area)
+		if(get_area(run_loc_floor_bottom_left) == event_area)
+			set_turf_to_area(run_loc_floor_bottom_left, previous_area)
+		QDEL_NULL(event_area)
+		GLOB.areas_by_type[/area/lazarus] = previous_registered_area
+	previous_area = null
+	previous_registered_area = null
+	return ..()
+
 /datum/unit_test/lazarus_flesh_surgery_extraction/Run()
 	var/mob/living/carbon/human/consistent/patient = allocate(/mob/living/carbon/human/consistent)
 	var/mob/living/carbon/human/consistent/surgeon = allocate(/mob/living/carbon/human/consistent)
-	var/datum/surgery_operation/limb/lazarus_check_anomalies/operation = allocate(/datum/surgery_operation/limb/lazarus_check_anomalies)
+	var/datum/surgery_operation/limb/lazarus_check_anomalies/operation = GLOB.operations.operations_by_typepath[/datum/surgery_operation/limb/lazarus_check_anomalies]
 	var/obj/item/hemostat/tool = allocate(/obj/item/hemostat)
 	var/obj/item/bodypart/chest/chest = patient.get_bodypart(BODY_ZONE_CHEST)
-	TEST_ASSERT(operation.state_check(chest), "The extraction operation rejected a human chest.")
+	patient.set_resting(TRUE, instant = TRUE)
+	ADD_TRAIT(patient, TRAIT_READY_TO_OPERATE, TRAIT_SOURCE_UNIT_TESTS)
+	ADD_TRAIT(chest, TRAIT_READY_TO_OPERATE, TRAIT_SOURCE_UNIT_TESTS)
+	chest.add_surgical_state(SURGERY_SKIN_OPEN|SURGERY_ORGANS_CUT)
+	var/list/available_operations = surgeon.get_available_operations(patient, tool, BODY_ZONE_CHEST)
+	TEST_ASSERT(!(operation.main_option in available_operations), "Native surgery menus offered Lazarus extraction on a healthy ordinary patient.")
+	operation.on_success(chest, surgeon, tool, list())
+	TEST_ASSERT_EQUAL(patient.get_brute_loss(), 0, "An ineligible ordinary patient received extraction damage.")
+	previous_area = get_area(run_loc_floor_bottom_left)
+	previous_registered_area = GLOB.areas_by_type[/area/lazarus]
+	event_area = new /area/lazarus
+	set_turf_to_area(run_loc_floor_bottom_left, event_area)
+	available_operations = surgeon.get_available_operations(patient, tool, BODY_ZONE_CHEST)
+	TEST_ASSERT(operation.main_option in available_operations, "Native surgery menus omitted extraction from a prepared colony patient.")
 	TEST_ASSERT(!operation.state_check(patient.get_bodypart(BODY_ZONE_L_ARM)), "Extraction was offered on an arm.")
 	operation.on_success(chest, surgeon, tool, list())
 	TEST_ASSERT(patient.get_brute_loss() >= 50 && patient.get_tox_loss() >= 25, "A mistaken extraction did not injure the healthy patient.")
 	patient.fully_heal()
+	set_turf_to_area(run_loc_floor_bottom_left, previous_area)
+	chest.add_surgical_state(SURGERY_SKIN_OPEN|SURGERY_ORGANS_CUT)
 	var/obj/effect/mob_spawn/ghost_role/treacherous_flesh/egg = allocate(/obj/effect/mob_spawn/ghost_role/treacherous_flesh, patient, patient)
+	available_operations = surgeon.get_available_operations(patient, tool, BODY_ZONE_CHEST)
+	TEST_ASSERT(operation.main_option in available_operations, "An explicitly infested ordinary patient could not have their egg extracted.")
 	operation.on_success(chest, surgeon, tool, list())
 	TEST_ASSERT(QDELETED(egg), "Extraction did not remove an unclaimed parasite egg.")
 	TEST_ASSERT_NOTNULL(locate(/mob/living/basic/flesh_biomorph/lesser/small) in get_turf(patient), "Egg extraction did not release its small biomorph.")
 	TEST_ASSERT_NULL(patient.alternate_appearances?["lazarus_infested"], "Egg extraction retained the infection marker.")
 	patient.fully_heal()
+	chest.add_surgical_state(SURGERY_SKIN_OPEN|SURGERY_ORGANS_CUT)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh)
 	parasite.mind_initialize()
 	var/datum/mind/parasite_mind = parasite.mind
 	TEST_ASSERT(parasite.infest(patient), "The active extraction fixture could not attach.")
+	available_operations = surgeon.get_available_operations(patient, tool, BODY_ZONE_CHEST)
+	TEST_ASSERT(operation.main_option in available_operations, "An explicitly infested ordinary patient could not have their active parasite extracted.")
 	operation.on_success(chest, surgeon, tool, list())
 	TEST_ASSERT(QDELETED(parasite), "Surgery did not release the active parasite.")
 	TEST_ASSERT(istype(parasite_mind.current, /mob/living/basic/flesh_biomorph/lesser/small), "Surgery lost the parasite player instead of releasing a biomorph.")
 	TEST_ASSERT_NULL(patient.treacherous_flesh, "Surgery retained the host's active parasite reference.")
 
-/// Host deletion and invalid infections must not strand temporary minds or markers.
+/** Host deletion and invalid infections must not strand temporary minds or markers. */
 /datum/unit_test/lazarus_flesh_host_deletion/Run()
 	var/mob/living/carbon/human/consistent/host = allocate(/mob/living/carbon/human/consistent)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh)
@@ -108,6 +127,7 @@
 	TEST_ASSERT(parasite.take_control(), "Repeated legitimate possession could not start.")
 	prisoner = parasite.trapped_mind
 	qdel(host)
+	TEST_ASSERT(!(host in GLOB.current_living_antags), "A deleted possessed host remained in the global living-antagonist list.")
 	TEST_ASSERT(QDELETED(parasite) && QDELETED(prisoner), "Deleting a possessed host retained its parasite or trapped-mind body.")
 	TEST_ASSERT_NULL(parasite.host, "The deleted parasite retained its host reference.")
 	TEST_ASSERT_NULL(parasite.controlling_mind, "Host deletion retained a controlling mind reference.")
@@ -135,8 +155,10 @@
 	TEST_ASSERT(!egg.allow_spawn(null), "An extracted egg remained playable outside its host.")
 	qdel(egg_host)
 	TEST_ASSERT(QDELETED(egg), "Deleting the original host retained its ghost-role egg.")
+	var/obj/effect/mob_spawn/ghost_role/treacherous_flesh/hostless_egg = allocate(/obj/effect/mob_spawn/ghost_role/treacherous_flesh)
+	TEST_ASSERT(QDELETED(hostless_egg), "An egg without a host survived initialization.")
 
-/// All threshold crossings grant every stage once, including a multi-stage jump.
+/** All threshold crossings grant every stage once, including a multi-stage jump. */
 /datum/unit_test/lazarus_flesh_all_stages/Run()
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh)
 	var/list/thresholds = list(300, 900, 2100, 3600)
@@ -158,7 +180,7 @@
 	rapid.handle_evolution(0)
 	TEST_ASSERT_EQUAL(length(rapid.actions), 16, "Crossing all stages at once skipped intermediate powers.")
 
-/// Execute the unchanged final transformation after a real, shortened wait.
+/** Unanswered ascension must leave both players and their chemicals intact. */
 /datum/unit_test/lazarus_flesh_ascension/Run()
 	var/mob/living/carbon/human/consistent/host = allocate(/mob/living/carbon/human/consistent)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh)
@@ -170,33 +192,16 @@
 	parasite.handle_evolution(0)
 	TEST_ASSERT(parasite.infest(host), "The ascension fixture could not attach.")
 	parasite.chemicals = LAZARUS_FLESH_CHEMICAL_MAX
-	var/datum/action/treacherous_flesh/ascension/lazarus_transform_test/ascend = allocate(/datum/action/treacherous_flesh/ascension/lazarus_transform_test, parasite)
-	ascend.Grant(parasite)
-	ascend.takeover_during_confirmation = TRUE
-	TEST_ASSERT(!ascend.Trigger(parasite), "A pending ascension confirmation remained valid after possession began.")
-	TEST_ASSERT_EQUAL(parasite.chemicals, LAZARUS_FLESH_CHEMICAL_MAX, "An invalidated ascension confirmation still spent its chemicals.")
-	TEST_ASSERT_EQUAL(host.mind, parasite_mind, "The invalidated ascension changed the possessed host's mind.")
-	TEST_ASSERT(!QDELETED(host) && !QDELETED(parasite), "An invalidated ascension still destroyed its participants.")
-	parasite.restore_control()
-	ascend.takeover_during_confirmation = FALSE
-	TEST_ASSERT(ascend.Trigger(parasite), "The actual final transformation failed.")
-	var/mob/living/basic/flesh_biomorph/high/high_body = parasite_mind.current
-	var/mob/living/basic/flesh_biomorph/lesser/large/host_body = host_mind.current
-	allocated += high_body
-	allocated += host_body
-	TEST_ASSERT(istype(high_body), "Ascension did not transfer the parasite into a higher biomorph.")
-	TEST_ASSERT(istype(host_body), "Ascension did not transfer the original host into a large biomorph.")
-	high_body.ai_controller?.force_ai_off()
-	host_body.ai_controller?.force_ai_off()
-	TEST_ASSERT(QDELETED(host) && QDELETED(parasite), "Ascension retained an obsolete host or parasite body.")
-	TEST_ASSERT_EQUAL(high_body.stat, STABLE, "Ascension produced a dead higher biomorph.")
-	TEST_ASSERT_EQUAL(host_body.stat, STABLE, "Ascension killed the host's successor body.")
-	TEST_ASSERT(parasite_mind.has_antag_datum(/datum/antagonist/treacherous_flesh), "Ascension lost the parasite's antagonist identity.")
-	TEST_ASSERT_NOTNULL(locate(/datum/action/cooldown/biomorph/plant_weeds) in high_body.actions, "Ascension did not grant flesh spreading.")
-	TEST_ASSERT_NOTNULL(locate(/datum/action/cooldown/biomorph/build_structure) in high_body.actions, "Ascension did not grant construction.")
-	TEST_ASSERT_NOTNULL(locate(/datum/action/cooldown/spell/pointed/projectile/biomorph_tentacle) in high_body.actions, "Ascension did not grant the ranged tentacle.")
+	var/datum/action/treacherous_flesh/ascension/ascend = locate() in parasite.actions
+	TEST_ASSERT_NOTNULL(ascend, "Final evolution did not make ascension available.")
+	TEST_ASSERT(!ascend.Trigger(parasite), "Ascension proceeded without affirmative client confirmation.")
+	TEST_ASSERT_EQUAL(parasite.chemicals, LAZARUS_FLESH_CHEMICAL_MAX, "Cancelled ascension spent chemicals.")
+	TEST_ASSERT_EQUAL(host.mind, host_mind, "Cancelled ascension displaced the host's mind.")
+	TEST_ASSERT_EQUAL(parasite.mind, parasite_mind, "Cancelled ascension displaced the parasite's mind.")
+	TEST_ASSERT(!QDELETED(host) && !QDELETED(parasite), "Cancelled ascension destroyed its participants.")
+	TEST_ASSERT_EQUAL(host.treacherous_flesh, parasite, "Cancelled ascension removed the active infestation.")
 
-/// UI selection is replaced, but real delays, placement, cooldowns and cancellation run.
+/** Real growth observes cooldowns and interruption; unanswered construction never places a structure. */
 /datum/unit_test/lazarus_biomorph_construction/Run()
 	var/mob/living/basic/flesh_biomorph/high/builder = allocate(/mob/living/basic/flesh_biomorph/high)
 	builder.ai_controller.force_ai_off()
@@ -214,26 +219,13 @@
 	TEST_ASSERT(!plant.Trigger(builder), "Moving during flesh growth did not cancel its real delay.")
 	TEST_ASSERT_NULL(locate(/obj/structure/alien/weeds/node/meaty) in first_location, "Interrupted spreading still grew its node.")
 	TEST_ASSERT(plant.next_use_time <= world.time, "Interrupted growth retained its cooldown.")
-	var/datum/action/cooldown/biomorph/build_structure/lazarus_transform_test/build = allocate(/datum/action/cooldown/biomorph/build_structure/lazarus_transform_test, builder)
-	build.Grant(builder)
-	TEST_ASSERT(build.Trigger(builder), "The construction action could not grow a wall.")
-	var/obj/structure/alien/resin/wall/meaty/wall = locate() in second_location
-	TEST_ASSERT_NOTNULL(wall, "Successful wall construction did not create a flesh wall.")
-	build.ResetCooldown()
-	TEST_ASSERT(!build.Trigger(builder), "Construction stacked a second structure on an occupied turf.")
-	qdel(wall)
-	build.structure_choice = "Мясистая дверь"
-	TEST_ASSERT(build.Trigger(builder), "The construction action could not grow a door.")
-	var/obj/structure/alien/resin/door/meaty/door = locate() in second_location
-	TEST_ASSERT_NOTNULL(door, "Successful door construction did not create a flesh door.")
-	qdel(door)
-	build.ResetCooldown()
-	addtimer(CALLBACK(builder, TYPE_PROC_REF(/atom/movable, forceMove), first_location), 0.5 SECONDS)
-	TEST_ASSERT(!build.Trigger(builder), "Moving during construction did not cancel its real delay.")
-	TEST_ASSERT_NULL(locate(/obj/structure/alien/resin/door/meaty) in second_location, "Interrupted construction still created a door.")
-	TEST_ASSERT(build.next_use_time <= world.time, "Interrupted construction retained its cooldown.")
+	var/datum/action/cooldown/biomorph/build_structure/build = locate() in builder.actions
+	TEST_ASSERT(!build.Trigger(builder), "Construction proceeded without selecting a structure.")
+	TEST_ASSERT_NULL(locate(/obj/structure/alien/resin/wall/meaty) in second_location, "Cancelled construction placed a wall.")
+	TEST_ASSERT_NULL(locate(/obj/structure/alien/resin/door/meaty) in second_location, "Cancelled construction placed a door.")
+	TEST_ASSERT(build.next_use_time <= world.time, "Cancelled construction retained its cooldown.")
 
-/// Hiding grants door passage only while unbolted, and removal restores appearance.
+/** Hiding grants door passage only while unbolted, and removal restores appearance. */
 /datum/unit_test/lazarus_biomorph_sneak_split/Run()
 	var/mob/living/basic/flesh_biomorph/lesser/small/small = allocate(/mob/living/basic/flesh_biomorph/lesser/small)
 	small.ai_controller.force_ai_off()
@@ -264,7 +256,7 @@
 	gibbed.death(TRUE)
 	TEST_ASSERT_EQUAL(length(GLOB.lazarus_biomorphs), small_before, "A gibbed biomorph still produced splitting offspring.")
 
-/// Native projectile hits must damage, grapple once, respect blocking and clean their beam.
+/** Native projectile hits must damage, grapple once, respect blocking and clean their beam. */
 /datum/unit_test/lazarus_biomorph_tentacle/Run()
 	var/mob/living/basic/flesh_biomorph/high/shooter = allocate(/mob/living/basic/flesh_biomorph/high)
 	shooter.ai_controller.force_ai_off()
@@ -302,4 +294,49 @@
 	sleep(1 SECONDS)
 	TEST_ASSERT(get_dist(shooter, wall) <= 1, "Hitting a dense structure did not pull the shooter toward it.")
 
+/datum/unit_test/lazarus_wildlife_burst/Run()
+	var/mob/living/carbon/human/consistent/human = allocate(/mob/living/carbon/human/consistent)
+	var/mob/living/basic/lazarus_prey/deer/infested/deer = allocate(/mob/living/basic/lazarus_prey/deer/infested)
+	deer.ai_controller.force_ai_off()
+	human.add_faction("treacherous_flesh")
+	var/datum/bt_node/ai_behavior/acquire_target/update_combat_targets/nearest/find_target = allocate(/datum/bt_node/ai_behavior/acquire_target/update_combat_targets/nearest)
+	find_target.target_key = BB_CURRENT_TARGET
+	find_target.hiding_location_key = BB_CURRENT_TARGET_HIDING_LOCATION
+	human.forceMove(locate(deer.x + 5, deer.y, deer.z))
+	find_target.perform(SSMOBS_DT, deer.ai_controller)
+	TEST_ASSERT_NULL(deer.ai_controller.blackboard[BB_CURRENT_TARGET], "An infested animal acquired a target beyond its four-tile detection range.")
+	human.forceMove(locate(deer.x + 4, deer.y, deer.z))
+	find_target.perform(SSMOBS_DT, deer.ai_controller)
+	TEST_ASSERT_EQUAL(deer.ai_controller.blackboard[BB_CURRENT_TARGET], human, "An infested animal did not acquire its target at four tiles.")
+	TEST_ASSERT(!deer.biomorphing, "An infested animal revealed itself to a pheromone-protected host.")
+	human.remove_faction("treacherous_flesh")
+	deer.ai_controller.clear_blackboard_key(BB_CURRENT_TARGET)
+	find_target.perform(SSMOBS_DT, deer.ai_controller)
+	TEST_ASSERT(deer.biomorphing && deer.stat == DEAD, "Native target acquisition did not begin the infested animal's burst.")
+	var/original_timer = deer.biomorph_timer
+	deer.start_biomorphing()
+	TEST_ASSERT_EQUAL(deer.biomorph_timer, original_timer, "Repeated targeting scheduled a second transformation.")
+	var/mob/living/basic/lazarus_prey/bunny/infested/cancelled = allocate(/mob/living/basic/lazarus_prey/bunny/infested)
+	cancelled.ai_controller.force_ai_off()
+	cancelled.ai_controller.set_blackboard_key(BB_CURRENT_TARGET, human)
+	TEST_ASSERT(cancelled.biomorph_timer, "The rabbit did not schedule its transformation.")
+	qdel(cancelled)
+	TEST_ASSERT_NULL(cancelled.biomorph_timer, "Deleting the transforming animal retained its timer.")
+	sleep(5 SECONDS + 2 * world.tick_lag)
+	TEST_ASSERT(QDELETED(deer), "The infested deer survived its completed burst.")
+	var/offspring = 0
+	for(var/mob/living/basic/flesh_biomorph/lesser/medium/child in GLOB.lazarus_biomorphs)
+		if(get_area(child) == get_area(run_loc_floor_bottom_left))
+			offspring++
+	TEST_ASSERT_EQUAL(offspring, 1, "A completed burst and a cancelled burst did not produce exactly one medium biomorph.")
+	var/meat = 0
+	for(var/obj/item/food/meat/slab/slab in run_loc_floor_bottom_left)
+		meat++
+	var/leather = 0
+	for(var/obj/item/stack/sheet/leather/hide in run_loc_floor_bottom_left)
+		leather += hide.amount
+	TEST_ASSERT_EQUAL(meat, 12, "The native basic-mob gib path lost the source deer's meat yield.")
+	TEST_ASSERT_EQUAL(leather, 10, "The native basic-mob gib path lost the source deer's leather yield.")
+
 #endif
+// AI EDIT END

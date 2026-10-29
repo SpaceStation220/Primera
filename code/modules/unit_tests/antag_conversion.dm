@@ -73,3 +73,35 @@
 	cult_a.ClickOn(convert_rune)
 	TEST_ASSERT(IS_CULTIST(new_cultist), "New cultist did not become a cultist after being converted by two people.")
 	TEST_ASSERT_EQUAL(length(cult_team.members), 3, "Expected cult to have 3 members after the cultists convert the new cultist.")
+
+// BANDASTATION ADDITION START - Antagonist body transfers must release headless mobs from global registries.
+// AI EDIT START - Reproduce the actual transfer, death and deletion paths without assigning the global list.
+/** Headless antagonist bodies must leave the living registry on death and deletion. */
+/datum/unit_test/antag_body_cleanup
+	/// The fixture owns its mind and removes its antagonist before normal mind teardown.
+	var/datum/mind/antag_mind
+
+/datum/unit_test/antag_body_cleanup/Destroy()
+	if(!QDELETED(antag_mind))
+		antag_mind.remove_all_antag_datums()
+	antag_mind = null
+	return ..()
+
+/datum/unit_test/antag_body_cleanup/Run()
+	var/mob/living/carbon/human/original = allocate(/mob/living/carbon/human/consistent)
+	var/mob/living/carbon/human/mortal = allocate(/mob/living/carbon/human/consistent)
+	var/mob/living/carbon/human/deleted = allocate(/mob/living/carbon/human/consistent)
+	original.mind_initialize()
+	antag_mind = original.mind
+	allocated += antag_mind
+	antag_mind.add_antag_datum(/datum/antagonist/custom)
+	antag_mind.transfer_to(mortal)
+	TEST_ASSERT(!mortal.client && (mortal in GLOB.current_living_antags), "A native antagonist transfer must register the headless destination.")
+	mortal.death()
+	TEST_ASSERT(!(mortal in GLOB.current_living_antags), "A dead headless antagonist remains in the living registry.")
+	antag_mind.transfer_to(deleted)
+	TEST_ASSERT(deleted in GLOB.current_living_antags, "The next living body must be registered before testing its teardown.")
+	qdel(deleted)
+	TEST_ASSERT(!(deleted in GLOB.current_living_antags), "A deleted headless antagonist remains globally referenced.")
+// AI EDIT END
+// BANDASTATION ADDITION END

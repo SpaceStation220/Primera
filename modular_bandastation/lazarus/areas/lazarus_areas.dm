@@ -1,5 +1,7 @@
+// AI EDIT START - Adapt the Lazarus event to native area and floor contracts
 //-----BASIC-----//
 
+/** Station areas of the colony, with local cold-reserve temperatures. */
 /area/lazarus
 	parent_type = /area/station
 	icon_state = "space_near"
@@ -509,12 +511,22 @@
 	name = "Тайный бункер (Велес)"
 	icon_state = "entry"
 
+/area/lazarus/outpost/veles/bunker/living
+	name = "Жилой отсек тайного бункера (Велес)"
+
+/area/lazarus/outpost/veles/bunker/entry
+	name = "Шлюз тайного бункера (Велес)"
+
+/area/lazarus/outpost/veles/bunker/storage
+	name = "Склад тайного бункера (Велес)"
+
 /area/lazarus/outpost/veles/generators
 	name = "Подстанция (Велес)"
 	icon_state = "engi"
 
-/// An enclosed room whose timber roof protects it from the blizzard.
+/** An enclosed room whose timber roof protects it from the blizzard. */
 /area/lazarus/shelter
 	name = "Укрытие"
 	requires_power = FALSE
 	temperature = AREA_TEMPERATURE_INSIDE
+// AI EDIT END

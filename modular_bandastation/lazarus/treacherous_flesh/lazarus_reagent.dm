@@ -1,11 +1,12 @@
-/// The donor's infection cure and dangerous reanimation fluid.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** The donor's infection cure and dangerous reanimation fluid. */
 /datum/reagent/medicine/lazarus_reagent
 	name = "Lazarus Reagent"
 	description = "Биолюминесцентная зелёная жидкость, будто движущаяся сама по себе."
 	color = "#A0E85E"
 	metabolization_rate = 0.2
 	taste_description = "life"
-	chemical_flags = REAGENT_CAN_BE_SYNTHESIZED
+	chemical_flags = REAGENT_CAN_BE_SYNTHESIZED | REAGENT_NO_RANDOM_RECIPE
 
 /datum/reagent/medicine/lazarus_reagent/on_mob_life(mob/living/carbon/affected_mob, seconds_per_tick, metabolization_ratio)
 	. = ..()
@@ -36,7 +37,7 @@
 		return
 	exposed_mob.apply_status_effect(/datum/status_effect/lazarus_revival)
 
-/// Reserves one revival attempt and revalidates the corpse after the five-second delay.
+/** Reserves one revival attempt and revalidates the corpse after the five-second delay. */
 /datum/status_effect/lazarus_revival
 	id = "lazarus_revival"
 	duration = 5 SECONDS
@@ -61,7 +62,7 @@
 	owner.adjust_organ_loss(ORGAN_SLOT_LIVER, 25)
 	owner.revive()
 
-/// Reanimated creatures cannot provide a fresh set of death drops each time.
+/** Reanimated creatures cannot provide a fresh set of death drops each time. */
 /datum/component/lazarus_no_repeat_loot
 	dupe_mode = COMPONENT_DUPE_UNIQUE
 
@@ -81,11 +82,12 @@
 /datum/chemical_reaction/medicine/lazarus_reagent
 	results = list(/datum/reagent/medicine/lazarus_reagent = 3)
 	required_reagents = list(/datum/reagent/medicine/omnizine = 1, /datum/reagent/water/holywater = 1, /datum/reagent/toxin/mutagen = 1)
-	reaction_flags = REACTION_INSTANT
+	reaction_flags = REACTION_INSTANT | REACTION_COMPETITIVE
 
 /datum/chemical_reaction/medicine/lazarus_reagent/pre_reaction_other_checks(datum/reagents/holder)
 	return istype(get_area(holder.my_atom), /area/lazarus) && ..()
 
-/// The donor recipe matches Strange Reagent; select the event product only on its map.
+/** The donor recipe matches Strange Reagent; select the event product only on its map. */
 /datum/chemical_reaction/medicine/strange_reagent/pre_reaction_other_checks(datum/reagents/holder)
 	return !istype(get_area(holder.my_atom), /area/lazarus) && ..()
+// AI EDIT END

@@ -1,4 +1,5 @@
-/// Meat uses the native weed lifecycle and node ownership, with the donor's sprites.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Meat uses the native weed lifecycle and node ownership, with the donor's sprites. */
 /obj/structure/alien/weeds/meaty
 	name = "мясистая плоть"
 	desc = "Живой ковёр плоти постоянно шевелится, наращивая новые слои."
@@ -16,7 +17,7 @@
 	. = ..()
 	. += lazarus_wallweed_overlays(src)
 
-/// Native expansion creates its own base type, so override only that factory step.
+/** Native expansion creates its own base type, so override only that factory step. */
 /obj/structure/alien/weeds/meaty/try_expand()
 	lazarus_expand_weeds(src)
 
@@ -44,7 +45,7 @@
 /obj/structure/alien/weeds/node/meaty/try_expand()
 	lazarus_expand_weeds(src)
 
-/// Shares expansion between ordinary weeds and nodes without touching unrelated aliens.
+/** Shares expansion between ordinary weeds and nodes without touching unrelated aliens. */
 /proc/lazarus_expand_weeds(obj/structure/alien/weeds/source)
 	var/turf/location = get_turf(source)
 	if(!source.parent_node || !location || is_type_in_list(location, source.blacklisted_turfs))
@@ -57,7 +58,7 @@
 		child.parent_node = source.parent_node
 		child.RegisterSignal(source.parent_node, COMSIG_QDELETING, TYPE_PROC_REF(/obj/structure/alien/weeds, after_parent_destroyed))
 
-/// The donor wall sprites face away from each wall and are offset onto its tile.
+/** The donor wall sprites face away from each wall and are offset onto its tile. */
 /proc/lazarus_wallweed_overlays(obj/structure/alien/weeds/source)
 	. = list()
 	for(var/direction in GLOB.alldirs)
@@ -75,7 +76,7 @@
 	desc = "Огромный ком плоти образует прочную стену."
 	icon = 'modular_bandastation/lazarus/icons/meaty_wall.dmi'
 
-/// Mineral doors already provide safe opening, atmospheric updates and auto-closing.
+/** Mineral doors already provide safe opening, atmospheric updates and auto-closing. */
 /obj/structure/alien/resin/door/meaty
 	parent_type = /obj/structure/mineral_door
 	name = "мясистая дверь"
@@ -92,6 +93,7 @@
 	if(!ismob(user) || isSwitchingStates)
 		return
 	var/mob/visitor = user
-	if(!("treacherous_flesh" in visitor.faction))
+	if(!visitor.has_faction("treacherous_flesh"))
 		return
 	SwitchState()
+// AI EDIT END

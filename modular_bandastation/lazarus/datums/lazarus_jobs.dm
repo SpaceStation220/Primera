@@ -1,4 +1,5 @@
-/// Colonist roles exist in the lobby only while the event map is selected.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Colonist roles exist in the lobby only while the event map is selected. */
 /datum/job/lazarus
 	faction = FACTION_STATION
 	job_flags = STATION_JOB_FLAGS
@@ -7,11 +8,12 @@
 	outfit = /datum/outfit/job/assistant
 	allow_bureaucratic_error = FALSE
 	random_spawns_possible = FALSE
+	tgui_icon = /datum/job/assistant::tgui_icon
 
 /datum/job/lazarus/map_check()
 	return type != /datum/job/lazarus && SSmapping.current_map?.map_name == LAZARUS_MAP_NAME && ..()
 
-/// Late arrivals use the same remote settlement as their roundstart role.
+/** Late arrivals use the same remote settlement as their roundstart role. */
 /datum/job/lazarus/get_latejoin_spawn_point()
 	return get_default_roundstart_spawn_point() || ..()
 
@@ -24,6 +26,7 @@
 	spawn_positions = 6
 
 /datum/job/lazarus/crusader
+	tgui_icon = /datum/job/chaplain::tgui_icon
 	title = "Crusader"
 	description = "Несите веру колонистам и противостойте скверне."
 	supervisors = "всевышний"
@@ -33,6 +36,7 @@
 	outfit = /datum/outfit/job/lazarus/crusader
 
 /datum/job/lazarus/abandoned_miner
+	tgui_icon = /datum/job/shaft_miner::tgui_icon
 	title = "Abandoned Miner"
 	description = "Вы забытый шахтёр на окраине колонии."
 	supervisors = "руководство комплекса"
@@ -60,6 +64,7 @@
 	outfit = /datum/outfit/job/lazarus/sectarian
 
 /datum/job/lazarus/syndicate_agent
+	tgui_icon = /datum/job/space_syndicate::tgui_icon
 	title = "Syndicate Agent"
 	description = "Работайте на Синдикат в охваченной карантином колонии."
 	supervisors = "Синдикат"
@@ -68,7 +73,7 @@
 	spawn_positions = 3
 	outfit = /datum/outfit/job/lazarus/syndicate_agent
 
-/// Event factions have no station PDA or survival-box loadout.
+/** Event factions have no station PDA or survival-box loadout. */
 /datum/outfit/job/lazarus
 	name = "Lazarus colonist"
 	id_trim = /datum/id_trim/job/assistant
@@ -115,3 +120,4 @@
 	shoes = /obj/item/clothing/shoes/jackboots
 	belt = /obj/item/storage/belt/military
 	id = /obj/item/card/id/advanced/chameleon
+// AI EDIT END

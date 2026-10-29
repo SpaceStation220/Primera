@@ -1,10 +1,11 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /** Paradise's topical medicines, scoped to the event's supplies. */
 /datum/reagent/medicine/lazarus_topical
 	name = "Styptic Powder"
 	description = "Кровоостанавливающий порошок для наружного применения. Вреден при проглатывании."
 	color = "#FF9696"
 	metabolization_rate = 1.5
-	chemical_flags = REAGENT_CAN_BE_SYNTHESIZED
+	chemical_flags = REAGENT_CAN_BE_SYNTHESIZED | REAGENT_NO_RANDOM_RECIPE
 	/// Brute damage healed per unit applied externally.
 	var/heal_brute = 1
 	/// Burn damage healed per unit applied externally.
@@ -44,7 +45,16 @@
 /datum/chemical_reaction/medicine/lazarus_silver_sulfadiazine
 	results = list(/datum/reagent/medicine/lazarus_topical/silver_sulfadiazine = 5)
 	required_reagents = list(/datum/reagent/ammonia = 1, /datum/reagent/silver = 1, /datum/reagent/sulfur = 1, /datum/reagent/oxygen = 1, /datum/reagent/chlorine = 1)
-	reaction_flags = REACTION_INSTANT
+	reaction_flags = REACTION_INSTANT | REACTION_COMPETITIVE
+
+/datum/chemical_reaction/medicine/lazarus_styptic/pre_reaction_other_checks(datum/reagents/holder)
+	return istype(get_area(holder.my_atom), /area/lazarus) && ..()
+
+/datum/chemical_reaction/medicine/lazarus_silver_sulfadiazine/pre_reaction_other_checks(datum/reagents/holder)
+	return istype(get_area(holder.my_atom), /area/lazarus) && ..()
+
+/datum/chemical_reaction/medicine/lenturi/pre_reaction_other_checks(datum/reagents/holder)
+	return !istype(get_area(holder.my_atom), /area/lazarus) && ..()
 
 /** Refillable auto-mender using native medigel containers and reagent transfer. */
 /obj/item/reagent_containers/medigel/lazarus
@@ -59,7 +69,6 @@
 	var/purging = FALSE
 
 /obj/item/reagent_containers/medigel/lazarus/on_reagent_change(datum/reagents/holder, ...)
-	SIGNAL_HANDLER
 	if(!purging && !(obj_flags & EMAGGED))
 		purging = TRUE
 		for(var/datum/reagent/contained as anything in reagents.reagent_list.Copy())
@@ -155,10 +164,11 @@
 /** The original wilderness herbs can be mashed immediately, without a working kitchen. */
 /obj/item/seeds/comfrey
 	name = "семена окопника"
+	spawn_blacklisted = TRUE
 	species = "cabbage"
 	plantname = "Окопник"
 	product = /obj/item/food/grown/comfrey
-	icon_state = "seed-lettuce"
+	icon_state = "seed-cabbage"
 	yield = 2
 	maturation = 3
 	growthstages = 1
@@ -191,6 +201,7 @@
 
 /obj/item/seeds/aloe/lazarus
 	product = /obj/item/food/grown/aloe/lazarus
+	spawn_blacklisted = TRUE
 	yield = 2
 	reagents_add = list(/datum/reagent/medicine/lazarus_topical/silver_sulfadiazine = 0.1)
 
@@ -214,3 +225,4 @@
 	amount = 1
 	max_amount = 1
 	merge_type = /obj/item/stack/medical/ointment/lazarus_poultice
+// AI EDIT END

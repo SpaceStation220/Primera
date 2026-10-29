@@ -1,4 +1,5 @@
-/// The native loader must retain the entire colony, including its western observer point.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** The native loader must retain the entire colony, including its western observer point. */
 /datum/unit_test/lazarus_loaded_map/Run()
 	if(SSmapping.current_map?.map_name != LAZARUS_MAP_NAME)
 		return
@@ -39,8 +40,14 @@
 		TEST_ASSERT(icon_exists(dirt.damaged_dmi, damaged_state), "Excavating colony soil must not generate a missing damage sprite.")
 
 
-/// Harvesting must keep the event's scarce wood yield and reject repeated harvests.
+/** Harvesting must keep the event's scarce wood yield and reject repeated harvests. */
 /datum/unit_test/lazarus_mapping_trees/Run()
+	var/obj/item/stack/sheet/mineral/wood/planks = allocate(/obj/item/stack/sheet/mineral/wood)
+	var/has_ceiling_recipe = FALSE
+	for(var/datum/stack_recipe/recipe in planks.get_main_recipes())
+		if(recipe.result_type == /obj/item/lazarus_wooden_ceiling)
+			has_ceiling_recipe = TRUE
+	TEST_ASSERT_EQUAL(has_ceiling_recipe, SSmapping.current_map?.map_name == LAZARUS_MAP_NAME, "The colony ceiling must appear in the real plank menu only on Lazarus.")
 	var/mob/living/carbon/human/colonist = allocate(/mob/living/carbon/human/consistent)
 	var/obj/structure/flora/lazarus_tree/tree = allocate(/obj/structure/flora/lazarus_tree)
 	var/obj/item/hatchet/hatchet = allocate(/obj/item/hatchet)
@@ -57,3 +64,4 @@
 	var/list/broken_wood = broken_tree.harvest(product_amount_multiplier = 0.6)
 	allocated += broken_wood
 	TEST_ASSERT(length(broken_wood) >= 1 && length(broken_wood) <= 4, "Destruction must produce one batch of one to four logs.")
+// AI EDIT END

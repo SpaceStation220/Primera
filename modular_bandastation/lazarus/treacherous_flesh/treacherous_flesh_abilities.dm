@@ -1,4 +1,5 @@
-/// Parasite abilities revalidate the same host after every prompt and delay.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Parasite abilities revalidate the same host after every prompt and delay. */
 /datum/action/treacherous_flesh
 	button_icon = 'modular_bandastation/lazarus/icons/lazarus_actions.dmi'
 	background_icon = 'modular_bandastation/lazarus/icons/lazarus_actions.dmi'
@@ -23,7 +24,7 @@
 /datum/action/treacherous_flesh/IsAvailable(feedback = FALSE)
 	return ..() && !busy && valid_host(user?.host)
 
-/// Checks identity as well as existence so a delayed power cannot affect another host.
+/** Checks identity as well as existence so a delayed power cannot affect another host. */
 /datum/action/treacherous_flesh/proc/valid_host(mob/living/carbon/human/expected_host)
 	return !QDELETED(user) && !QDELETED(expected_host) && !user.trapped_mind && user.host == expected_host && expected_host.treacherous_flesh == user && (ignore_death || expected_host.stat != DEAD)
 
@@ -35,15 +36,11 @@
 	if(!QDELETED(src))
 		busy = FALSE
 
-/// Implemented by each power after the common authorization and reentry checks.
+/** Implemented by each power after the common authorization and reentry checks. */
 /datum/action/treacherous_flesh/proc/activate()
 	return FALSE
 
-/// Confirmation is shared by the irreversible and host-revealing powers.
-/datum/action/treacherous_flesh/proc/confirm_activation(message)
-	return tgui_alert(user, message, name, list("Да", "Нет")) == "Да"
-
-/// Equipment powers must check the cost before dropping the host's existing items.
+/** Equipment powers must check the cost before dropping the host's existing items. */
 /datum/action/treacherous_flesh/proc/check_chems(mob/living/carbon/human/expected_host)
 	if(!valid_host(expected_host))
 		return FALSE
@@ -52,14 +49,14 @@
 		return FALSE
 	return TRUE
 
-/// Spends chemicals only while the original host is still available.
+/** Spends chemicals only while the original host is still available. */
 /datum/action/treacherous_flesh/proc/take_chems(mob/living/carbon/human/expected_host)
 	if(!check_chems(expected_host))
 		return FALSE
 	user.chemicals -= chemical_cost
 	return TRUE
 
-/// Shared gradual metamorphosis, retaining the donor's durations and rechecking each yield.
+/** Shared gradual metamorphosis, retaining the donor's durations and rechecking each yield. */
 /datum/action/treacherous_flesh/proc/wait_for_host(duration, mob/living/carbon/human/expected_host)
 	for(var/elapsed = 0; elapsed < duration; elapsed += 10 SECONDS)
 		if(!valid_host(expected_host))
@@ -91,9 +88,10 @@
 	desc = "Раскрыть своё существование и дать носителю телепатический ответ."
 	button_icon_state = "contact_host"
 
+/** Reveals the parasite only after confirmation and revalidation of its original host. */
 /datum/action/treacherous_flesh/contact_host/activate()
 	var/mob/living/carbon/human/host = user.host
-	if(user.contacted || !confirm_activation("Раскрыть своё существование носителю?") || !valid_host(host))
+	if(user.contacted || tgui_alert(user, "Раскрыть своё существование носителю?", name, list("Да", "Нет")) != "Да" || !valid_host(host))
 		return FALSE
 	user.contacted = TRUE
 	var/datum/action/communicate_parasite/reply = new(user)
@@ -153,27 +151,28 @@
 	button_icon_state = "speed_up_evolution"
 	chemical_cost = 100
 
+/** Buys evolution progress, retaining the donor's three harmful outcomes and harmless rolls. */
 /datum/action/treacherous_flesh/speed_up_evolution/activate()
 	var/mob/living/carbon/human/host = user.host
 	if(!take_chems(host))
 		return FALSE
-	switch(rand(0, 5))
-		if(3)
-			host.adjust_organ_loss(ORGAN_SLOT_BRAIN, 10)
-			host.adjust_stamina_loss(50)
-			host.emote("scream")
-		if(4)
-			host.set_timed_status_effect(10 SECONDS, /datum/status_effect/dizziness)
-			host.set_timed_status_effect(10 SECONDS, /datum/status_effect/confusion)
-			host.adjust_stamina_loss(100)
-		if(5)
-			host.adjust_brute_loss(20)
-			host.emote("scream")
-			sleep(5 SECONDS)
-			if(!valid_host(host))
-				return FALSE
-			host.adjust_brute_loss(20)
-			new /mob/living/basic/flesh_biomorph/lesser/small(get_turf(host))
+	var/outcome = rand(0, 5)
+	if(outcome == 3)
+		host.adjust_organ_loss(ORGAN_SLOT_BRAIN, 10)
+		host.adjust_stamina_loss(50)
+		host.emote("scream")
+	else if(outcome == 4)
+		host.set_timed_status_effect(10 SECONDS, /datum/status_effect/dizziness)
+		host.set_timed_status_effect(10 SECONDS, /datum/status_effect/confusion)
+		host.adjust_stamina_loss(100)
+	else if(outcome == 5)
+		host.adjust_brute_loss(20)
+		host.emote("scream")
+		sleep(5 SECONDS)
+		if(!valid_host(host))
+			return FALSE
+		host.adjust_brute_loss(20)
+		new /mob/living/basic/flesh_biomorph/lesser/small(get_turf(host))
 	user.evolution_points += 60
 	user.handle_evolution(0)
 	return TRUE
@@ -345,10 +344,11 @@
 	/// Whether this particular action is active.
 	var/active = FALSE
 
+/** Toggles only the faction membership added by this parasite's pheromones. */
 /datum/action/treacherous_flesh/emit_pheromones/activate()
 	active = !active
 	if(active)
-		user.added_host_faction = !("treacherous_flesh" in user.host.faction)
+		user.added_host_faction = !user.host.has_faction("treacherous_flesh")
 		user.host.add_faction("treacherous_flesh")
 	else if(user.added_host_faction)
 		user.host.remove_faction("treacherous_flesh")
@@ -363,9 +363,10 @@
 	button_icon_state = "enslave_mind"
 	chemical_cost = 150
 
+/** Enslaves a living, unshielded host after its confirmation and metamorphosis complete. */
 /datum/action/treacherous_flesh/enslave_mind/activate()
 	var/mob/living/carbon/human/host = user.host
-	if(user.host_enslaved || HAS_TRAIT(host, TRAIT_MINDSHIELD) || !confirm_activation("Поработить разум носителя?"))
+	if(user.host_enslaved || HAS_TRAIT(host, TRAIT_MINDSHIELD) || tgui_alert(user, "Поработить разум носителя?", name, list("Да", "Нет")) != "Да")
 		return FALSE
 	if(!valid_host(host) || HAS_TRAIT(host, TRAIT_MINDSHIELD) || !take_chems(host) || !wait_for_host(30 SECONDS, host) || HAS_TRAIT(host, TRAIT_MINDSHIELD))
 		return FALSE
@@ -380,9 +381,10 @@
 	button_icon_state = "leave_the_body"
 	ignore_death = TRUE
 
+/** Confirms irreversible escape before waiting and releasing the parasite's player. */
 /datum/action/treacherous_flesh/leave_the_body/activate()
 	var/mob/living/carbon/human/host = user.host
-	if(!confirm_activation("Покинуть тело навсегда?") || !wait_for_host(8 SECONDS, host))
+	if(tgui_alert(user, "Покинуть тело навсегда?", name, list("Да", "Нет")) != "Да" || !wait_for_host(8 SECONDS, host))
 		return FALSE
 	return user.burst_out()
 
@@ -391,9 +393,10 @@
 	desc = "За минуту захватить управление телом. Носитель может сопротивляться. Во время контроля другие способности недоступны."
 	button_icon_state = "take_control"
 
+/** Confirms possession and keeps the same host valid throughout the one-minute takeover. */
 /datum/action/treacherous_flesh/take_control/activate()
 	var/mob/living/carbon/human/host = user.host
-	if(user.trapped_mind || !confirm_activation("Захватить тело носителя?") || !wait_for_host(1 MINUTES, host))
+	if(user.trapped_mind || tgui_alert(user, "Захватить тело носителя?", name, list("Да", "Нет")) != "Да" || !wait_for_host(1 MINUTES, host))
 		return FALSE
 	return user.take_control()
 
@@ -403,9 +406,10 @@
 	button_icon_state = "ascension"
 	chemical_cost = 200
 
+/** Transfers both players to their successor bodies only after the native confirmation and wait. */
 /datum/action/treacherous_flesh/ascension/activate()
 	var/mob/living/carbon/human/host = user.host
-	if(!confirm_activation("Начать окончательное возвышение?") || !take_chems(host) || !wait_for_host(30 SECONDS, host))
+	if(tgui_alert(user, "Начать окончательное возвышение?", name, list("Да", "Нет")) != "Да" || !take_chems(host) || !wait_for_host(30 SECONDS, host))
 		return FALSE
 	user.restore_control()
 	var/mob/living/basic/flesh_biomorph/lesser/large/host_body = new(get_turf(host))
@@ -418,3 +422,4 @@
 	host.gib()
 	qdel(user)
 	return TRUE
+// AI EDIT END

@@ -1,6 +1,7 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 #define SMOOTH_GROUP_LAZARUS_ICE_WALL S_TURF(221)
 
-/// Glacial walls preserve the source's weldable, unmineable barrier.
+/** Glacial walls preserve the source's weldable, unmineable barrier. */
 /turf/closed/wall/lazarus_ice
 	name = "ледяная стена"
 	desc = "Стена из застывших во льду камней. Кирка против неё бесполезна, но сварочник может помочь."
@@ -35,3 +36,4 @@
 	light_power = 0.8
 	light_color = "#A91515"
 	initial_gas_mix = OPENTURF_DEFAULT_ATMOS
+// AI EDIT END

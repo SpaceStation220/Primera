@@ -1,8 +1,9 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /// Event-only state shared by the quarantine and distress consoles.
 GLOBAL_VAR_INIT(lazarus_quarantine, TRUE)
 GLOBAL_VAR_INIT(lazarus_distress_sent, FALSE)
 
-/// Indestructible colony consoles; actions are revalidated after confirmation.
+/** Indestructible colony consoles; actions are revalidated after confirmation. */
 /obj/structure/event_console
 	name = "консоль колонии"
 	density = TRUE
@@ -65,10 +66,11 @@ GLOBAL_VAR_INIT(lazarus_distress_sent, FALSE)
 	message_admins("ЛАЗАРЬ: [ADMIN_LOOKUPFLW(user)] снимает карантин в [ADMIN_VERBOSEJMP(src)].")
 	log_game("Lazarus quarantine lifted by [key_name(user)].")
 
-/// The original TSF evacuation is dispatched by event administrators.
+/** The original TSF evacuation is dispatched by event administrators. */
 /datum/map_template/shuttle/emergency/lazarus
 	prefix = "modular_bandastation/lazarus/maps/"
 	suffix = "lazarus"
 	name = "TSF Escape Shuttle"
 	occupancy_limit = 25
 	description = "Спасательный шаттл проекта «Лазарь»."
+// AI EDIT END

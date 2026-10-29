@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 #ifndef LAZARUS_DEFINES
 #define LAZARUS_DEFINES
 /// Lazarus warmth reserve and area cooling per original two-second life tick.
@@ -23,3 +24,4 @@
 #define LAZARUS_FLESH_CHEMICAL_MAX 200
 #define LAZARUS_FLESH_FINAL_STAGE 4
 #endif
+// AI EDIT END

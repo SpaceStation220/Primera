@@ -1,4 +1,5 @@
-/// The final body keeps the colony-building abilities and gains a ranged grapple.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** The final body keeps the colony-building abilities and gains a ranged grapple. */
 /mob/living/basic/flesh_biomorph/high
 	name = "Высший биоморф"
 	desc = "Отвратительное насекомоподобное существо."
@@ -70,3 +71,4 @@
 		victim.throw_at(get_step_towards(firer, victim), 10, 2, firer, gentle = TRUE)
 	else if(target.density)
 		firer.throw_at(get_step_towards(target, firer), 10, 2)
+// AI EDIT END

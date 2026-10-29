@@ -1,27 +1,23 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
 "af" = (
-/obj/structure/window/reinforced{
-	color = "#00BFFF";
-	dir = 8
+/obj/structure/window/reinforced/spawner/directional/west{
+	color = "#00BFFF"
 	},
-/obj/structure/window/reinforced{
-	color = "#00BFFF";
-	dir = 1
+/obj/structure/window/reinforced/spawner/directional/north{
+	color = "#00BFFF"
 	},
 /turf/open/floor/plating,
 /area/shuttle/escape)
 "aV" = (
 /obj/machinery/vending/tool,
-/turf/open/floor/iron/lazarus{
-	dir = 4;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
 	},
 /area/shuttle/escape)
 "bx" = (
 /obj/machinery/power/shuttle_engine/propulsion,
-/obj/structure/window/reinforced{
-	color = "#00BFFF";
-	dir = 1
+/obj/structure/window/reinforced/spawner/directional/north{
+	color = "#00BFFF"
 	},
 /turf/open/floor/plating,
 /area/shuttle/escape)
@@ -31,9 +27,8 @@
 /area/shuttle/escape)
 "eM" = (
 /obj/item/sign/flag/terragov,
-/turf/open/floor/iron/lazarus{
-	dir = 5;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 5
 	},
 /area/shuttle/escape)
 "fd" = (
@@ -44,15 +39,13 @@
 /turf/open/floor/iron/dark,
 /area/shuttle/escape)
 "ht" = (
-/turf/open/floor/iron/lazarus{
-	dir = 8;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 8
 	},
 /area/shuttle/escape)
 "hu" = (
-/turf/open/floor/iron/lazarus{
-	dir = 4;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
 	},
 /area/shuttle/escape)
 "iZ" = (
@@ -68,22 +61,18 @@
 /turf/open/floor/iron/dark,
 /area/shuttle/escape)
 "lx" = (
-/obj/structure/window/reinforced{
-	color = "#00BFFF";
-	dir = 1
+/obj/structure/window/reinforced/spawner/directional/north{
+	color = "#00BFFF"
 	},
 /turf/open/floor/plating,
 /area/shuttle/escape)
 "mO" = (
 /obj/effect/light_emitter,
-/turf/open/floor/iron/lazarus{
-	icon_state = "navybluealt"
-	},
+/turf/open/floor/iron/lazarus/navybluealt,
 /area/shuttle/escape)
 "ob" = (
-/turf/open/floor/iron/lazarus{
-	dir = 4;
-	icon_state = "navybluecornersalt"
+/turf/open/floor/iron/lazarus/navybluecornersalt{
+	dir = 4
 	},
 /area/shuttle/escape)
 "os" = (
@@ -97,9 +86,8 @@
 /turf/open/floor/iron/dark,
 /area/shuttle/escape)
 "rg" = (
-/turf/open/floor/iron/lazarus{
-	dir = 1;
-	icon_state = "navybluecornersalt"
+/turf/open/floor/iron/lazarus/navybluecornersalt{
+	dir = 1
 	},
 /area/shuttle/escape)
 "rN" = (
@@ -108,9 +96,7 @@
 	pixel_x = -1;
 	pixel_y = 9
 	},
-/turf/open/floor/iron/lazarus{
-	icon_state = "darkbluefull"
-	},
+/turf/open/floor/iron/lazarus/darkbluefull,
 /area/shuttle/escape)
 "sj" = (
 /obj/machinery/computer/operating,
@@ -124,9 +110,7 @@
 /area/shuttle/escape)
 "ti" = (
 /obj/structure/closet/secure_closet/medical2,
-/turf/open/floor/iron/lazarus{
-	icon_state = "darkbluefull"
-	},
+/turf/open/floor/iron/lazarus/darkbluefull,
 /area/shuttle/escape)
 "tO" = (
 /obj/machinery/chem_dispenser/fullupgrade,
@@ -141,13 +125,11 @@
 /turf/open/floor/iron/dark,
 /area/shuttle/escape)
 "wD" = (
-/obj/structure/window/reinforced{
-	color = "#00BFFF";
-	dir = 1
+/obj/structure/window/reinforced/spawner/directional/north{
+	color = "#00BFFF"
 	},
-/obj/structure/window/reinforced{
-	color = "#00BFFF";
-	dir = 4
+/obj/structure/window/reinforced/spawner/directional/east{
+	color = "#00BFFF"
 	},
 /turf/open/floor/plating,
 /area/shuttle/escape)
@@ -158,11 +140,8 @@
 	id_tag = "s_docking_airlock"
 	},
 /obj/docking_port/mobile/emergency{
-	height = 18;
 	name = "The Emergency Shuttle";
-	width = 15;
-	dir = 1;
-	dwidth = 7
+	dir = 1
 	},
 /turf/open/floor/iron/dark,
 /area/shuttle/escape)
@@ -177,14 +156,10 @@
 	pixel_x = 2
 	},
 /obj/effect/light_emitter,
-/turf/open/floor/iron/lazarus{
-	icon_state = "darkbluefull"
-	},
+/turf/open/floor/iron/lazarus/darkbluefull,
 /area/shuttle/escape)
 "yz" = (
-/turf/open/floor/iron/lazarus{
-	icon_state = "navybluealt"
-	},
+/turf/open/floor/iron/lazarus/navybluealt,
 /area/shuttle/escape)
 "za" = (
 /obj/machinery/chem_heater,
@@ -192,9 +167,8 @@
 /area/shuttle/escape)
 "Aj" = (
 /obj/item/kirbyplants,
-/turf/open/floor/iron/lazarus{
-	dir = 10;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 10
 	},
 /area/shuttle/escape)
 "Ar" = (
@@ -206,22 +180,18 @@
 /area/shuttle/escape)
 "BS" = (
 /obj/effect/light_emitter,
-/turf/open/floor/iron/lazarus{
-	dir = 4;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
 	},
 /area/shuttle/escape)
 "Cd" = (
 /obj/structure/closet/secure_closet/engineering_electrical,
-/turf/open/floor/iron/lazarus{
-	dir = 4;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
 	},
 /area/shuttle/escape)
 "Cf" = (
-/turf/open/floor/iron/lazarus{
-	icon_state = "navybluecornersalt"
-	},
+/turf/open/floor/iron/lazarus/navybluecornersalt,
 /area/shuttle/escape)
 "Dp" = (
 /turf/template_noop,
@@ -235,9 +205,8 @@
 /area/shuttle/escape)
 "Gr" = (
 /obj/machinery/vending/snack,
-/turf/open/floor/iron/lazarus{
-	dir = 9;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 9
 	},
 /area/shuttle/escape)
 "GA" = (
@@ -260,15 +229,12 @@
 /turf/open/floor/iron/dark,
 /area/shuttle/escape)
 "Ls" = (
-/turf/open/floor/iron/lazarus{
-	icon_state = "darkbluefull"
-	},
+/turf/open/floor/iron/lazarus/darkbluefull,
 /area/shuttle/escape)
 "LO" = (
 /obj/structure/closet/secure_closet/engineering_welding,
-/turf/open/floor/iron/lazarus{
-	dir = 4;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
 	},
 /area/shuttle/escape)
 "LR" = (
@@ -278,9 +244,8 @@
 /area/shuttle/escape)
 "LY" = (
 /obj/effect/light_emitter,
-/turf/open/floor/iron/lazarus{
-	dir = 8;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 8
 	},
 /area/shuttle/escape)
 "OD" = (
@@ -293,53 +258,46 @@
 /area/shuttle/escape)
 "Pu" = (
 /obj/machinery/vending/coffee,
-/turf/open/floor/iron/lazarus{
-	dir = 1;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 1
 	},
 /area/shuttle/escape)
 "QN" = (
-/turf/open/floor/iron/lazarus{
-	dir = 8;
-	icon_state = "navybluecornersalt"
+/turf/open/floor/iron/lazarus/navybluecornersalt{
+	dir = 8
 	},
 /area/shuttle/escape)
 "QP" = (
 /obj/structure/chair/comfy/shuttle{
 	dir = 4
 	},
-/turf/open/floor/iron/lazarus{
-	dir = 4;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
 	},
 /area/shuttle/escape)
 "Rx" = (
 /obj/structure/chair/comfy/shuttle{
 	dir = 8
 	},
-/turf/open/floor/iron/lazarus{
-	dir = 8;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 8
 	},
 /area/shuttle/escape)
 "Su" = (
 /obj/machinery/vending/cola,
-/turf/open/floor/iron/lazarus{
-	dir = 9;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 9
 	},
 /area/shuttle/escape)
 "SA" = (
 /obj/item/sign/flag/terragov,
-/turf/open/floor/iron/lazarus{
-	dir = 9;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 9
 	},
 /area/shuttle/escape)
 "TE" = (
-/turf/open/floor/iron/lazarus{
-	dir = 1;
-	icon_state = "navybluealt"
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 1
 	},
 /area/shuttle/escape)
 "YM" = (

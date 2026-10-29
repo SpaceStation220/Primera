@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 GLOBAL_LIST_EMPTY(ladder_teleporters)
 
 /** Links colony floors by the IDs embedded in the original event map. */
@@ -60,3 +61,4 @@ GLOBAL_LIST_EMPTY(ladder_teleporters)
 	var/obj/structure/ladder_teleporter/destination = find_destination()
 	if(destination)
 		user.forceMove(get_turf(destination))
+// AI EDIT END

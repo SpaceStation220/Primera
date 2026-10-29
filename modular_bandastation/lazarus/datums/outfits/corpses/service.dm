@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /datum/outfit/lazarus/corpse/chef
 	name = "Chef"
 
@@ -21,3 +22,4 @@
 	id_trim = /datum/id_trim/job/lawyer
 	l_pocket = /obj/item/laser_pointer
 	implants = list(/obj/item/implant/mindshield)
+// AI EDIT END

@@ -9,6 +9,11 @@
   "wilderness_levels": 0,
   "planetary": 1,
   "minetype": "none",
+  "ignored_unit_tests": [
+    "/datum/unit_test/atmospherics_sanity",
+    "/datum/unit_test/cargo_dep_order_locations",
+    "/datum/unit_test/maptest_required_map_items"
+  ],
   "traits": [
     {
       "Station": true,

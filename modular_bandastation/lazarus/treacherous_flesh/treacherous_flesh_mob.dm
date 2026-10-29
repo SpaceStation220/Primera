@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 GLOBAL_LIST_EMPTY(lazarus_flesh)
 GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 
@@ -5,7 +6,7 @@ GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 	/// The active Lazarus parasite; inactive eggs remain in contents instead.
 	var/mob/living/treacherous_flesh/treacherous_flesh
 
-/// A separate player and mind living inside an organic human host.
+/** A separate player and mind living inside an organic human host. */
 /mob/living/treacherous_flesh
 	name = "Коварная плоть"
 	icon = 'icons/mob/simple/animal.dmi'
@@ -90,7 +91,7 @@ GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 	if(status_display)
 		status_display.maptext = MAPTEXT("[round(chemicals)] / 200<br>Эволюция: [evolution_stage]")
 
-/// Advances development at the donor's rate without depending on subsystem frequency.
+/** Advances development at the donor's rate without depending on subsystem frequency. */
 /mob/living/treacherous_flesh/proc/handle_evolution(seconds_per_tick)
 	if(evolution_stage >= LAZARUS_FLESH_FINAL_STAGE)
 		return
@@ -104,7 +105,7 @@ GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 	if(evolution_stage >= 3)
 		sight |= SEE_MOBS
 
-/// Attaches to a single organic host and subscribes only to that host's interactions.
+/** Attaches to a single organic host and subscribes only to that host's interactions. */
 /mob/living/treacherous_flesh/proc/infest(mob/living/carbon/human/new_host)
 	if(QDELETED(new_host) || new_host.stat == DEAD || !(new_host.mob_biotypes & MOB_ORGANIC) || new_host.treacherous_flesh || host)
 		return FALSE
@@ -119,7 +120,7 @@ GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 	reset_perspective(new_host)
 	return TRUE
 
-/// Releases host state, controlled minds and host-owned actions before either body is deleted.
+/** Releases host state, controlled minds and host-owned actions before either body is deleted. */
 /mob/living/treacherous_flesh/proc/disinfest(delete = TRUE)
 	if(host)
 		restore_control()
@@ -145,7 +146,7 @@ GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 	SIGNAL_HANDLER
 	qdel(src)
 
-/// Releases the player as the size appropriate to the current evolution stage.
+/** Releases the player as the size appropriate to the current evolution stage. */
 /mob/living/treacherous_flesh/proc/burst_out()
 	if(QDELETED(host))
 		return
@@ -176,7 +177,7 @@ GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 /mob/living/treacherous_flesh/emote(act, m_type = null, message = null, intentional = FALSE, force_silence = FALSE)
 	return FALSE
 
-/// Grants each development stage once; powers are owned by and deleted with this body.
+/** Grants each development stage once; powers are owned by and deleted with this body. */
 /mob/living/treacherous_flesh/proc/grant_skills()
 	var/static/list/stages = list(
 		list(/datum/action/treacherous_flesh/message_host, /datum/action/treacherous_flesh/contact_host, /datum/action/treacherous_flesh/speed_up_evolution, /datum/action/treacherous_flesh/leave_the_body, /datum/action/treacherous_flesh/emit_pheromones),
@@ -191,7 +192,7 @@ GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 		var/datum/action/treacherous_flesh/action = new action_type(src)
 		action.Grant(src)
 
-/// A separate HUD counter avoids changing the host's antagonist HUD.
+/** A separate HUD counter avoids changing the host's antagonist HUD. */
 /datum/hud/treacherous_flesh
 	parent_type = /datum/hud/living
 
@@ -211,3 +212,4 @@ GLOBAL_LIST_EMPTY(lazarus_biomorphs)
 		return
 	var/mob/living/treacherous_flesh/flesh = usr
 	to_chat(flesh, span_notice("Эволюция: [flesh.evolution_stage]/4; прогресс: [round(flesh.evolution_points)]; химикаты: [round(flesh.chemicals)]/200."))
+// AI EDIT END

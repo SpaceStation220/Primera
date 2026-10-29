@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /** Tool order, timed repair invalidation, network output and failure cancellation. */
 /datum/unit_test/lazarus_generator/Run()
 	var/turf/spot = run_loc_floor_bottom_left
@@ -87,6 +88,10 @@
 
 /** Mash the real crop, then treat an injured limb using the resulting native medical stack. */
 /datum/unit_test/lazarus_herbal_poultice/Run()
+	var/list/random_seeds = get_sane_item_types(/obj/item/seeds)
+	TEST_ASSERT(!(/obj/item/seeds/comfrey in random_seeds), "Ordinary random seed generation includes colony comfrey.")
+	TEST_ASSERT(!(/obj/item/seeds/aloe/lazarus in random_seeds), "Ordinary random seed generation includes colony aloe.")
+	TEST_ASSERT(/obj/item/seeds/aloe in random_seeds, "Excluding colony aloe also removed ordinary station aloe.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human/consistent)
 	var/obj/item/food/grown/comfrey/leaf = allocate(/obj/item/food/grown/comfrey)
 	leaf.seed.potency = 43
@@ -208,3 +213,4 @@
 	weather.weather_act_mob(human)
 	TEST_ASSERT(human.has_status_effect(/datum/status_effect/lazarus_blizzard), "The blizzard must apply its movement penalty.")
 	TEST_ASSERT(human.is_blind(), "An unprotected colonist must be temporarily blinded by the snow.")
+// AI EDIT END

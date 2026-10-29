@@ -481,6 +481,7 @@
 #include "../../../modular_bandastation/uplink_items/code/tests/syndicate_items.dm"
 
 // BANDASTATION ADDITION START - Lazarus port regression tests
+// AI EDIT START - Compile the event regressions inside the native unit-test harness.
 #include "../../../modular_bandastation/lazarus/_defines.dm"
 #include "../../../modular_bandastation/lazarus/tests/frostbite_tests.dm"
 #include "../../../modular_bandastation/lazarus/tests/environment_tests.dm"
@@ -488,6 +489,7 @@
 #include "../../../modular_bandastation/lazarus/treacherous_flesh/treacherous_flesh_tests.dm"
 #include "../../../modular_bandastation/lazarus/treacherous_flesh/flesh_abilities_tests.dm"
 #include "../../../modular_bandastation/lazarus/treacherous_flesh/flesh_transform_tests.dm"
+// AI EDIT END
 // BANDASTATION ADDITION END - Lazarus port regression tests
 
 #undef TEST_ASSERT

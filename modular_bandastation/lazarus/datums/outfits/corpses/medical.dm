@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /datum/outfit/lazarus/corpse/medic
 	name = "Lazarus Medic"
 
@@ -16,3 +17,4 @@
 
 	suit = /obj/item/clothing/suit/hooded/wintercoat/medical
 	head = /obj/item/clothing/head/hooded/winterhood/medical
+// AI EDIT END

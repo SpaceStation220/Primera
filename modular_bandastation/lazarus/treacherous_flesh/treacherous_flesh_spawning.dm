@@ -1,4 +1,5 @@
-/// An inactive parasite can be taken only while its original host remains viable.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** An inactive parasite can be taken only while its original host remains viable. */
 /obj/effect/mob_spawn/ghost_role/treacherous_flesh
 	name = "Зародыш коварной плоти"
 	desc = "Небольшой красный сгусток."
@@ -24,8 +25,9 @@
 	lazarus_update_infection_marker(host)
 
 /obj/effect/mob_spawn/ghost_role/treacherous_flesh/Destroy()
-	UnregisterSignal(host, COMSIG_QDELETING)
-	lazarus_update_infection_marker(host)
+	if(host)
+		UnregisterSignal(host, COMSIG_QDELETING)
+		lazarus_update_infection_marker(host)
 	host = null
 	return ..()
 
@@ -47,7 +49,7 @@
 	if(spawned_mob.mind && !spawned_mob.mind.has_antag_datum(/datum/antagonist/treacherous_flesh))
 		spawned_mob.mind.add_antag_datum(/datum/antagonist/treacherous_flesh)
 
-/// Forced-only event so an installed module does not alter ordinary rounds.
+/** Forced-only event so an installed module does not alter ordinary rounds. */
 /datum/round_event_control/treacherous_flesh
 	name = "Treacherous Flesh"
 	typepath = /datum/round_event/ghost_role/treacherous_flesh
@@ -86,3 +88,4 @@
 	spawned_mobs += flesh
 	message_admins("[ADMIN_LOOKUPFLW(flesh)] появился как коварная плоть внутри [ADMIN_LOOKUPFLW(host)].")
 	return SUCCESSFUL_SPAWN
+// AI EDIT END

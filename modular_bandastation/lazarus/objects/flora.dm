@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /** One-use wild crops; harvesting cannot duplicate their finite yield. */
 /obj/structure/flora/lazarus
 	icon = 'modular_bandastation/lazarus/icons/plants.dmi'
@@ -45,3 +46,4 @@
 	desc = "Растение с целебными свойствами, которое может помочь при ожогах."
 	icon_state = "aloe"
 	harvest_type = /obj/item/food/grown/aloe/lazarus
+// AI EDIT END

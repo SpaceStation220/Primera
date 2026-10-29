@@ -1,14 +1,15 @@
-/// The event reserve is distinct from native atmospheric body temperature.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /mob/living/carbon/human
+	/// The event reserve is distinct from native atmospheric body temperature.
 	var/frostbite = FROSTBITE_WARM
 
-/// Attach once when a human enters the colony, including admin-created humans.
+/** Attach once when a human enters the colony, including admin-created humans. */
 /area/lazarus/Entered(atom/movable/arrived, area/old_area)
 	. = ..()
 	if(ishuman(arrived))
 		arrived.AddComponent(/datum/component/lazarus_frostbite)
 
-/// Local cold mechanics driven by the existing living-life signal.
+/** Local cold mechanics driven by the existing living-life signal. */
 /datum/component/lazarus_frostbite
 	dupe_mode = COMPONENT_DUPE_UNIQUE
 
@@ -26,13 +27,13 @@
 	var/mob/living/carbon/human/human = parent
 	human.clear_alert("lazarus_frostbite")
 
-/// Administrator and native full-heal paths also restore the event reserve.
+/** Administrator and native full-heal paths also restore the event reserve. */
 /datum/component/lazarus_frostbite/proc/on_heal(mob/living/carbon/human/human, heal_flags)
 	SIGNAL_HANDLER
 	if(heal_flags & HEAL_TEMP)
 		human.frostbite = FROSTBITE_WARM
 
-/// Existing medical analyzers display the event reserve on colony patients.
+/** Existing medical analyzers display the event reserve on colony patients. */
 /datum/component/lazarus_frostbite/proc/on_healthscan(mob/living/carbon/human/human, list/render_list)
 	SIGNAL_HANDLER
 	if(istype(get_area(human), /area/lazarus))
@@ -47,7 +48,7 @@
 		return
 	human.handle_frostbite(seconds_per_tick)
 
-/// Advance the donor's reserve at the same rate regardless of subsystem timing.
+/** Advance the donor's reserve at the same rate regardless of subsystem timing. */
 /mob/living/carbon/human/proc/handle_frostbite(seconds_per_tick = 2)
 	var/delta = get_frostbite_delta()
 	if(HAS_TRAIT(src, TRAIT_GODMODE))
@@ -64,21 +65,21 @@
 	var/reserve = frostbite >= FROSTBITE_CHILLED ? "warm" : frostbite >= FROSTBITE_MILD ? "chilled" : frostbite >= FROSTBITE_SEVERE ? "mild" : frostbite > FROSTBITE_HYPOTHERMIA ? "severe" : "hypothermia"
 	temperature.icon_state = "[rate]_[reserve]"
 
-/// Original event balance: clothing offsets the area cold, never generates heat.
+/** Original event balance: clothing offsets the area cold, never generates heat. */
 /mob/living/carbon/human/proc/get_frostbite_delta()
 	var/area/lazarus/location = get_area(src)
 	if(!istype(location))
 		return 0
 	return min(location.temperature + get_clothes_isolation(), 0) + FROSTBITE_REGENERATION + get_around_heat()
 
-/// Insulation of the six equipment slots used by the original event.
+/** Insulation of the six equipment slots used by the original event. */
 /mob/living/carbon/human/proc/get_clothes_isolation()
 	var/insulation = 0
 	for(var/obj/item/clothing/clothing in list(head, wear_suit, wear_mask, w_uniform, shoes, gloves))
 		insulation += clothing.lazarus_isolation
 	return insulation
 
-/// Campfires, powered heaters, fire and the active local blizzard affect warmth.
+/** Campfires, powered heaters, fire and the active local blizzard affect warmth. */
 /mob/living/carbon/human/proc/get_around_heat()
 	var/heat = on_fire ? FROSTBITE_BURNING_BONUS : 0
 	for(var/obj/structure/bonfire/bonfire in range(5, src))
@@ -92,7 +93,7 @@
 		heat -= BLIZZARD_TEMPERATURE_EFFECT
 	return heat
 
-/// Native alert placement and cleanup also work after reconnecting or observing.
+/** Native alert placement and cleanup also work after reconnecting or observing. */
 /atom/movable/screen/alert/lazarus_frostbite
 	name = "Запас тепла"
 	desc = "Нажмите, чтобы оценить тепло, одежду и источники обогрева."
@@ -100,6 +101,8 @@
 	icon_state = "normal_warm"
 
 /atom/movable/screen/alert/lazarus_frostbite/Click(location, control, params)
+	if(!..())
+		return
 	if(usr != owner || !ishuman(owner))
 		return
 	var/mob/living/carbon/human/human = owner
@@ -131,3 +134,4 @@
 	lazarus_isolation = FB_ISOLATION_MEDIUM
 /obj/item/clothing/shoes/workboots
 	lazarus_isolation = FB_ISOLATION_MEDIUM
+// AI EDIT END

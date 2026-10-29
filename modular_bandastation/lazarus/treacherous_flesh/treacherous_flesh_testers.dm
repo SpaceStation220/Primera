@@ -1,4 +1,5 @@
-/// Portable tests detect an active parasite, not the hidden incubation period.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Portable tests detect an active parasite, not the hidden incubation period. */
 /obj/item/treacherous_flesh_tester
 	name = "тестер коварной плоти"
 	w_class = WEIGHT_CLASS_SMALL
@@ -40,3 +41,4 @@
 	icon_state = "purified_soulstone"
 	positive_message = "Кристалл выпускает синеватое свечение."
 	negative_message = "Кристалл никак не реагирует."
+// AI EDIT END

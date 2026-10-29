@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /datum/outfit/lazarus/corpse/scientist
 	name = "Lazarus Scientist"
 
@@ -9,3 +10,4 @@
 	back = /obj/item/storage/backpack/science
 	id = /obj/item/card/id/advanced
 	id_trim = /datum/id_trim/job/scientist
+// AI EDIT END

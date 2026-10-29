@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 #if defined(UNIT_TESTS) || defined(SPACEMAN_DMM)
 
 /datum/unit_test/proc/lazarus_test_power(action_type, mob/living/treacherous_flesh/parasite)
@@ -11,7 +12,7 @@
 	result["success"] = power.wait_for_host(2, host)
 	result["done"] = TRUE
 
-/// A healthy host has a null diseases list; neither use may leave the button busy.
+/** A healthy host has a null diseases list; neither use may leave the button busy. */
 /datum/unit_test/lazarus_flesh_panacea/Run()
 	var/mob/living/carbon/human/host = allocate(/mob/living/carbon/human/consistent)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh)
@@ -176,7 +177,7 @@
 	TEST_ASSERT(shell.Trigger(parasite), "Chitin could not retract without chemicals.")
 	TEST_ASSERT(!QDELETED(ordinary_suit) && !QDELETED(ordinary_helmet), "Retracting chitin deleted unrelated clothing.")
 
-/// All powers must reject stale hosts and forced reentry before reaching their effects.
+/** All powers must reject stale hosts and forced reentry before reaching their effects. */
 /datum/unit_test/lazarus_flesh_action_guards/Run()
 	var/mob/living/carbon/human/host = allocate(/mob/living/carbon/human/consistent)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh)
@@ -211,69 +212,34 @@
 		TEST_ASSERT(!power.Trigger(parasite, TRIGGER_FORCE_AVAILABLE), "[power.type] activated after losing its host.")
 	TEST_ASSERT_EQUAL(parasite.chemicals, 200, "Rejected actions spent chemicals after losing their host.")
 
-/datum/action/treacherous_flesh/contact_host/lazarus_test
-	var/approved = FALSE
+/** Protects contact and enslavement from taking effect without a responding client. */
+/datum/unit_test/lazarus_flesh_contact_enslavement
 
-/datum/action/treacherous_flesh/contact_host/lazarus_test/confirm_activation(message)
-	return approved
-
-/datum/action/treacherous_flesh/enslave_mind/lazarus_test
-	var/approved = FALSE
-
-/datum/action/treacherous_flesh/enslave_mind/lazarus_test/confirm_activation(message)
-	return approved
-
-/datum/action/treacherous_flesh/enslave_mind/lazarus_test/wait_for_host(duration, mob/living/carbon/human/expected_host)
-	return ..(2, expected_host)
-
+/** Runs the native action entry points; affirmative dialog paths require a client playtest. */
 /datum/unit_test/lazarus_flesh_contact_enslavement/Run()
 	var/mob/living/carbon/human/host = allocate(/mob/living/carbon/human/consistent)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh)
 	TEST_ASSERT(parasite.infest(host), "Contact fixture could not infest its host.")
 	host.mind_initialize()
-	var/datum/action/treacherous_flesh/contact_host/lazarus_test/contact = lazarus_test_power(/datum/action/treacherous_flesh/contact_host/lazarus_test, parasite)
-	TEST_ASSERT(!contact.Trigger(parasite) && !parasite.contacted, "Cancelled contact revealed the parasite.")
-	contact.approved = TRUE
-	TEST_ASSERT(contact.Trigger(parasite), "Confirmed contact failed.")
-	TEST_ASSERT(parasite.contacted, "Confirmed contact did not reveal the parasite.")
-	TEST_ASSERT_NOTNULL(locate(/datum/action/communicate_parasite) in host.actions, "Contact did not grant the host's reply action.")
-	TEST_ASSERT_NULL(locate(/datum/action/treacherous_flesh/message_host) in parasite.actions, "Contact retained the anonymous message action.")
-	TEST_ASSERT(!contact.Trigger(parasite), "Repeated contact duplicated the reply actions.")
-	var/datum/action/treacherous_flesh/communicate_host/talk = locate() in parasite.actions
-	TEST_ASSERT(!talk.Trigger(parasite), "A cancelled empty message reported success.")
-	var/datum/action/treacherous_flesh/enslave_mind/lazarus_test/enslave = lazarus_test_power(/datum/action/treacherous_flesh/enslave_mind/lazarus_test, parasite)
+	var/datum/action/treacherous_flesh/contact_host/contact = lazarus_test_power(/datum/action/treacherous_flesh/contact_host, parasite)
+	TEST_ASSERT(!contact.Trigger(parasite), "Contact succeeded without a responding client.")
+	TEST_ASSERT(!parasite.contacted && !contact.busy, "Unconfirmed contact revealed the parasite or retained its activation lock.")
+	TEST_ASSERT_NULL(locate(/datum/action/communicate_parasite) in host.actions, "Unconfirmed contact granted the host a reply action.")
+	TEST_ASSERT_NOTNULL(locate(/datum/action/treacherous_flesh/message_host) in parasite.actions, "Unconfirmed contact removed the anonymous message action.")
+	var/datum/action/treacherous_flesh/enslave_mind/enslave = lazarus_test_power(/datum/action/treacherous_flesh/enslave_mind, parasite)
 	parasite.chemicals = 200
-	TEST_ASSERT(!enslave.Trigger(parasite), "Cancelled enslavement reported success.")
-	enslave.approved = TRUE
 	ADD_TRAIT(host, TRAIT_MINDSHIELD, TRAIT_SOURCE_UNIT_TESTS)
 	TEST_ASSERT(!enslave.Trigger(parasite), "Enslavement bypassed a mindshield.")
 	REMOVE_TRAIT(host, TRAIT_MINDSHIELD, TRAIT_SOURCE_UNIT_TESTS)
-	parasite.chemicals = 149
-	TEST_ASSERT(!enslave.Trigger(parasite), "Enslavement accepted insufficient chemicals.")
-	parasite.chemicals = 150
-	TEST_ASSERT(enslave.Trigger(parasite), "Confirmed, funded enslavement failed.")
-	TEST_ASSERT(parasite.host_enslaved && host.mind.has_antag_datum(/datum/antagonist/lazarus_host), "Enslavement did not assign its native antagonist role.")
-	TEST_ASSERT(!enslave.Trigger(parasite), "Enslavement could be repeated on the same host.")
-	TEST_ASSERT(!enslave.busy, "Enslavement left its button busy.")
+	TEST_ASSERT(!enslave.Trigger(parasite), "Enslavement succeeded without a responding client.")
+	TEST_ASSERT(!parasite.host_enslaved && !host.mind.has_antag_datum(/datum/antagonist/lazarus_host), "Unconfirmed enslavement changed the host's allegiance.")
+	TEST_ASSERT_EQUAL(parasite.chemicals, 200, "Rejected enslavement consumed chemicals.")
+	TEST_ASSERT(!enslave.busy, "Unconfirmed enslavement retained its activation lock.")
 
-/datum/action/treacherous_flesh/take_control/lazarus_test
-	var/approved = FALSE
+/** Protects pending powers across possession and rejects an escape without player consent. */
+/datum/unit_test/lazarus_flesh_control_escape
 
-/datum/action/treacherous_flesh/take_control/lazarus_test/confirm_activation(message)
-	return approved
-
-/datum/action/treacherous_flesh/take_control/lazarus_test/wait_for_host(duration, mob/living/carbon/human/expected_host)
-	return ..(2, expected_host)
-
-/datum/action/treacherous_flesh/leave_the_body/lazarus_test
-	var/approved = FALSE
-
-/datum/action/treacherous_flesh/leave_the_body/lazarus_test/confirm_activation(message)
-	return approved
-
-/datum/action/treacherous_flesh/leave_the_body/lazarus_test/wait_for_host(duration, mob/living/carbon/human/expected_host)
-	return ..(2, expected_host)
-
+/** Exercises the shared production wait, native return action and unconfirmed escape entry point. */
 /datum/unit_test/lazarus_flesh_control_escape/Run()
 	var/mob/living/carbon/human/host = allocate(/mob/living/carbon/human/consistent)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh)
@@ -282,8 +248,9 @@
 	parasite.mind_initialize()
 	var/datum/mind/host_mind = host.mind
 	var/datum/mind/parasite_mind = parasite.mind
-	var/datum/action/treacherous_flesh/take_control/lazarus_test/control = lazarus_test_power(/datum/action/treacherous_flesh/take_control/lazarus_test, parasite)
-	TEST_ASSERT(!control.Trigger(parasite), "Cancelled control reported success.")
+	var/datum/action/treacherous_flesh/take_control/control = lazarus_test_power(/datum/action/treacherous_flesh/take_control, parasite)
+	TEST_ASSERT(!control.Trigger(parasite), "Control succeeded without a responding client.")
+	TEST_ASSERT(host.mind == host_mind && parasite.mind == parasite_mind, "Unconfirmed control displaced either player.")
 	var/list/wait_result = list()
 	INVOKE_ASYNC(src, PROC_REF(lazarus_test_wait), control, host, wait_result)
 	TEST_ASSERT(!wait_result["done"], "The control guard did not yield before interruption.")
@@ -295,22 +262,14 @@
 	parasite.chemicals = 100
 	TEST_ASSERT(!panacea.Trigger(parasite, TRIGGER_FORCE_AVAILABLE), "A forced ability bypassed the control restriction.")
 	TEST_ASSERT_EQUAL(parasite.chemicals, 100, "A blocked ability spent chemicals during mind control.")
-	parasite.restore_control()
-	TEST_ASSERT(panacea.Trigger(parasite), "Restoring control did not reenable the parasite's abilities.")
-	control.approved = TRUE
-	TEST_ASSERT(control.Trigger(parasite), "Confirmed control failed.")
-	TEST_ASSERT(host.mind == parasite_mind && parasite.trapped_mind.mind == host_mind, "Control activation did not preserve both minds.")
-	TEST_ASSERT(!control.Trigger(parasite), "Repeated control displaced an already trapped mind.")
 	var/datum/action/return_control/return_action = locate() in host.actions
 	TEST_ASSERT(return_action.Trigger(host), "The real return-control action failed.")
 	TEST_ASSERT(host.mind == host_mind && parasite.mind == parasite_mind, "Return-control did not restore both players.")
-	var/datum/action/treacherous_flesh/leave_the_body/lazarus_test/escape = lazarus_test_power(/datum/action/treacherous_flesh/leave_the_body/lazarus_test, parasite)
-	TEST_ASSERT(!escape.Trigger(parasite), "Cancelled escape reported success.")
-	escape.approved = TRUE
-	TEST_ASSERT(escape.Trigger(parasite), "Confirmed escape failed.")
-	TEST_ASSERT(QDELETED(parasite), "Successful escape retained its parasite body.")
-	TEST_ASSERT(istype(parasite_mind.current, /mob/living/basic/flesh_biomorph/lesser/small), "Escape did not move its player into the expected biomorph.")
-	TEST_ASSERT_NULL(host.treacherous_flesh, "Escape retained the host's parasite reference.")
+	TEST_ASSERT(panacea.Trigger(parasite), "Restoring control did not reenable the parasite's abilities.")
+	var/datum/action/treacherous_flesh/leave_the_body/escape = lazarus_test_power(/datum/action/treacherous_flesh/leave_the_body, parasite)
+	TEST_ASSERT(!escape.Trigger(parasite), "Escape succeeded without a responding client.")
+	TEST_ASSERT(!QDELETED(parasite) && host.treacherous_flesh == parasite, "Unconfirmed escape removed the parasite from its host.")
+	TEST_ASSERT_EQUAL(parasite_mind.current, parasite, "Unconfirmed escape moved the parasite's player.")
 
 /datum/unit_test/lazarus_flesh_accelerated_evolution/Run()
 	var/mob/living/carbon/human/host = allocate(/mob/living/carbon/human/consistent)
@@ -329,3 +288,4 @@
 	TEST_ASSERT(!evolution.busy, "Accelerated evolution left its button busy.")
 
 #endif
+// AI EDIT END

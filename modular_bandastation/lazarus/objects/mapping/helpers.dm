@@ -1,4 +1,5 @@
-/// Generates the source forest once, leaving real dirt/snow and harvestable vegetation.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Generates the source forest once, leaving real dirt/snow and harvestable vegetation. */
 /turf/open/misc/asteroid/lazarus/forest
 	name = "forest turf"
 	icon = 'modular_bandastation/lazarus/icons/mapping.dmi'
@@ -47,7 +48,7 @@
 	name = "lazarus baseturf editor"
 	baseturf = /turf/open/misc/asteroid/lazarus/dirt
 
-/// Reuses the native late window lookup, with the source's three destruction outcomes.
+/** Reuses the native late window lookup, with the source's three destruction outcomes. */
 /obj/effect/mapping_helpers/destroyed_window
 	parent_type = /obj/effect/mapping_helpers/damaged_window
 	name = "destroyed window helper"
@@ -81,7 +82,7 @@
 	else
 		log_mapping("[src] failed to find a grille at [AREACOORD(src)].")
 
-/// Damage is applied after all mapped machines have initialized.
+/** Damage is applied after all mapped machines have initialized. */
 /obj/effect/mapping_helpers/machinery
 	late = TRUE
 
@@ -94,6 +95,7 @@
 		log_mapping("[src] failed to find machinery at [AREACOORD(src)].")
 	qdel(src)
 
+/** Override to apply this helper's effect after mapped machinery has initialized. */
 /obj/effect/mapping_helpers/machinery/proc/payload(obj/machinery/machine)
 	return
 
@@ -111,7 +113,7 @@
 /obj/effect/mapping_helpers/machinery/destroyed/payload(obj/machinery/machine)
 	machine.take_damage(machine.get_integrity())
 
-/// Only the rust variant is custom; broken-floor markers use the native helper.
+/** Only the rust variant is custom; broken-floor markers use the native helper. */
 /obj/effect/mapping_helpers/lazarus_rust
 	late = TRUE
 	/// Source probability of weathered walls.
@@ -128,7 +130,7 @@
 	spawn_loot_chance = 50
 	loot = list(/obj/effect/decal/cleanable/dirt/lazarus)
 
-/// The source also places weathering on walls, like native wall graffiti.
+/** The source also places weathering on walls, like native wall graffiti. */
 /obj/effect/decal/cleanable/dirt/lazarus/NeverShouldHaveComeHere(turf/here_turf)
 	return isgroundlessturf(here_turf) && !GET_TURF_BELOW(here_turf)
 
@@ -154,7 +156,7 @@
 /obj/effect/spawner/random/lazarus_cobweb/right/rare
 	spawn_loot_chance = 9
 
-/// The source pistol uses 10 mm magazines, unlike the native Makarov.
+/** The source pistol uses 10 mm magazines, unlike the native Makarov. */
 /obj/item/gun/ballistic/automatic/pistol/lazarus_stechkin
 	name = "stechkin pistol"
 	accepted_magazine_type = /obj/item/ammo_box/magazine/m10mm
@@ -176,7 +178,7 @@
 	for(var/index in 1 to 7)
 		new /obj/item/reagent_containers/blood(src)
 
-/// Source bronze ashtray, retaining its sixteen-item capacity and cigarette extinguishing.
+/** Source bronze ashtray, retaining its sixteen-item capacity and cigarette extinguishing. */
 /obj/item/lazarus_ashtray
 	name = "bronze ashtray"
 	desc = "Massive bronze ashtray."
@@ -206,12 +208,13 @@
 	return ITEM_INTERACT_SUCCESS
 
 /obj/item/lazarus_ashtray/update_icon_state()
+	. = ..()
 	icon_state = length(contents) >= 16 ? "ashtray_full_br" : length(contents) > 8 ? "ashtray_half_br" : "ashtray_br"
 
 /obj/item/lazarus_ashtray/attack_self(mob/user)
 	empty_tray()
 
-/// Drops the stored butts and matches before emptying, throwing or recycling the tray.
+/** Drops the stored butts and matches before emptying, throwing or recycling the tray. */
 /obj/item/lazarus_ashtray/proc/empty_tray()
 	for(var/obj/item/item in contents)
 		item.forceMove(drop_location())
@@ -229,11 +232,11 @@
 	deconstruct()
 	return TRUE
 
-/// Event wood keeps the source's one-plank yield instead of the native ten-plank tree logs.
+/** Event wood keeps the source's one-plank yield instead of the native ten-plank tree logs. */
 /obj/item/grown/log/tree/lazarus
 	plank_count = 1
 
-/// Native flora harvesting, scoped to Lazarus so ordinary station trees retain their rules.
+/** Native flora harvesting, scoped to Lazarus so ordinary station trees retain their rules. */
 /obj/structure/flora/lazarus_tree
 	name = "pine tree"
 	desc = "A coniferous pine tree."
@@ -283,6 +286,7 @@
 	name = "вековая сосна"
 	transform = matrix(1.5, 0, 0, 0, 1.5, 0)
 
-/// Critical source APCs carried 25 times the standard battery capacity.
+/** Critical source APCs carried 25 times the standard battery capacity. */
 /obj/item/stock_parts/power_store/battery/lazarus_critical
 	maxcharge = STANDARD_BATTERY_CHARGE * 25
+// AI EDIT END

@@ -1,4 +1,5 @@
-/// Defenseless source of the colony's sacred meat.
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/** Defenseless source of the colony's sacred meat. */
 /mob/living/basic/great_mother
 	name = "великая мать"
 	desc = "Огромный беззащитный глазной отросток, управляющий биомассой."
@@ -17,7 +18,7 @@
 	. = ..()
 	ADD_TRAIT(src, TRAIT_IMMOBILIZED, INNATE_TRAIT)
 	ADD_TRAIT(src, TRAIT_NOFIRE, INNATE_TRAIT)
-	AddElement(/datum/element/death_drops, list(/obj/item/food/meat/slab/mother = 15))
+	AddElement(/datum/element/death_drops, string_list(list(/obj/item/food/meat/slab/mother = 15)))
 
 /mob/living/basic/great_mother/death(gibbed)
 	. = ..()
@@ -27,3 +28,4 @@
 /obj/item/food/meat/slab/mother
 	name = "плоть великой матери"
 	desc = "Священная плоть."
+// AI EDIT END

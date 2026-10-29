@@ -62,9 +62,10 @@ endmap
 
 # Debug-only maps.
 
-# Event map: selected by administrators, excluded from ordinary map voting.
+# AI EDIT START - Register the event for administrators without ordinary map voting.
 map lazarus
 endmap
+# AI EDIT END
 
 map gateway_test
 endmap

@@ -1,3 +1,4 @@
+<!-- AI EDIT START - Document the adapted Lazarus event, attribution and verification limits -->
 # Источники проекта «Лазарь»
 
 Карта, механики, тексты и модуль антагониста перенесены из
@@ -34,3 +35,4 @@
 в `generated_assets` файла `assets.json`.
 
 Исходный трек Darkwood-OST-Morning.ogg не включён в этот порт: отдельная лицензия трека в доноре не подтверждена. Событие использует штатную музыку лобби.
+<!-- AI EDIT END -->

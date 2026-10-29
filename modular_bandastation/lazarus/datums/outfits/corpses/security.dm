@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /datum/outfit/lazarus/corpse/security
 	name = "Lazarus Security"
 
@@ -97,3 +98,4 @@
 		/obj/item/coin/silver = 10,
 		/obj/item/assembly/timer = 10
 	)
+// AI EDIT END

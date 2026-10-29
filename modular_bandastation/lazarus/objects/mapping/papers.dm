@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /obj/item/documents/syndicate/red/lazarus
 	name = "'Отчёт касательно проекта ''Лазарь''"
 	desc = "Большая часть документов представляет из себя набор бессвязных символов, вероятно, содержащий зашифрованное сообщение. Тем не менее, сопоставив изображения с некоторыми читаемыми заготовками и отрывками из незашифронных писем, вам удаётся понять, что проект \"Лазарь\" представляет из себя целую программу по разработке средств для реанимации мёртвой биоматерии с сохранением сознания. Похоже, Нанотрейзен не брезговали опытами над людьми - большая часть испытуемых страдало от множества мутаций и наростов плоти. Вас тошнит."
@@ -54,7 +55,8 @@
 	return ..(mapload, colony_picture, datum_name = FALSE, datum_desc = FALSE)
 
 /obj/item/paper/lazarus/map/update_icon_state()
-	return
+	. = ..()
+	icon_state = "paper"
 
 /** Use the native photo's picture resource in a scrollable window large enough for the plan. */
 /obj/item/paper/lazarus/map/show(mob/user)
@@ -64,3 +66,4 @@
 	var/datum/browser/popup = new(user, "lazarus_colony_map", name, 1400, 1000)
 	popup.set_content("<img src='lazarus_colony_map.png' width='1350' height='1181' alt='Карта колонии Перун' />")
 	popup.open()
+// AI EDIT END

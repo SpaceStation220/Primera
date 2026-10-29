@@ -1,8 +1,9 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /datum/job/treacherous_flesh
 	title = "Treacherous Flesh"
 	tgui_icon = FA_ICON_BUG
 
-/// The parasite's identity follows its mind through control, escape and ascension.
+/** The parasite's identity follows its mind through control, escape and ascension. */
 /datum/antagonist/treacherous_flesh
 	name = "Коварная плоть"
 	roundend_category = "Биоморфы Лазаря"
@@ -47,7 +48,7 @@
 	explanation_text = "Размножайтесь, ассимилируйте колонию и помогите молодым биоморфам развиться."
 	no_failure = TRUE
 
-/// A separate datum lets removal release only this parasite's enthrallment.
+/** A separate datum lets removal release only this parasite's enthrallment. */
 /datum/antagonist/lazarus_host
 	name = "Порабощённый носитель"
 	roundend_category = "Носители Лазаря"
@@ -67,3 +68,4 @@
 	. = ..()
 	to_chat(owner.current, span_userdanger("Голос внутри вас — ваш господин. Вы должны исполнять его приказы и помогать Великой Матери."))
 	owner.announce_objectives()
+// AI EDIT END

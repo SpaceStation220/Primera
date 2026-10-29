@@ -176,7 +176,10 @@
 
 	var/static/list/seeds_to_draw_from
 	if(isnull(seeds_to_draw_from))
-		seeds_to_draw_from = subtypesof(/obj/item/seeds)
+		// AI EDIT START - Reuse the standard item blacklist before the fishing-specific filters.
+		// BANDASTATION EDIT - Keep event-only seeds out of ordinary hydroponics fishing rewards.
+		seeds_to_draw_from = get_sane_item_types(/obj/item/seeds)
+		// AI EDIT END
 		// These two are already covered innately
 		seeds_to_draw_from -= /obj/item/seeds/random
 		seeds_to_draw_from -= /obj/item/seeds/grass

@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /datum/outfit/lazarus/corpse/colonist
 	name = "Lazarus Colonist"
 
@@ -31,3 +32,4 @@
 	gloves = /obj/item/clothing/gloves/color/fyellow
 	mask = /obj/item/clothing/mask/gas
 	glasses	= /obj/item/clothing/glasses/meson
+// AI EDIT END

@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 GLOBAL_LIST_EMPTY(lazarus_blizzard_sounds)
 
 /** Lazarus's blizzard obscures exposed humans without importing Lavaland's fire damage. */
@@ -70,3 +71,4 @@ GLOBAL_LIST_EMPTY(lazarus_blizzard_sounds)
 
 /datum/movespeed_modifier/lazarus_blizzard
 	multiplicative_slowdown = 5
+// AI EDIT END

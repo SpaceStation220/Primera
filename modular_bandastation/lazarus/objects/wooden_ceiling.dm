@@ -1,3 +1,4 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 /** A one-use roof kit for an airtight player-built room in the Lazarus wilderness. */
 /obj/item/lazarus_wooden_ceiling
 	name = "деревянный потолок"
@@ -48,3 +49,4 @@
 		if(!istype(room_turf.loc, /area/lazarus/outdoors))
 			return
 	return turfs
+// AI EDIT END

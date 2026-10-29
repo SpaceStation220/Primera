@@ -1,6 +1,7 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
 #if defined(UNIT_TESTS) || defined(SPACEMAN_DMM)
 
-/// Real possession and removal must restore both minds and leave no stale host state.
+/** Real possession and removal must restore both minds and leave no stale host state. */
 /datum/unit_test/lazarus_flesh_minds/Run()
 	var/mob/living/carbon/human/consistent/host = allocate(/mob/living/carbon/human/consistent, run_loc_floor_bottom_left)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh, run_loc_floor_bottom_left)
@@ -27,7 +28,22 @@
 	TEST_ASSERT_NULL(host.alternate_appearances?["lazarus_infested"], "Removal retained its private infection marker.")
 	TEST_ASSERT_EQUAL(length(parasite.host_actions), 0, "Removal retained actions on the host.")
 
-/// Native pickup and exposure must contaminate food and infect a new human exactly once.
+/** Native pickup and exposure must contaminate food and infect a new human exactly once. */
+/datum/unit_test/lazarus_flesh_infection
+	var/area/previous_area
+	var/area/lazarus/event_area
+	var/area/previous_registered_area
+
+/datum/unit_test/lazarus_flesh_infection/Destroy()
+	if(event_area)
+		if(get_area(run_loc_floor_bottom_left) == event_area)
+			set_turf_to_area(run_loc_floor_bottom_left, previous_area)
+		QDEL_NULL(event_area)
+		GLOB.areas_by_type[/area/lazarus] = previous_registered_area
+	previous_area = null
+	previous_registered_area = null
+	return ..()
+
 /datum/unit_test/lazarus_flesh_infection/Run()
 	var/mob/living/carbon/human/consistent/carrier = allocate(/mob/living/carbon/human/consistent, run_loc_floor_bottom_left)
 	var/mob/living/carbon/human/consistent/patient = allocate(/mob/living/carbon/human/consistent, run_loc_floor_bottom_left)
@@ -38,6 +54,13 @@
 	food.attack_hand(carrier)
 	TEST_ASSERT(carrier.is_holding(food), "Carrier could not pick up the food through the player interaction.")
 	TEST_ASSERT(food.reagents.has_reagent(/datum/reagent/treacherous_flesh), "Real pickup did not contaminate the food.")
+	food.reagents.expose(patient, TOUCH)
+	food.reagents.expose(patient, INGEST)
+	TEST_ASSERT_NULL(locate(/datum/disease/treacherous_flesh) in patient.diseases, "Event cells infected an ordinary station patient, including through the wizard-rain touch path.")
+	previous_area = get_area(run_loc_floor_bottom_left)
+	previous_registered_area = GLOB.areas_by_type[/area/lazarus]
+	event_area = new /area/lazarus
+	set_turf_to_area(run_loc_floor_bottom_left, event_area)
 	food.reagents.expose(patient, INGEST)
 	TEST_ASSERT(locate(/datum/disease/treacherous_flesh) in patient.diseases, "Contaminated food did not infect an exposed human.")
 	food.reagents.expose(patient, INGEST)
@@ -52,7 +75,7 @@
 	TEST_ASSERT(pheromones.Trigger(parasite), "The carrier's parasite could not disable pheromones.")
 	TEST_ASSERT(!carrier.has_faction("treacherous_flesh"), "Disabling pheromones retained their faction.")
 
-/// Development and regeneration must retain donor timing when life ticks change.
+/** Development and regeneration must retain donor timing when life ticks change. */
 /datum/unit_test/lazarus_flesh_evolution/Run()
 	var/mob/living/carbon/human/consistent/host = allocate(/mob/living/carbon/human/consistent, run_loc_floor_bottom_left)
 	var/mob/living/treacherous_flesh/parasite = allocate(/mob/living/treacherous_flesh, run_loc_floor_bottom_left)
@@ -75,7 +98,7 @@
 	parasite.Life(2)
 	TEST_ASSERT_EQUAL(parasite.chemicals, 16, "Passive infection does not cost four chemicals per original tick.")
 
-/// A dead larger body must transfer its player to a living offspring exactly once.
+/** A dead larger body must transfer its player to a living offspring exactly once. */
 /datum/unit_test/lazarus_flesh_split/Run()
 	var/mob/living/basic/flesh_biomorph/lesser/medium/body = allocate(/mob/living/basic/flesh_biomorph/lesser/medium, run_loc_floor_bottom_left)
 	body.mind_initialize()
@@ -87,7 +110,7 @@
 	for(var/mob/living/basic/flesh_biomorph/lesser/small/offspring in run_loc_floor_bottom_left)
 		qdel(offspring)
 
-/// Reanimation needs a full unit and must not duplicate creature death drops.
+/** Reanimation needs a full unit and must not duplicate creature death drops. */
 /datum/unit_test/lazarus_reanimation/Run()
 	var/mob/living/basic/butterfly/animal = allocate(/mob/living/basic/butterfly, run_loc_floor_bottom_left)
 	var/datum/reagent/medicine/lazarus_reagent/medicine = allocate(/datum/reagent/medicine/lazarus_reagent)
@@ -109,7 +132,7 @@
 		drop_count++
 	TEST_ASSERT_EQUAL(drop_count, 1, "A reanimated creature produced duplicate death drops.")
 
-/// The shared recipe must produce the event cure only inside the colony.
+/** The shared recipe must produce the event cure only inside the colony. */
 /datum/unit_test/lazarus_reagent_recipe
 	var/area/previous_area
 	var/area/misc/testroom/normal_area
@@ -152,8 +175,33 @@
 	beaker.reagents.add_reagent(/datum/reagent/toxin/mutagen, 1)
 	TEST_ASSERT(beaker.reagents.has_reagent(/datum/reagent/medicine/lazarus_reagent), "The original recipe did not produce Lazarus Reagent inside the colony.")
 	TEST_ASSERT(!beaker.reagents.has_reagent(/datum/reagent/medicine/strange_reagent), "The competing native reaction consumed the event recipe.")
+	for(var/area/chemistry_area in list(normal_area, event_area))
+		set_turf_to_area(run_loc_floor_bottom_left, chemistry_area)
+		beaker.reagents.clear_reagents()
+		beaker.reagents.add_reagent(/datum/reagent/aluminium, 1, no_react = TRUE)
+		beaker.reagents.add_reagent(/datum/reagent/hydrogen, 1, no_react = TRUE)
+		beaker.reagents.add_reagent(/datum/reagent/oxygen, 1, no_react = TRUE)
+		beaker.reagents.add_reagent(/datum/reagent/toxin/acid, 1, no_react = TRUE)
+		beaker.reagents.handle_reactions()
+		if(chemistry_area == event_area)
+			TEST_ASSERT_EQUAL(beaker.reagents.get_reagent_amount(/datum/reagent/medicine/lazarus_topical), 4, "The colony's styptic recipe did not produce four units.")
+		else
+			TEST_ASSERT(!beaker.reagents.has_reagent(/datum/reagent/medicine/lazarus_topical), "Ordinary station chemistry produced colony styptic powder.")
+		beaker.reagents.clear_reagents()
+		beaker.reagents.add_reagent(/datum/reagent/ammonia, 1, no_react = TRUE)
+		beaker.reagents.add_reagent(/datum/reagent/silver, 1, no_react = TRUE)
+		beaker.reagents.add_reagent(/datum/reagent/sulfur, 1, no_react = TRUE)
+		beaker.reagents.add_reagent(/datum/reagent/oxygen, 1, no_react = TRUE)
+		beaker.reagents.add_reagent(/datum/reagent/chlorine, 1, no_react = TRUE)
+		beaker.reagents.handle_reactions()
+		if(chemistry_area == event_area)
+			TEST_ASSERT_EQUAL(beaker.reagents.get_reagent_amount(/datum/reagent/medicine/lazarus_topical/silver_sulfadiazine), 5, "The colony's burn medicine recipe did not produce five units.")
+			TEST_ASSERT(!beaker.reagents.has_reagent(/datum/reagent/medicine/c2/lenturi), "Lenturi consumed the colony's burn medicine ingredients.")
+		else
+			TEST_ASSERT_EQUAL(beaker.reagents.get_reagent_amount(/datum/reagent/medicine/c2/lenturi), 5, "The colony recipe changed ordinary Lenturi synthesis.")
+			TEST_ASSERT(!beaker.reagents.has_reagent(/datum/reagent/medicine/lazarus_topical/silver_sulfadiazine), "Ordinary station chemistry produced colony burn medicine.")
 
-/// Organic doors must initialize without minerals and leave no mined metal.
+/** Organic doors must initialize without minerals and leave no mined metal. */
 /datum/unit_test/lazarus_meaty_door_materials/Run()
 	var/iron_before = 0
 	for(var/obj/item/stack/sheet/iron/sheets in run_loc_floor_bottom_left)
@@ -174,7 +222,7 @@
 /obj/item/ammo_box/magazine/wt550m9/wtap/lazarus_test_empty
 	start_empty = TRUE
 
-/// Removing initially absent ammunition must preserve positive material remainders.
+/** Removing initially absent ammunition must preserve positive material remainders. */
 /datum/unit_test/lazarus_empty_magazine_materials/Run()
 	var/obj/item/ammo_box/magazine/wt550m9/empty = allocate(/obj/item/ammo_box/magazine/wt550m9/lazarus_test_empty, run_loc_floor_bottom_left)
 	TEST_ASSERT_EQUAL(empty.ammo_count(), 0, "The colony's empty magazine gained ammunition.")
@@ -188,3 +236,4 @@
 	TEST_ASSERT_EQUAL(loaded.custom_materials[SSmaterials.get_material(/datum/material/iron)], SHEET_MATERIAL_AMOUNT * 2, "The ordinary loaded magazine's material amount changed.")
 
 #endif
+// AI EDIT END
