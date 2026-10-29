@@ -37,7 +37,7 @@
 			// AI EDIT START - Keep the deliberate cable gaps and nearby repair coils without exempting consumers or active generators.
 			if(istype(cable_area, /area/lazarus) && length(powernets.nodes))
 				var/only_unrepaired_generators = TRUE
-				for(var/power_node as anything in powernets.nodes)
+				for(var/power_node in powernets.nodes)
 					var/obj/machinery/power/geothermal_generator/generator = power_node
 					if(!istype(generator) || generator.gen_state != initial(generator.gen_state))
 						only_unrepaired_generators = FALSE
