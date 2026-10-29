@@ -1,0 +1,249 @@
+{
+  "repository": "https://github.com/ThaumicNik/Paradise-SS220",
+  "revision": "fa1ad6a104368d3445c5a83666a0daab0ca69838",
+  "assets": [
+    {
+      "path": "icons/animal.dmi",
+      "source": "icons/mob/animal.dmi",
+      "source_blob_sha1": "6d932d6f1842141fca499537bc19d00e5b8b31ba",
+      "sha256": "0d70e6752ed41b54faa702a581983e2d595287d6930e5e6d4066806da1e92258"
+    },
+    {
+      "path": "icons/ashtray.dmi",
+      "source": "icons/ashtray.dmi",
+      "source_blob_sha1": "47cb9dda4204526b151207a1dbc69555d210c4da",
+      "sha256": "5ca4155debf31cdae2d4900fa3c389475087a8e2325bbe45aa9ba5434d0af9be"
+    },
+    {
+      "path": "icons/geothermal.dmi",
+      "source": "modular_ss220/lazarus/icons/geothermal.dmi",
+      "source_blob_sha1": "9ffab0808796c6fc5a60526f990cb34eb3484ae7",
+      "sha256": "642a314011e593aa0ca7aae706d1b0a69ce637d426ee13d83e0a6d195c8ca66f"
+    },
+    {
+      "path": "icons/great_mother.dmi",
+      "source": "modular_ss220/lazarus/icons/great_mother.dmi",
+      "source_blob_sha1": "81187f32ccd8ab2267228c24a76d8823957c0ecd",
+      "sha256": "4b40b1f4469e1174cbec8aef906e3f1623a00ba6439997c1272486b1489827c4"
+    },
+    {
+      "path": "icons/harvest.dmi",
+      "source": "icons/obj/hydroponics/harvest.dmi",
+      "source_blob_sha1": "ded1705672d1533b44bb703670394848889a6af7",
+      "sha256": "92a1787bdb37e7e1eaae31a3db6fb497c8935d85f526a9f2e881994dc1465f9d"
+    },
+    {
+      "path": "icons/high_biomorph.dmi",
+      "source": "modular_ss220/lazarus/icons/high_biomorph.dmi",
+      "source_blob_sha1": "0661e14d547a70659acbda483ece6296b8674214",
+      "sha256": "0529447506bdf4a15bf64cd5f05eb0990fe42add19b4bf4eec9527ee58a5ae6a"
+    },
+    {
+      "path": "icons/ice_wall.dmi",
+      "source": "modular_ss220/lazarus/icons/ice_wall.dmi",
+      "source_blob_sha1": "40d63d0aaa85495a005c856ec39be1126f14f5f5",
+      "sha256": "5c021cae650c8f4578e75d0aa0ef6c62c05296c3e82d4d1a30d33826fcf7ee8d"
+    },
+    {
+      "path": "icons/icerock_wall.dmi",
+      "source": "modular_ss220/lazarus/icons/icerock_wall.dmi",
+      "source_blob_sha1": "00aee2d20a8f9c7830a00f6678fc64a626f259f6",
+      "sha256": "d87dd4ce71627b394879798d6f5ffc79bde3350cc95037c5d0269577d5992c0a"
+    },
+    {
+      "path": "icons/ladder.dmi",
+      "source": "modular_ss220/lazarus/icons/ladder.dmi",
+      "source_blob_sha1": "2bbd7c7860cd53b5237fde28036c1bbfed604110",
+      "sha256": "76c4c24b68a1b5a19d64b90947a63a4c1501f39bee6f7fba2b71d7d1c6bb7051"
+    },
+    {
+      "path": "icons/lazarus_actions.dmi",
+      "source": "modular_ss220/lazarus/icons/lazarus_actions.dmi",
+      "source_blob_sha1": "878ea9c1dd32fa1b162d509539f8900f2c27a6e7",
+      "sha256": "73d5faf2ea61dbc1a7f5ca14661348b2256383dc51783725b743409e620ebaa5"
+    },
+    {
+      "path": "icons/lazarus_chasm.dmi",
+      "source": "modular_ss220/lazarus/icons/lazarus_chasm.dmi",
+      "source_blob_sha1": "c08571d0ed61ae9227237a1be2820693d08a7981",
+      "sha256": "62dc7683d31bb248df0df41e04fd7fb4b853d3e7e6a737b7a1b17221dbea5e6f"
+    },
+    {
+      "path": "icons/lazarus_chasms.dmi",
+      "source": "modular_ss220/lazarus/icons/lazarus_chasms.dmi",
+      "source_blob_sha1": "56b5d06fbca5510cd5c55ddb1473677abef2d7a5",
+      "sha256": "f410d295a18d41606461453048add8a9fed41646fe6bc7fbdf56f1d00277914a"
+    },
+    {
+      "path": "icons/lazarus_floors.dmi",
+      "source": "modular_ss220/aesthetics/floors/icons/floors.dmi",
+      "source_blob_sha1": "285a2b410aa301e9533283cbe47796c3ff371f39",
+      "sha256": "e33668a219f2dd1783a7dfc690f72e71aba1838c334042a78ac3885076ccb642"
+    },
+    {
+      "path": "icons/lazarus_natural_floors.dmi",
+      "source": "modular_ss220/lazarus/icons/lazarus_natural_floors.dmi",
+      "source_blob_sha1": "de6bd221fb8a300edce179d8b07f9fc7f9575dad",
+      "sha256": "b7c70f37c67812ee394ac92108c1892eab76b88465a714e22c5a369c97b9252c"
+    },
+    {
+      "path": "icons/lazarus_snow.dmi",
+      "source": "modular_ss220/lazarus/icons/lazarus_snow.dmi",
+      "source_blob_sha1": "fd56fbfdba250adec3650476cb34321990d77dd7",
+      "sha256": "6edae79028d4fb0fb8ac4b8c0bc3da9d8e5785e337ad2b20599196e5f6f9348a"
+    },
+    {
+      "path": "icons/mapping.dmi",
+      "source": "modular_ss220/lazarus/icons/mapping.dmi",
+      "source_blob_sha1": "09017ff1e6dff34a3914bc883b2fd2d18d03049d",
+      "sha256": "98fbe87d58d2a3af9152d1a2877ada68e705ebbefa8acb902555a20befecf1c9"
+    },
+    {
+      "path": "icons/meaty_door.dmi",
+      "source": "modular_ss220/lazarus/icons/meaty_door.dmi",
+      "source_blob_sha1": "5663febc0b88e8bccddd45be042c401a6ef17edd",
+      "sha256": "42a5d875857d6e04f3a6c5d2b4f3d4c2e9f987c2ed5c57d97811baf6336bd3fb"
+    },
+    {
+      "path": "icons/meaty_wall.dmi",
+      "source": "modular_ss220/lazarus/icons/meaty_wall.dmi",
+      "source_blob_sha1": "0a2a8f374ae366a1570c15e8baa86eef0a237647",
+      "sha256": "f7e1ce930c024ce2fd820b1b72f935776dfcba453872e6ac71e3cd0d7cd584b4"
+    },
+    {
+      "path": "icons/meaty_weeds.dmi",
+      "source": "modular_ss220/lazarus/icons/meaty_weeds.dmi",
+      "source_blob_sha1": "c5822503021b5e0029b710d7c60d9bdabba41c90",
+      "sha256": "6d73a193fa21500f1dab5e741e689471ec63736c30ee41e98abc2567651f3d2e"
+    },
+    {
+      "path": "icons/plants.dmi",
+      "source": "modular_ss220/lazarus/icons/plants.dmi",
+      "source_blob_sha1": "ff462dccd96677b569a3e7ec7576fb10bca3fd86",
+      "sha256": "457e3b1a8d3d0606010268567f2431b8cef9f3dcc2cfd6b788f09ef73c4157ea"
+    },
+    {
+      "path": "icons/projectiles.dmi",
+      "source": "icons/obj/projectiles.dmi",
+      "source_blob_sha1": "1af6da1448f8168b964728af825625ace8d0489e",
+      "sha256": "ec6d102af16f2e89b6c9f37f17fffcbb5b17c722428262013dc413a44e2ac403"
+    },
+    {
+      "path": "icons/screen_frostbite.dmi",
+      "source": "icons/mob/screen_frostbite.dmi",
+      "source_blob_sha1": "c23456e78ba5821939cbd1141f31eab3f3e5d9d2",
+      "sha256": "7cdd62b17726d20a210554e191293d9c2bebd7dcbbf61a3e2f39bf1955946592"
+    },
+    {
+      "path": "icons/testers.dmi",
+      "source": "icons/obj/hypo.dmi",
+      "source_blob_sha1": "28d8872c24ad19afa5280ce39b5bd80adda7449b",
+      "sha256": "50355a3d572dee670ae8e1e68a1fd201dbb1a60d3c6085ff42740b8492e906b7"
+    },
+    {
+      "path": "icons/treacherous_flesh.dmi",
+      "source": "modular_ss220/lazarus/icons/treacherous_flesh.dmi",
+      "source_blob_sha1": "fde67b49cf10a2f254ba6ccbdc60ea0954eb13df",
+      "sha256": "dd1ded4290e7e6b6cde567b35263254f219ee545c98f9658e63438e5e9ff6024"
+    },
+    {
+      "path": "icons/winter_mob.dmi",
+      "source": "icons/mob/winter_mob.dmi",
+      "source_blob_sha1": "caa8ca21940b09427ebf02e245edbedafca0ce69",
+      "sha256": "4c38532156e797bc1f5f7722144c4b3776a3f33124dd1a137deded691d7152ed"
+    },
+    {
+      "path": "icons/wizard.dmi",
+      "source": "icons/obj/wizard.dmi",
+      "source_blob_sha1": "a4e21fa49fccf6cd09c1b428fd854b0b0b80773b",
+      "sha256": "faa17328c293d075c01b82f7a5a527a2c6f578fb2ca0f20f3c9174df19f31037"
+    },
+    {
+      "path": "icons/wooden_ceiling.dmi",
+      "source": "modular_ss220/lazarus/icons/wooden_ceiling.dmi",
+      "source_blob_sha1": "6259e7d39ce2bdc34f6450c0ec3e805d79667ed5",
+      "sha256": "9444bf2d09fa83218cf8b7caeb506d582287c832a0b1ab420501414e71b657bf"
+    },
+    {
+      "path": "sound/biomorph_burst.ogg",
+      "source": "modular_ss220/lazarus/sound/biomorph_burst.ogg",
+      "source_blob_sha1": "39ada5207a631b48ccfd360c2a7bc1851413a961",
+      "sha256": "6ca2450e1a1136da66044427ab3616b8ec612969d9a562851ea1bc220f1b40d6"
+    },
+    {
+      "path": "sound/falling_tree.ogg",
+      "source": "modular_ss220/lazarus/sound/falling_tree.ogg",
+      "source_blob_sha1": "480a762073ee70eaa0cde10d1e362f4dabacf1f6",
+      "sha256": "6cc092a9f3d39cbf3ff30ba3aa8b06a8dec666759f834c0c6606bfc8d28db5b4"
+    },
+    {
+      "path": "sound/ling_alert.ogg",
+      "source": "sound/ambience/antag/ling_alert.ogg",
+      "source_blob_sha1": "1132ccca29c4be205bbc8c09113f9012b5fc10fa",
+      "sha256": "115a5bdfa93408cedc41a60a2b73df2cf1b2320af08c730a5fc7d6866fad8454"
+    },
+    {
+      "path": "sound/shadowdeath.ogg",
+      "source": "sound/shadowdemon/shadowdeath.ogg",
+      "source_blob_sha1": "378945275164bdb9a1f72eeda7068b2f2d1fa305",
+      "sha256": "b6f513b249224ec377d212365e85821b1800e7d5b2aba9e4b46592839f0bf6df"
+    },
+    {
+      "path": "sound/snowstep1.ogg",
+      "source": "modular_ss220/lazarus/sound/snowstep1.ogg",
+      "source_blob_sha1": "a88a1ca744b1fdbeed9f724d81e370b1dd028881",
+      "sha256": "8b970edf41f0bc4010c759c7bea28ec160ac2b68dd012da11e7414afd5d63b86"
+    },
+    {
+      "path": "sound/snowstep2.ogg",
+      "source": "modular_ss220/lazarus/sound/snowstep2.ogg",
+      "source_blob_sha1": "74b2be81c61816a773e2872f873cddd95d8680ce",
+      "sha256": "1c650b8fca8289e4036f20a81441d8f6c63c12b01d5ebf251aee96b2f058a768"
+    },
+    {
+      "path": "sound/snowstep3.ogg",
+      "source": "modular_ss220/lazarus/sound/snowstep3.ogg",
+      "source_blob_sha1": "84d2ea200c81f3f0a2a16573d9e4041834b6ce0a",
+      "sha256": "90edc03182bda924052d4b216ff8a78a83500629420327066abef9d23b86af08"
+    },
+    {
+      "path": "sound/snowstep4.ogg",
+      "source": "modular_ss220/lazarus/sound/snowstep4.ogg",
+      "source_blob_sha1": "2becb3a6cb5339da2d0205ff8d31b247c5da17cc",
+      "sha256": "5dcfcce912c94f4e0071c37fcda3b0b3498ba0a1620ff0d282fa16846da7a22c"
+    },
+    {
+      "path": "sound/wood_chop.ogg",
+      "source": "modular_ss220/lazarus/sound/wood_chop.ogg",
+      "source_blob_sha1": "c28b54b4635c799ea867e83ce7e7e2d967a76900",
+      "sha256": "49c1e9d1d3ae3469ae448cf47dad17d978c4d8d5565e6b27431797ade1a261a9"
+    }
+  ],
+  "generated_assets": [
+    {
+      "path": "icons/colony_map.png",
+      "sha256": "4edbac79db93d3e85b28f2b6080789a4b595cc17fe163afc6613c3a94ef92fa1",
+      "provenance": {
+        "source_map": "modular_bandastation\\lazarus\\maps\\lazarus.dmm",
+        "source_sha256": "bfa1062aa7b20175621f6e596fe7b59de8ca97aeb19efade570ca55506ff8cb6",
+        "tool": "dmm-tools suite-1.11",
+        "hidden_area_prefixes": [
+          "/area/lazarus/underground",
+          "/area/lazarus/cabin",
+          "/area/lazarus/syndie_shelter",
+          "/area/lazarus/abandoned_bunker",
+          "/area/lazarus/outpost/veles/bunker"
+        ],
+        "masked_tiles": 30495,
+        "public_map_sha256": "fd925c23e036bf8dad492327af2fd90a2478fa416176a26e146ce660bf08a931",
+        "source_image_url": "https://images2.imgbox.com/d3/00/MuDeQutV_o.png",
+        "source_image_status": "missing-image placeholder; not used",
+        "output_dimensions": [
+          1350,
+          1181
+        ],
+        "output_sha256": "4edbac79db93d3e85b28f2b6080789a4b595cc17fe163afc6613c3a94ef92fa1"
+      }
+    }
+  ]
+}

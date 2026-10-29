@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "map_name": "Проект Лазарь",
+  "fluff_name": "ПКК «Перун»",
+  "map_path": "../modular_bandastation/lazarus/maps",
+  "map_file": "lazarus.dmm",
+  "space_ruin_levels": 0,
+  "space_empty_levels": 0,
+  "wilderness_levels": 0,
+  "planetary": 1,
+  "minetype": "none",
+  "traits": [
+    {
+      "Station": true,
+      "Linkage": null,
+      "Gravity": true,
+      "No Parallax": true,
+      "lazarus": true
+    }
+  ],
+  "shuttles": {
+    "cargo": "cargo_box",
+    "ferry": "ferry_fancy",
+    "whiteship": "whiteship_meta",
+    "emergency": "emergency_lazarus"
+  },
+  "job_changes": {
+    "Assistant": {
+      "spawn_positions": 5,
+      "total_positions": 5
+    },
+    "Prisoner": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Captain": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Head of Personnel": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Head of Security": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Research Director": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Chief Engineer": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Chief Medical Officer": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Bridge Assistant": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Veteran Security Advisor": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "AI": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Cyborg": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Personal AI": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Big Brother": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Warden": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Detective": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Security Officer": {
+      "spawn_positions": 10,
+      "total_positions": 10
+    },
+    "Security Officer (Medical)": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Security Officer (Engineering)": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Security Officer (Science)": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Security Officer (Cargo)": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Station Engineer": {
+      "spawn_positions": 8,
+      "total_positions": 8
+    },
+    "Atmospheric Technician": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Coroner": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Medical Doctor": {
+      "spawn_positions": 8,
+      "total_positions": 8
+    },
+    "Paramedic": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Chemist": {
+      "spawn_positions": 1,
+      "total_positions": 1
+    },
+    "Scientist": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Roboticist": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Geneticist": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Quartermaster": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Cargo Technician": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Cargo Gorilla": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Shaft Miner": {
+      "spawn_positions": 20,
+      "total_positions": 20
+    },
+    "Bitrunner": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Explorer": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Bartender": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Botanist": {
+      "spawn_positions": 3,
+      "total_positions": 3
+    },
+    "Cook": {
+      "spawn_positions": 2,
+      "total_positions": 2
+    },
+    "Chef": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Janitor": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Clown": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Mime": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Curator": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Chaplain": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Psychologist": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Pun Pun": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Nanotrasen Representative": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Blueshield": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Lawyer": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    },
+    "Magistrate": {
+      "spawn_positions": 0,
+      "total_positions": 0
+    }
+  }
+}

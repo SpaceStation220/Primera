@@ -62,6 +62,10 @@ endmap
 
 # Debug-only maps.
 
+# Event map: selected by administrators, excluded from ordinary map voting.
+map lazarus
+endmap
+
 map gateway_test
 endmap
 

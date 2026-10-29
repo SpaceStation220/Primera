@@ -60,6 +60,7 @@
 #include "jobs/_jobs.dme"
 #include "jukebox/_jukebox.dme"
 #include "language_improvements/_language_improvements.dme"
+#include "lazarus/_lazarus.dme"
 #include "loadout/_loadout.dme"
 #include "mapping/_mapping.dme"
 #include "martial_arts/_martial_arts.dme"
