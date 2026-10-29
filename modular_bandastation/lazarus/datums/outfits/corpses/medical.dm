@@ -1,0 +1,20 @@
+// AI EDIT START - Adapt the Lazarus event to the native Primera APIs and regression harness
+/datum/outfit/lazarus/corpse/medic
+	name = "Lazarus Medic"
+
+	uniform = /obj/item/clothing/under/rank/medical/doctor
+	suit = /obj/item/clothing/suit/toggle/labcoat
+	shoes = /obj/item/clothing/shoes/sneakers/white
+	ear_right = /obj/item/radio/headset/headset_med
+	back = /obj/item/storage/backpack/medic
+	id = /obj/item/card/id/advanced
+	id_trim = /datum/id_trim/job/medical_doctor
+	mask = /obj/item/clothing/mask/surgical
+	gloves = /obj/item/clothing/gloves/latex
+
+/datum/outfit/lazarus/corpse/medic/winter
+	name = "Lazarus Winter Medic"
+
+	suit = /obj/item/clothing/suit/hooded/wintercoat/medical
+	head = /obj/item/clothing/head/hooded/winterhood/medical
+// AI EDIT END

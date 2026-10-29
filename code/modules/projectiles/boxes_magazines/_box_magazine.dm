@@ -52,6 +52,12 @@
 		var/list/new_materials = custom_materials?.Copy()
 		for(var/mat in prototype.custom_materials)
 			new_materials[mat] -= prototype.custom_materials[mat] * max_ammo
+			// BANDASTATION ADDITION START - Empty magazines may have no remaining material of this type.
+			// AI EDIT START - Remove zero entries while preserving positive remainders and negative-material diagnostics.
+			if(new_materials[mat] == 0)
+				new_materials -= mat
+			// AI EDIT END
+			// BANDASTATION ADDITION END
 		qdel(prototype)
 		set_custom_materials(new_materials)
 

@@ -37,9 +37,14 @@
 
 /obj/structure/mineral_door/Initialize(mapload)
 	. = ..()
-	var/obj/item/stack/initialized_mineral = new sheetType // Okay this kinda sucks.
-	set_custom_materials(initialized_mineral.mats_per_unit, sheetAmount)
-	qdel(initialized_mineral)
+	// BANDASTATION EDIT START - Organic Lazarus doors contain no mineral sheets.
+	// AI EDIT START - Skip mineral prototypes for organic doors with no sheets.
+	if(sheetAmount)
+		var/obj/item/stack/initialized_mineral = new sheetType // Okay this kinda sucks.
+		set_custom_materials(initialized_mineral.mats_per_unit, sheetAmount)
+		qdel(initialized_mineral)
+	// AI EDIT END
+	// BANDASTATION EDIT END
 	air_update_turf(TRUE, TRUE)
 
 /obj/structure/mineral_door/Destroy()

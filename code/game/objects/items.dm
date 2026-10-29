@@ -253,7 +253,7 @@
 /obj/item/proc/get_worn_icon_state(slot_id)
 	return worn_icon_state_by_slot?[slot_id] || worn_icon_state || icon_state
 
-/// Copies default slot states without running the source item's gameplay initialization.
+/** Copies slot defaults before gameplay initialization and defers mapload cleanup until initialization finishes. */
 /proc/copy_initial_worn_icon_states(obj/item/item_type)
 	if(!ispath(item_type, /obj/item) || !item_type::worn_icon_state_by_slot)
 		return null
@@ -268,7 +268,7 @@
 		throw error
 	SSatoms.map_loader_stop(source)
 	var/alist/slot_states = prototype.worn_icon_state_by_slot?.Copy()
-	qdel(prototype)
+	SSatoms.prepare_deletion(prototype) // BANDASTATION EDIT - Defer mapload prototype deletion until atoms finish initializing.
 	return slot_states
 // BANDASTATION ADDITION END
 // AI EDIT END

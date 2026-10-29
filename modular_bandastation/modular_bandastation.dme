@@ -60,6 +60,9 @@
 #include "jobs/_jobs.dme"
 #include "jukebox/_jukebox.dme"
 #include "language_improvements/_language_improvements.dme"
+// AI EDIT START - Include the adapted Lazarus event modpack.
+#include "lazarus/_lazarus.dme"
+// AI EDIT END
 #include "loadout/_loadout.dme"
 #include "mapping/_mapping.dme"
 #include "martial_arts/_martial_arts.dme"

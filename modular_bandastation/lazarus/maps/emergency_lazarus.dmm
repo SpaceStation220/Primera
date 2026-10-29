@@ -1,0 +1,607 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"af" = (
+/obj/structure/window/reinforced/spawner/directional/west{
+	color = "#00BFFF"
+	},
+/obj/structure/window/reinforced/spawner/directional/north{
+	color = "#00BFFF"
+	},
+/turf/open/floor/plating,
+/area/shuttle/escape)
+"aV" = (
+/obj/machinery/vending/tool,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
+	},
+/area/shuttle/escape)
+"bx" = (
+/obj/machinery/power/shuttle_engine/propulsion,
+/obj/structure/window/reinforced/spawner/directional/north{
+	color = "#00BFFF"
+	},
+/turf/open/floor/plating,
+/area/shuttle/escape)
+"dd" = (
+/obj/machinery/vending/medical,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"eM" = (
+/obj/item/sign/flag/terragov,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 5
+	},
+/area/shuttle/escape)
+"fd" = (
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"gV" = (
+/obj/machinery/chem_master,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"ht" = (
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 8
+	},
+/area/shuttle/escape)
+"hu" = (
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
+	},
+/area/shuttle/escape)
+"iZ" = (
+/obj/machinery/sleeper{
+	dir = 2
+	},
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"kk" = (
+/obj/machinery/sleeper/syndie/fullupgrade/nt{
+	dir = 2
+	},
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"lx" = (
+/obj/structure/window/reinforced/spawner/directional/north{
+	color = "#00BFFF"
+	},
+/turf/open/floor/plating,
+/area/shuttle/escape)
+"mO" = (
+/obj/effect/light_emitter,
+/turf/open/floor/iron/lazarus/navybluealt,
+/area/shuttle/escape)
+"ob" = (
+/turf/open/floor/iron/lazarus/navybluecornersalt{
+	dir = 4
+	},
+/area/shuttle/escape)
+"os" = (
+/obj/effect/spawner/structure/window/reinforced/plasma/plastitanium,
+/turf/open/floor/plating,
+/area/shuttle/escape)
+"pa" = (
+/obj/structure/chair/comfy/shuttle{
+	dir = 1
+	},
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"rg" = (
+/turf/open/floor/iron/lazarus/navybluecornersalt{
+	dir = 1
+	},
+/area/shuttle/escape)
+"rN" = (
+/obj/structure/table/glass,
+/obj/machinery/reagentgrinder{
+	pixel_x = -1;
+	pixel_y = 9
+	},
+/turf/open/floor/iron/lazarus/darkbluefull,
+/area/shuttle/escape)
+"sj" = (
+/obj/machinery/computer/operating,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"sy" = (
+/obj/structure/chair/comfy/shuttle/tactical{
+	dir = 1
+	},
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"ti" = (
+/obj/structure/closet/secure_closet/medical2,
+/turf/open/floor/iron/lazarus/darkbluefull,
+/area/shuttle/escape)
+"tO" = (
+/obj/machinery/chem_dispenser/fullupgrade,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"tT" = (
+/obj/effect/spawner/structure/window/reinforced/plasma/plastitanium,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"wa" = (
+/obj/structure/table/reinforced,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"wD" = (
+/obj/structure/window/reinforced/spawner/directional/north{
+	color = "#00BFFF"
+	},
+/obj/structure/window/reinforced/spawner/directional/east{
+	color = "#00BFFF"
+	},
+/turf/open/floor/plating,
+/area/shuttle/escape)
+"xs" = (
+/obj/machinery/door/airlock/hatch{
+	hackProof = 1;
+	aiControlDisabled = 1;
+	id_tag = "s_docking_airlock"
+	},
+/obj/docking_port/mobile/emergency{
+	name = "The Emergency Shuttle";
+	dir = 1
+	},
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"xW" = (
+/obj/structure/table/optable,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"yg" = (
+/obj/structure/table/glass,
+/obj/item/storage/medkit/surgery{
+	pixel_y = 5;
+	pixel_x = 2
+	},
+/obj/effect/light_emitter,
+/turf/open/floor/iron/lazarus/darkbluefull,
+/area/shuttle/escape)
+"yz" = (
+/turf/open/floor/iron/lazarus/navybluealt,
+/area/shuttle/escape)
+"za" = (
+/obj/machinery/chem_heater,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"Aj" = (
+/obj/item/kirbyplants,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 10
+	},
+/area/shuttle/escape)
+"Ar" = (
+/turf/open/floor/plating,
+/area/shuttle/escape)
+"Bd" = (
+/obj/effect/baseturf_helper/lazarus,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"BS" = (
+/obj/effect/light_emitter,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
+	},
+/area/shuttle/escape)
+"Cd" = (
+/obj/structure/closet/secure_closet/engineering_electrical,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
+	},
+/area/shuttle/escape)
+"Cf" = (
+/turf/open/floor/iron/lazarus/navybluecornersalt,
+/area/shuttle/escape)
+"Dp" = (
+/turf/template_noop,
+/area/template_noop)
+"EO" = (
+/turf/closed/wall/mineral/plastitanium,
+/area/shuttle/escape)
+"ES" = (
+/obj/machinery/computer,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"Gr" = (
+/obj/machinery/vending/snack,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 9
+	},
+/area/shuttle/escape)
+"GA" = (
+/obj/machinery/power/shuttle_engine/large,
+/turf/open/floor/plating,
+/area/shuttle/escape)
+"GT" = (
+/obj/item/sign/flag/terragov,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"IV" = (
+/obj/structure/chair/comfy/shuttle,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"Kv" = (
+/turf/closed/wall/mineral/plastitanium/nodiagonal,
+/area/shuttle/escape)
+"KM" = (
+/obj/effect/light_emitter,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"Ls" = (
+/turf/open/floor/iron/lazarus/darkbluefull,
+/area/shuttle/escape)
+"LO" = (
+/obj/structure/closet/secure_closet/engineering_welding,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
+	},
+/area/shuttle/escape)
+"LR" = (
+/obj/machinery/door/airlock/hatch,
+/obj/effect/mapping_helpers/airlock/autoname,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"LY" = (
+/obj/effect/light_emitter,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 8
+	},
+/area/shuttle/escape)
+"OD" = (
+/obj/machinery/door/airlock/hatch{
+	hackProof = 1;
+	aiControlDisabled = 1;
+	id_tag = "s_docking_airlock"
+	},
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+"Pu" = (
+/obj/machinery/vending/coffee,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 1
+	},
+/area/shuttle/escape)
+"QN" = (
+/turf/open/floor/iron/lazarus/navybluecornersalt{
+	dir = 8
+	},
+/area/shuttle/escape)
+"QP" = (
+/obj/structure/chair/comfy/shuttle{
+	dir = 4
+	},
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 4
+	},
+/area/shuttle/escape)
+"Rx" = (
+/obj/structure/chair/comfy/shuttle{
+	dir = 8
+	},
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 8
+	},
+/area/shuttle/escape)
+"Su" = (
+/obj/machinery/vending/cola,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 9
+	},
+/area/shuttle/escape)
+"SA" = (
+/obj/item/sign/flag/terragov,
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 9
+	},
+/area/shuttle/escape)
+"TE" = (
+/turf/open/floor/iron/lazarus/navybluealt{
+	dir = 1
+	},
+/area/shuttle/escape)
+"YM" = (
+/obj/structure/closet/crate/freezer/blood,
+/turf/open/floor/iron/dark,
+/area/shuttle/escape)
+
+(1,1,1) = {"
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+EO
+EO
+EO
+Dp
+"}
+(2,1,1) = {"
+Dp
+Dp
+Dp
+Dp
+Dp
+EO
+EO
+os
+EO
+EO
+EO
+os
+os
+os
+EO
+EO
+bx
+Dp
+"}
+(3,1,1) = {"
+Dp
+EO
+os
+os
+EO
+Kv
+LO
+aV
+Cd
+os
+QP
+QP
+QP
+QP
+QP
+EO
+lx
+GA
+"}
+(4,1,1) = {"
+EO
+EO
+fd
+fd
+fd
+LR
+fd
+KM
+fd
+LR
+Cf
+hu
+BS
+hu
+ob
+EO
+wD
+Ar
+"}
+(5,1,1) = {"
+EO
+GT
+KM
+fd
+Su
+os
+Aj
+fd
+Gr
+os
+yz
+pa
+EO
+IV
+TE
+Kv
+EO
+bx
+"}
+(6,1,1) = {"
+os
+wa
+fd
+fd
+Pu
+EO
+os
+LR
+os
+EO
+yz
+pa
+os
+IV
+TE
+eM
+Kv
+Kv
+"}
+(7,1,1) = {"
+os
+ES
+sy
+fd
+EO
+EO
+dd
+fd
+YM
+EO
+yz
+pa
+EO
+IV
+TE
+fd
+fd
+OD
+"}
+(8,1,1) = {"
+os
+ES
+sy
+Bd
+EO
+dd
+fd
+fd
+fd
+os
+mO
+pa
+os
+IV
+TE
+KM
+fd
+xs
+"}
+(9,1,1) = {"
+os
+ES
+sy
+fd
+tT
+sj
+fd
+ti
+fd
+os
+yz
+pa
+EO
+IV
+TE
+fd
+fd
+OD
+"}
+(10,1,1) = {"
+os
+wa
+fd
+fd
+tT
+xW
+Ls
+yg
+Ls
+os
+yz
+pa
+os
+IV
+TE
+SA
+Kv
+Kv
+"}
+(11,1,1) = {"
+EO
+GT
+KM
+fd
+tT
+kk
+fd
+rN
+fd
+os
+yz
+pa
+EO
+IV
+TE
+Kv
+EO
+bx
+"}
+(12,1,1) = {"
+EO
+EO
+wa
+wa
+EO
+iZ
+fd
+fd
+fd
+os
+QN
+ht
+LY
+ht
+rg
+EO
+af
+GA
+"}
+(13,1,1) = {"
+Dp
+EO
+os
+os
+EO
+EO
+za
+tO
+gV
+EO
+Rx
+Rx
+Rx
+Rx
+Rx
+EO
+lx
+Ar
+"}
+(14,1,1) = {"
+Dp
+Dp
+Dp
+Dp
+Dp
+EO
+os
+os
+EO
+EO
+EO
+os
+os
+os
+EO
+EO
+bx
+Dp
+"}
+(15,1,1) = {"
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+Dp
+EO
+EO
+EO
+Dp
+"}

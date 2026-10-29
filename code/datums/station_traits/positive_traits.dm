@@ -302,6 +302,15 @@
 		/datum/job/magistrate = /obj/item/organ/cyberimp/arm/toolkit/paperwork,
 		/datum/job/explorer = /obj/item/organ/cyberimp/arm/toolkit/toolset,
 		/datum/job/spacepod_technician = /obj/item/organ/cyberimp/arm/toolkit/toolset,
+		// AI EDIT START - Event colonists participate in the native cybernetic revolution trait.
+		/datum/job/lazarus = /obj/item/organ/heart/cybernetic,
+		/datum/job/lazarus/hermit = /obj/item/organ/heart/cybernetic,
+		/datum/job/lazarus/crusader = /obj/item/organ/cyberimp/brain/anti_drop,
+		/datum/job/lazarus/abandoned_miner = /obj/item/organ/monster_core/rush_gland,
+		/datum/job/lazarus/cannibal = /obj/item/organ/heart/cybernetic,
+		/datum/job/lazarus/sectarian = /obj/item/organ/heart/cybernetic,
+		/datum/job/lazarus/syndicate_agent = /obj/item/organ/heart/cybernetic,
+		// AI EDIT END
 		// BANDASTATION ADD - END
 	)
 

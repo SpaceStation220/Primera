@@ -33,4 +33,17 @@
 			var/area/cable_area = get_area(random_cable)
 			if(!(cable_area.type in GLOB.the_station_areas) || !cable_area.requires_power)
 				continue
+			// BANDASTATION ADDITION START - Lazarus generators require players to repair their isolated input branches.
+			// AI EDIT START - Keep the deliberate cable gaps and nearby repair coils without exempting consumers or active generators.
+			if(istype(cable_area, /area/lazarus) && length(powernets.nodes))
+				var/only_unrepaired_generators = TRUE
+				for(var/power_node in powernets.nodes)
+					var/obj/machinery/power/geothermal_generator/generator = power_node
+					if(!istype(generator) || generator.gen_state != initial(generator.gen_state))
+						only_unrepaired_generators = FALSE
+						break
+				if(only_unrepaired_generators)
+					continue
+			// AI EDIT END
+			// BANDASTATION ADDITION END
 			TEST_FAIL("[powernets] found with no power roundstart, connected to a cable at ([random_cable.x], [random_cable.y], [random_cable.z]).")
