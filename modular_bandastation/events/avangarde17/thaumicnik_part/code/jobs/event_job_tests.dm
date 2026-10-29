@@ -67,7 +67,7 @@
 		var/datum/job/job = SSjob.get_job_type(job_type)
 		var/mob/living/carbon/human/consistent/subject = allocate(/mob/living/carbon/human/consistent)
 		subject.dress_up_as_job(job, consistent = TRUE)
-		if(length(subject.get_items_by_slots(ITEM_SLOT_EARS)))
+		if(subject.get_item_by_slot(ITEM_SLOT_EAR_RIGHT) || subject.get_item_by_slot(ITEM_SLOT_EAR_LEFT))
 			return TEST_FAIL("[job.title] received an earpiece despite its event outfit disabling headsets.")
 		var/obj/item/card/id/card = subject.get_idcard()
 		if(!card?.trim)
