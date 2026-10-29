@@ -1,0 +1,19 @@
+#include "code/jobs_fixes.dm"
+#include "code/job_landmarks.dm"
+#include "code/ancient_virus.dm"
+#include "code/jobs/event_jobs.dme"
+#include "code/appartment_keys.dm"
+// AI EDIT START - Compile apartment housing and regression tests
+#include "code/housing.dm"
+// AI EDIT END
+#include "code/fancy_natural_floors.dm"
+#include "code/department_tweak.dm"
+
+// AI EDIT START - Compile apartment housing and regression tests
+#if defined(UNIT_TESTS) || defined(SPACEMAN_DMM)
+#include "code/tests/appartment_keys.dm"
+#include "code/tests/housing.dm"
+#include "code/tests/primedream_compat.dm"
+#endif
+// AI EDIT END
+

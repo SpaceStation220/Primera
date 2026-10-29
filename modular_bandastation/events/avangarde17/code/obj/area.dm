@@ -1,0 +1,1103 @@
+// MARK: Area
+// Зоны Авангарда
+/area/awaymission/avangarde17
+	// AI EDIT START - Register Avangarde areas as station areas
+	parent_type = /area/station
+	// AI EDIT END
+	name = "Авангард-17"
+	// AI EDIT START - Register Avangarde areas as station areas
+	icon = 'icons/area/areas_away_missions.dmi'
+	// AI EDIT END
+	icon_state = "awaycontent1"
+	// AI EDIT START - Register Avangarde areas as station areas
+	default_gravity = STANDARD_GRAVITY
+	ambience_index = AMBIENCE_AWAY
+	sound_environment = SOUND_ENVIRONMENT_ROOM
+	skip_minimap_rendering = TRUE
+	// AI EDIT END
+	requires_power = TRUE
+	static_lighting = TRUE
+
+// Зоны улицы
+// Альфа 120, подумать как сделать тени на стенки
+/area/awaymission/avangarde17/outside
+	name = "Лес"
+	icon_state = "awaycontent2"
+	base_lighting_alpha = 120
+	requires_power = FALSE
+
+/area/awaymission/avangarde17/outside/mountains
+	name = "Горы"
+	icon_state = "awaycontent3"
+	requires_power = FALSE
+	base_lighting_alpha = 120
+
+/area/awaymission/avangarde17/outside/city
+	name = "ПГТ \"Зорька\""
+	icon_state = "awaycontent4"
+	requires_power = FALSE
+	base_lighting_alpha = 120
+
+/area/awaymission/avangarde17/outside/base
+	name = "Военная База \"ГРК-4\""
+	icon_state = "awaycontent5"
+	requires_power = FALSE
+	base_lighting_alpha = 120
+
+/area/awaymission/avangarde17/outside/ruin
+	name = "Руины"
+	icon_state = "awaycontent6"
+	requires_power = FALSE
+	base_lighting_alpha = 120
+
+/area/awaymission/avangarde17/outside/ruin/second
+	name = "Руины"
+	icon_state = "awaycontent6"
+	requires_power = FALSE
+	base_lighting_alpha = 120
+
+
+/area/awaymission/avangarde17/outside/roofs
+	name = "Крыша"
+	icon_state = "awaycontent7"
+	requires_power = FALSE
+	base_lighting_alpha = 120
+
+// Зоны пещер и помещений
+/area/awaymission/avangarde17/inside
+	name = "Пещеры"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/vedi
+	name = "Гиперборея"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/mine
+	name = "Шахта"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/temple
+	name = "Храм"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/temple_second
+	name = "Храм"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/bar
+	name = "Рюмочная \"Красная Звезда\""
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/shop_1
+	name = "Гастроном \"Козерог\""
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/shop_2
+	name = "Промтовары \"Михалыч\""
+	icon_state = "awaycontent14"
+
+/area/awaymission/avangarde17/inside/hangar
+	name = "Склад"
+	icon_state = "awaycontent15"
+
+/area/awaymission/avangarde17/inside/hangar/second_floor
+	name = "Склад - Второй Этаж"
+	icon_state = "awaycontent16"
+
+/area/awaymission/avangarde17/inside/hangar/cabinet
+	name = "Склад - Кабинет"
+	icon_state = "awaycontent16"
+
+/area/awaymission/avangarde17/inside/miner
+	name = "Бытовка"
+	icon_state = "awaycontent17"
+
+/area/awaymission/avangarde17/inside/miner/second_floor
+	name = "Бытовка - Второй Этаж"
+	icon_state = "awaycontent18"
+
+/area/awaymission/avangarde17/inside/miner/mine
+	name = "Шахта"
+	icon_state = "awaycontent24"
+
+/area/awaymission/avangarde17/inside/ruin
+	name = "Руины"
+	icon_state = "awaycontent19"
+
+/area/awaymission/avangarde17/inside/ruin_second
+	name = "Руины"
+	icon_state = "awaycontent19"
+
+/area/awaymission/avangarde17/inside/kebab
+	name = "Шаурмечная"
+	icon_state = "awaycontent20"
+
+// MARK: Институт
+
+/area/awaymission/avangarde17/inside/institute
+	name = "Институт"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/institute/xenobio
+	name = "Институт - Ксенобиология"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/institute/cytology
+	name = "Институт - Цитология"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/institute/experimenter
+	name = "Институт - Эксперементатор"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/institute/genetics
+	name = "Институт - Генетика"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/institute/security
+	name = "Институт - Пропускной пункт"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/institute/ordnance
+	name = "Институт - Оружейная лаборатория"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/institute/robotics
+	name = "Институт - Робототехника"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/institute/rnd
+	name = "Институт - Лаборатория промдизайна"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/institute/rd
+	name = "Институт - Кабинет Научрука"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/institute/servers
+	name = "Институт - Серверная"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/institute/staff
+	name = "Институт - Комната отдыха"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/institute/restroom
+	name = "Институт - Уборная"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/institute/polygon
+	name = "Институт - Испытательный полигон"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/institute/storage
+	name = "Институт - Склад"
+	icon_state = "awaycontent16"
+
+/area/awaymission/avangarde17/outside/instiute
+	name = "Институт - Улица"
+	icon_state = "awaycontent14"
+
+/area/awaymission/avangarde17/outside/polygon
+	name = "Институт - Окружение полигона"
+	icon_state = "awaycontent15"
+
+// MARK: Администрация
+
+/area/awaymission/avangarde17/inside/gov
+	name = "Райком"
+	icon_state = "awaycontent21"
+
+/area/awaymission/avangarde17/inside/gov/library
+	name = "Райком - Дом Культуры"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/gov/cryo
+	name = "Райком - Криогеника"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/gov/toilet
+	name = "Райком - Уборная"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/gov/abandoned
+	name = "Райком - Заброшенная подсобка"
+	icon_state = "awaycontent14"
+
+/area/awaymission/avangarde17/inside/gov/party_worker
+	name = "Райком - Кабинет Партработника"
+	icon_state = "awaycontent15"
+
+/area/awaymission/avangarde17/inside/gov/radio
+	name = "Райком - Радиостанция"
+	icon_state = "awaycontent22"
+
+/area/awaymission/avangarde17/inside/gov/second_floor
+	name = "Райком - Второй Этаж"
+	icon_state = "awaycontent23"
+
+/area/awaymission/avangarde17/inside/gov/hop
+	name = "Райком - Кабинет Управляющего"
+	icon_state = "awaycontent16"
+
+/area/awaymission/avangarde17/inside/gov/captain
+	name = "Райком - Кабинет Председателя"
+	icon_state = "awaycontent17"
+
+/area/awaymission/avangarde17/inside/gov/meeting
+	name = "Райком - Зал Собраний"
+	icon_state = "awaycontent18"
+
+/area/awaymission/avangarde17/inside/gov/engi
+	name = "Райком - Подсобка Техников"
+	icon_state = "awaycontent19"
+
+// MARK: Поликлиника
+
+/area/awaymission/avangarde17/inside/clinic
+	name = "Поликлиника - Первый этаж"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/clinic/entrance
+	name = "Поликлиника - Прихожая"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/clinic/pharmacy
+	name = "Поликлиника - Аптека"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/clinic/surgery_one
+	name = "Поликлиника - Первая хирургия"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/clinic/surgery_two
+	name = "Поликлиника - Вторая хирургия"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/clinic/paramedic
+	name = "Поликлиника - Фельдшерская"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/clinic/staff
+	name = "Поликлиника - Комната персонала"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/clinic/second_floor
+	name = "Поликлиника - Второй этаж"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/clinic/cmo
+	name = "Поликлиника - Кабинет главного врача"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/clinic/patients
+	name = "Поликлиника - Палаты пациентов"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/clinic/virology
+	name = "Поликлиника - Вирусология"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/clinic/toilet
+	name = "Поликлиника - Уборная"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/clinic/doctor_room_first
+	name = "Поликлиника - Первый приёмный кабинет"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/clinic/doctor_room_second
+	name = "Поликлиника - Первый приёмный кабинет"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/clinic/doctor_room_third
+	name = "Поликлиника - Первый приёмный кабинет"
+	icon_state = "awaycontent14"
+
+/area/awaymission/avangarde17/inside/clinic/storage
+	name = "Поликлиника - Склад"
+	icon_state = "awaycontent15"
+
+/area/awaymission/avangarde17/inside/clinic/morgue
+	name = "Поликлиника - Морг"
+	icon_state = "awaycontent16"
+
+/area/awaymission/avangarde17/inside/clinic/coroner
+	name = "Поликлиника - Офис Патологоанатома"
+	icon_state = "awaycontent17"
+
+/area/awaymission/avangarde17/inside/clinic/maints
+	name = "Поликлиника - Подсобка"
+	icon_state = "awaycontent18"
+
+/area/awaymission/avangarde17/inside/clinic/pharmacy/factory
+	name = "Поликлиника - Фармакологическая фабрика"
+	icon_state = "awaycontent19"
+
+// MARK: Склад
+
+/area/awaymission/avangarde17/inside/cargo
+	name = "Склад - Почтовое отделение"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/cargo/closet
+	name = "Склад - Подсобка"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/cargo/hangar
+	name = "Склад - Ангар (первый этаж)"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/cargo/hangar/second_floor
+	name = "Склад - Ангар (второй этаж)"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/cargo/toilet
+	name = "Склад - Уборная"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/cargo/elevator
+	name = "Склад - Лифт"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/cargo/qm
+	name = "Склад - Кабинет завхоза"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/cargo/storage/
+	name = "Склад - Хранилище (первый этаж)"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/cargo/storage/second_floor
+	name = "Склад - Хранилище (второй этаж)"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/cargo/storage/minerals
+	name = "Склад - Хранилище ресурсов"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/cargo/staff
+	name = "Склад - Комната отдыха"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/cargo/bitrun
+	name = "Склад - Бегущие по потоку"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/cargo/miners
+	name = "Склад - Шахтёрский отдел"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/cargo/miners/shaft
+	name = "Склад - Выход к шахте"
+	icon_state = "awaycontent14"
+
+// MARK: Электростанция
+
+/area/awaymission/avangarde17/inside/reactor
+	name = "Электростанция - КПП"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/reactor/entrance
+	name = "Электростанция - Вход"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/reactor/ladder
+	name = "Электростанция - Лестница"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/reactor/atmos
+	name = "Электростанция - Атмосферный отдел"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/reactor/storage
+	name = "Электростанция - Склад"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/reactor/equipment
+	name = "Электростанция - Комната экипировки"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/reactor/ce
+	name = "Электростанция - Кабинет главного инженера"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/reactor/second_floor
+	name = "Электростанция - Второй этаж"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/reactor/control_room
+	name = "Электростанция - Комната управления"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/reactor/preparations
+	name = "Электростанция - Комната управления"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/reactor/toilet
+	name = "Электростанция - Уборная"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/reactor/smes
+	name = "Электростанция - Трансформаторная"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/reactor/emitter
+	name = "Электростанция - Излучательная"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/reactor/smoking
+	name = "Электростанция - Курилка"
+	icon_state = "awaycontent14"
+
+/area/awaymission/avangarde17/inside/reactor/sm_zone
+	name = "Электростанция - Зона Реактора"
+	icon_state = "awaycontent15"
+
+/area/awaymission/avangarde17/inside/reactor/sm_inside
+	name = "Электростанция - Внутри реактора"
+	icon_state = "awaycontent16"
+
+/area/awaymission/avangarde17/inside/reactor/cooling
+	name = "Электростанция - Внутри реактора"
+	icon_state = "awaycontent17"
+
+// MARK: Общественный центр
+
+/area/awaymission/avangarde17/inside/service
+	name = "Общественный центр"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/service/grocery
+	name = "Общественный центр - Продуктовый"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/service/photocopy
+	name = "Общественный центр - Фотокопирка"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/service/industrial
+	name = "Общественный центр - Промтовары"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/service/industrial/storage
+	name = "Общественный центр - Подсобка промтоваров"
+	icon_state = "awaycontent16"
+
+/area/awaymission/avangarde17/inside/service/gym
+	name = "Общественный центр - Спортзал"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/service/recreation
+	name = "Общественный центр - Зона отдыха"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/service/recreation/restroom
+	name = "Общественный центр - Уборная зоны отдыха"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/service/recreation/theater
+	name = "Общественный центр - Театр"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/service/canteen
+	name = "Общественный центр - Столовая"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/service/canteen/restroom
+	name = "Общественный центр - Уборная столовой"
+	icon_state = "awaycontent17"
+
+/area/awaymission/avangarde17/inside/service/kitchen
+	name = "Общественный центр - Кухня"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/service/kitchen/storage
+	name = "Общественный центр - Подсобка кухни"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/service/kitchen/freezer
+	name = "Общественный центр - Морозильная камера"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/service/greenhouse
+	name = "Общественный центр - Теплица"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/service/greenhouse/storage
+	name = "Общественный центр - Подсобка теплицы"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/service/hall
+	name = "Общественный центр - Сервисный дворик"
+	icon_state = "awaycontent14"
+
+/area/awaymission/avangarde17/inside/service/garage
+	name = "Общественный центр - Гараж"
+	icon_state = "awaycontent15"
+
+/area/awaymission/avangarde17/inside/service/janitor
+	name = "Общественный центр - Подсобка дворников"
+	icon_state = "awaycontent18"
+
+// MARK: Милиция
+
+/area/awaymission/avangarde17/inside/militia
+	name = "Участковый Пункт Милиции"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/militia/interrogation
+	name = "Участковый Пункт Милиции - Допросная"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/militia/investigator
+	name = "Участковый Пункт Милиции - Кабинет следователя"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/militia/bathroom
+	name = "Участковый Пункт Милиции - Уборная"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/militia/garage
+	name = "Участковый Пункт Милиции - Гараж"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/militia/evidence
+	name = "Участковый Пункт Милиции - Вещдоки"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/militia/cells
+	name = "Участковый Пункт Милиции - Заключённые"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/militia/second_floor
+	name = "Участковый Пункт Милиции - Второй этаж"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/militia/storage
+	name = "Участковый Пункт Милиции - Кладовка"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/militia/brief
+	name = "Участковый Пункт Милиции - Переговорная"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/militia/head
+	name = "Участковый Пункт Милиции - Кабинет Начальника"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/militia/locker
+	name = "Участковый Пункт Милиции - Раздевалка"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/militia/armory
+	name = "Участковый Пункт Милиции - Оружейная"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/militia/warden
+	name = "Участковый Пункт Милиции - Кабинет постового"
+	icon_state = "awaycontent14"
+
+/area/awaymission/avangarde17/inside/hospital
+	name = "Фельдшерско-Акушерский Пункт"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/hospital/dr
+	name = "Фельдшерско-Акушерский Пункт - Ординаторская"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/hospital/hall
+	name = "Фельдшерско-Акушерский Пункт - Приемник"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/hospital/morgue
+	name = "Фельдшерско-Акушерский Пункт - Морг"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/energy
+	name = "Трансформаторная Будка"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/garage
+	name = "Тёмный Гараж"
+	icon_state = "awaycontent1"
+
+
+/area/awaymission/avangarde17/inside/toilet
+	name = "Сельский Туалет"
+	icon_state = "awaycontent1"
+	base_lighting_alpha = 50
+
+/area/awaymission/avangarde17/inside/old_hangar
+	name = "Старый Ангар"
+	icon_state = "awaycontent1"
+	base_lighting_alpha = 50
+
+/area/awaymission/avangarde17/inside/old_hangar/first_floor
+	name = "Старый Ангар - Первый Этаж"
+	icon_state = "awaycontent2"
+	base_lighting_alpha = 50
+
+/area/awaymission/avangarde17/inside/old_hangar/eng
+	name = "Старый Ангар - Генераторная"
+	icon_state = "awaycontent3"
+	base_lighting_alpha = 50
+
+/area/awaymission/avangarde17/inside/old_hangar/second_floor
+	name = "Старый Ангар - Второй Этаж"
+	icon_state = "awaycontent4"
+	base_lighting_alpha = 50
+
+/area/awaymission/avangarde17/inside/old_hangar/bedroom
+	name = "Старый Ангар - Общага"
+	icon_state = "awaycontent5"
+	base_lighting_alpha = 50
+
+// MARK: Военная база
+/area/awaymission/avangarde17/inside/base
+	name = "ГРК-4 - Военная База"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/base_zampolit
+	name = "ГРК-4 - Кабинет Замполита"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/base_comendant
+	name = "ГРК-4 - Кабинет Коменданта"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/base_briefroom
+	name = "ГРК-4 - Зал Собраний"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/base_prapor
+	name = "ГРК-4 - Коморка Прапора"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/base_barracs
+	name = "ГРК-4 - Казармы"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/base_smokeroom
+	name = "ГРК-4 - Курилка"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/base_kitchen
+	name = "ГРК-4 - Столовая"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/base_hospital
+	name = "ГРК-4 - Лазарет"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/base_surgery
+	name = "ГРК-4 - Операционная"
+	icon_state = "awaycontent10"
+
+/area/awaymission/avangarde17/inside/base_research
+	name = "ГРК-4 - Научный Блок"
+	icon_state = "awaycontent11"
+
+/area/awaymission/avangarde17/inside/base_cargo
+	name = "ГРК-4 - Пункт Досмотра"
+	icon_state = "awaycontent12"
+
+/area/awaymission/avangarde17/inside/base_hangar
+	name = "ГРК-4 - Ангар"
+	icon_state = "awaycontent13"
+
+/area/awaymission/avangarde17/inside/base_controlroom
+	name = "ГРК-4 - Диспетчерская"
+	icon_state = "awaycontent14"
+
+/area/awaymission/avangarde17/inside/base_mining
+	name = "ГРК-4 - Шахтерский Ангар"
+	icon_state = "awaycontent15"
+
+/area/awaymission/avangarde17/inside/base_eng
+	name = "ГРК-4 - Трансформаторная будка"
+	icon_state = "awaycontent16"
+
+/area/awaymission/avangarde17/inside/base_post1
+	name = "ГРК-4 - Будка"
+	icon_state = "awaycontent17"
+
+/area/awaymission/avangarde17/inside/base_post2
+	name = "ГРК-4 - Будка Досмотра"
+	icon_state = "awaycontent18"
+
+/area/awaymission/avangarde17/inside/base_garage
+	name = "ГРК-4 - Гараж"
+	icon_state = "awaycontent19"
+
+// MARK: Советская Д 1 П 1
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_1
+	name = "Советская - 1 - Подъезд 1 (первый этаж)"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_1/apartment_1
+	name = "Советская - 1 - Подъезд 1, Этаж 1, Квартира 1"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_1/apartment_2
+	name = "Советская - 1 - Подъезд 1, Этаж 1, Квартира 2"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_1/second_floor
+	name = "Советская - 1 - Подъезд 1 (второй этаж)"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_1/second_floor/apartment_1
+	name = "Советская - 1 - Подъезд 1, Этаж 2, Квартира 1"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_1/second_floor/apartment_2
+	name = "Советская - 1 - Подъезд 1, Этаж 2, Квартира 2"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_1/second_floor/apartment_3
+	name = "Советская - 1 - Подъезд 1, Этаж 2, Квартира 3"
+	icon_state = "awaycontent7"
+
+// MARK: Советская Д 1 П 2
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_2
+	name = "Советская - 1 - Подъезд 2 (первый этаж)"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_2/apartment_1
+	name = "Советская - 1 - Подъезд 2, Этаж 1, Квартира 1"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_2/apartment_2
+	name = "Советская - 1 - Подъезд 2, Этаж 1, Квартира 2"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_2/second_floor
+	name = "Советская - 1 - Подъезд 2 (второй этаж)"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_2/second_floor/apartment_1
+	name = "Советская - 1 - Подъезд 2, Этаж 2, Квартира 1"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_2/second_floor/apartment_2
+	name = "Советская - 1 - Подъезд 2, Этаж 2, Квартира 2"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/living/sovetskaya_1_2/second_floor/apartment_3
+	name = "Советская - 1 - Подъезд 2, Этаж 2, Квартира 3"
+	icon_state = "awaycontent7"
+
+// MARK: Ленина Д 1 П 1
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1
+	name = "Ленина - 1 - Подъезд 1 (первый этаж)"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/apartment_1
+	name = "Ленина - 1 - Подъезд 1, Этаж 1, Квартира 1"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/apartment_2
+	name = "Ленина - 1 - Подъезд 1, Этаж 1, Квартира 2"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/apartment_3
+	name = "Ленина - 1 - Подъезд 1, Этаж 1, Квартира 3"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/apartment_4
+	name = "Ленина - 1 - Подъезд 1, Этаж 1, Квартира 4"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/second_floor
+	name = "Ленина - 1 - Подъезд 1 (второй этаж)"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/second_floor/apartment_1
+	name = "Ленина - 1 - Подъезд 1, Этаж 2, Квартира 1"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/second_floor/apartment_2
+	name = "Ленина - 1 - Подъезд 1, Этаж 2, Квартира 2"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/second_floor/apartment_3
+	name = "Ленина - 1 - Подъезд 1, Этаж 2, Квартира 3"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/living/lenina_1_1/second_floor/apartment_4
+	name = "Ленина - 1 - Подъезд 1, Этаж 2, Квартира 4"
+	icon_state = "awaycontent10"
+
+// MARK: Ленина Д 2 П 1
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1
+	name = "Ленина - 2 - Подъезд 1 (первый этаж)"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/apartment_1
+	name = "Ленина - 2 - Подъезд 1, Этаж 1, Квартира 1"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/apartment_2
+	name = "Ленина - 2 - Подъезд 1, Этаж 1, Квартира 2"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/apartment_3
+	name = "Ленина - 2 - Подъезд 1, Этаж 1, Квартира 3"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/apartment_4
+	name = "Ленина - 2 - Подъезд 1, Этаж 1, Квартира 4"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/second_floor
+	name = "Ленина - 2 - Подъезд 1 (второй этаж)"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/second_floor/apartment_1
+	name = "Ленина - 2 - Подъезд 1, Этаж 2, Квартира 1"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/second_floor/apartment_2
+	name = "Ленина - 2 - Подъезд 1, Этаж 2, Квартира 2"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/second_floor/apartment_3
+	name = "Ленина - 2 - Подъезд 1, Этаж 2, Квартира 3"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/living/lenina_2_1/second_floor/apartment_4
+	name = "Ленина - 2 - Подъезд 1, Этаж 2, Квартира 4"
+	icon_state = "awaycontent10"
+
+// MARK: Лазаря Д 1 П 1
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1
+	name = "Лазаря - 1 - Подъезд 1 (первый этаж)"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/apartment_1
+	name = "Лазаря - 1 - Подъезд 1, Этаж 1, Квартира 1"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/apartment_2
+	name = "Лазаря - 1 - Подъезд 1, Этаж 1, Квартира 2"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/apartment_3
+	name = "Лазаря - 1 - Подъезд 1, Этаж 1, Квартира 3"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/apartment_4
+	name = "Лазаря - 1 - Подъезд 1, Этаж 1, Квартира 4"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/second_floor
+	name = "Лазаря - 1 - Подъезд 1 (второй этаж)"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/second_floor/apartment_1
+	name = "Лазаря - 1 - Подъезд 1, Этаж 2, Квартира 1"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/second_floor/apartment_2
+	name = "Лазаря - 1 - Подъезд 1, Этаж 2, Квартира 2"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/second_floor/apartment_3
+	name = "Лазаря - 1 - Подъезд 1, Этаж 2, Квартира 3"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/living/lazarya_1_1/second_floor/apartment_4
+	name = "Лазаря - 1 - Подъезд 1, Этаж 2, Квартира 4"
+	icon_state = "awaycontent10"
+
+// MARK: Лазаря Д 2 П 1
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1
+	name = "Лазаря - 2 - Подъезд 1 (первый этаж)"
+	icon_state = "awaycontent1"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/apartment_1
+	name = "Лазаря - 2 - Подъезд 1, Этаж 1, Квартира 1"
+	icon_state = "awaycontent2"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/apartment_2
+	name = "Лазаря - 2 - Подъезд 1, Этаж 1, Квартира 2"
+	icon_state = "awaycontent3"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/apartment_3
+	name = "Лазаря - 2 - Подъезд 1, Этаж 1, Квартира 3"
+	icon_state = "awaycontent4"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/apartment_4
+	name = "Лазаря - 2 - Подъезд 1, Этаж 1, Квартира 4"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/second_floor
+	name = "Лазаря - 2 - Подъезд 1 (второй этаж)"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/second_floor/apartment_1
+	name = "Лазаря - 2 - Подъезд 1, Этаж 2, Квартира 1"
+	icon_state = "awaycontent7"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/second_floor/apartment_2
+	name = "Лазаря - 2 - Подъезд 1, Этаж 2, Квартира 2"
+	icon_state = "awaycontent8"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/second_floor/apartment_3
+	name = "Лазаря - 2 - Подъезд 1, Этаж 2, Квартира 3"
+	icon_state = "awaycontent9"
+
+/area/awaymission/avangarde17/inside/living/lazarya_2_1/second_floor/apartment_4
+	name = "Лазаря - 2 - Подъезд 1, Этаж 2, Квартира 4"
+	icon_state = "awaycontent10"
+
+// MARK: Домики
+
+/area/awaymission/avangarde17/inside/living/cabin/communism_1
+	name = "Ул. Коммунизма - 1"
+	icon_state = "awaycontent1"
+	base_lighting_alpha = 65
+
+/area/awaymission/avangarde17/inside/living/cabin/communism_2
+	name = "Ул. Коммунизма - 2"
+	icon_state = "awaycontent2"
+	base_lighting_alpha = 65
+
+/area/awaymission/avangarde17/inside/living/cabin/communism_3
+	name = "Ул. Коммунизма - 3"
+	icon_state = "awaycontent3"
+	base_lighting_alpha = 65
+
+// MARK: Прочие зоны
+
+/area/awaymission/avangarde17/inside/misc/bar
+	name = "Кабак"
+	icon_state = "awaycontent15"
+
+/area/awaymission/avangarde17/inside/misc/garage_cooperative
+	name = "Гаражный кооператив"
+	icon_state = "awaycontent16"
+/*
+// Скорее всего удалить луп музыки, трансляция будет по радио
+/area/awaymission/avangarde17/outside/base
+	name = "Аванпост КССП"
+	icon_state = "awaycontent3"
+	var/sound_file = 'modular_bandastation/events/avangarde17/audio/red_army.ogg'
+	var/sound_channel = 61
+	var/max_volume = 20
+	var/fade_tick = 0.3 SECONDS
+	var/fade_duration = 1.5 SECONDS
+	var/check_period = 3 SECONDS
+
+	var/play_duration = 4 MINUTES + 40 SECONDS
+	var/silence_duration = 20 SECONDS
+	var/is_phase_play = FALSE
+
+	var/list/current_volumes = list()
+	var/list/target_volumes  = list()
+	var/list/attached_mobs   = list()
+
+/area/awaymission/avangarde17/inside
+	name = "Аванпост КССП"
+	icon_state = "awaycontent4"
+	static_lighting = TRUE
+	base_lighting_alpha = 0
+
+/area/awaymission/avangarde17/inside/cave
+	name = "Пещеры"
+	icon_state = "awaycontent5"
+
+/area/awaymission/avangarde17/inside/temple
+	name = "Древний храм"
+	icon_state = "awaycontent6"
+
+/area/awaymission/avangarde17/outside/base/Initialize(mapload)
+	. = ..()
+	addtimer(CALLBACK(src, PROC_REF(update_members)), check_period, TIMER_LOOP | TIMER_STOPPABLE)
+	addtimer(CALLBACK(src, PROC_REF(process_fades)),  fade_tick,   TIMER_LOOP | TIMER_STOPPABLE)
+	start_cycle()
+
+/area/awaymission/avangarde17/outside/base/Destroy()
+	for(var/mob/M in attached_mobs)
+		if(M?.client)
+			SEND_SOUND(M, sound(null, channel = sound_channel))
+	current_volumes.Cut()
+	target_volumes.Cut()
+	attached_mobs.Cut()
+	return ..()
+
+/area/awaymission/avangarde17/outside/base/proc/start_cycle()
+	is_phase_play = TRUE
+	for(var/mob/M in attached_mobs)
+		if(!M?.client) continue
+		var/sound/start = sound(sound_file)
+		start.channel = sound_channel
+		start.repeat = TRUE
+		start.volume = current_volumes[M] || 0
+		SEND_SOUND(M, start)
+	update_members()
+	addtimer(CALLBACK(src, PROC_REF(begin_silence_phase)), play_duration, TIMER_STOPPABLE)
+
+/area/awaymission/avangarde17/outside/base/proc/begin_silence_phase()
+	is_phase_play = FALSE
+	for(var/mob/M in attached_mobs)
+		target_volumes[M] = 0
+	addtimer(CALLBACK(src, PROC_REF(start_cycle)), silence_duration, TIMER_STOPPABLE)
+
+/area/awaymission/avangarde17/outside/base/proc/update_members()
+	var/list/in_zone = list()
+	for(var/mob/living/player in GLOB.player_list)
+		if(!player?.client) continue
+		if(get_area(player) == src)
+			in_zone[player] = TRUE
+			if(!(player in attached_mobs))
+				var/sound/seed = sound(sound_file)
+				seed.channel = sound_channel
+				seed.repeat = TRUE
+				seed.volume = 0
+				SEND_SOUND(player, seed)
+				attached_mobs += player
+				current_volumes[player] = 0
+			target_volumes[player] = is_phase_play ? max_volume : 0
+	for(var/mob/existing in current_volumes.Copy())
+		if(!existing?.client)
+			detach_listener(existing)
+		else if(!(existing in in_zone))
+			target_volumes[existing] = 0
+
+/area/awaymission/avangarde17/outside/base/proc/process_fades()
+	for(var/mob/listener in current_volumes.Copy())
+		if(!listener?.client)
+			detach_listener(listener)
+			continue
+		var/cv = current_volumes[listener]
+		var/tv = isnull(target_volumes[listener]) ? 0 : target_volumes[listener]
+		if(cv == tv) continue
+		var/step = round((max_volume * fade_tick) / max(0.1 SECONDS, fade_duration))
+		if(step < 1) step = 1
+		var/nv = cv
+		if(cv < tv) nv = min(cv + step, tv)
+		else        nv = max(cv - step, tv)
+		if(abs(nv - cv) >= 2)
+			var/sound/update = sound(null)
+			update.channel = sound_channel
+			update.repeat = TRUE
+			update.volume = nv
+			update.status = SOUND_UPDATE
+			SEND_SOUND(listener, update)
+		current_volumes[listener] = nv
+
+/area/awaymission/avangarde17/outside/base/proc/detach_listener(mob/M)
+	if(!M) return
+	SEND_SOUND(M, sound(null, channel = sound_channel))
+	current_volumes -= M
+	target_volumes  -= M
+	attached_mobs   -= M
+*/

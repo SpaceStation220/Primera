@@ -242,20 +242,23 @@
 				return TRUE
 
 			playsound(computer, SFX_TERMINAL_TYPE, 50, FALSE)
-			var/template_name = params["name"]
+			// AI EDIT START - Match the selected template against authorized type paths.
+			// BANDASTATION EDIT START - Select only an authorized path, even when assignments have the same name.
+			var/template_path = params["path"]
 
-			if(!template_name)
+			if(!template_path)
 				return TRUE
 
 			for(var/trim_path in job_templates)
-				var/datum/id_trim/trim = SSid_access.trim_singletons_by_path[trim_path]
-				if(trim.assignment != template_name)
+				if("[trim_path]" != template_path)
 					continue
 
 				SSid_access.add_trim_access_to_card(modified_id, trim_path)
 				return TRUE
 
-			stack_trace("[key_name(usr)] ([usr]) attempted to apply invalid template \[[template_name]\] to [modified_id]")
+			stack_trace("[key_name(usr)] ([usr]) attempted to apply invalid template \[[template_path]\] to [modified_id]")
+			// BANDASTATION EDIT END
+			// AI EDIT END
 
 			return TRUE
 		if("PRG_insert_main_id")
