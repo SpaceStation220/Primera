@@ -266,6 +266,8 @@
 	second_victim.stamina_regen_time = 4 SECONDS
 	var/original_regen_time = victim.stamina_regen_time
 	for(var/mob/living/carbon/human/target in list(victim, second_victim))
+		// Random wounds add determination, whose healing would interfere with the stamina timer assertions.
+		ADD_TRAIT(target, TRAIT_NEVER_WOUNDED, TRAIT_SOURCE_UNIT_TESTS)
 		var/obj/projectile/magic/shadow_hand/projectile = allocate(/obj/projectile/magic/shadow_hand, get_turf(target))
 		projectile.firer = demon
 		projectile.on_hit(target)
