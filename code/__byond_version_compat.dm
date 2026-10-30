@@ -28,6 +28,14 @@
 
 /// Call by name proc reference, checks if the proc exists on either the given type or as a global proc
 #define TYPE_PROC_REF(TYPE, X) (nameof(##TYPE.proc/##X))
+/// Unbound reference to a specific override, including in the declaring type's variable defaults.
+// Scoped :: references in those defaults can cause circular type evaluation in BYOND.
+#ifdef OPENDREAM
+#define OVERRIDE_PROC_REF(TYPE, X) (##TYPE/proc/##X)
+#else
+#define OVERRIDE_PROC_REF(TYPE, X) (##TYPE/##X)
+#endif
+
 /// Call by name verb reference, checks if the verb exists on either the given type or as a global verb
 #define TYPE_VERB_REF(TYPE, X) (nameof(##TYPE.verb/##X))
 

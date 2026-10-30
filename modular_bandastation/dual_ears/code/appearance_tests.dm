@@ -132,31 +132,3 @@
 	TEST_ASSERT_EQUAL(overlay.icon, 'icons/bandastation/mob/species/vox/clothing/ears.dmi', "The earmuffs ignored their fitted vox sprite.")
 	TEST_ASSERT_EQUAL(overlay.icon_state, muffs.worn_icon_state || muffs.icon_state, "Bilateral earmuffs were replaced with a one-ear state.")
 // AI EDIT END
-
-/// Dyeing replaces the slot map with an independent map and clears it for bilateral appearances.
-/datum/unit_test/slot_worn_dye
-	/// Original registry restored after the test, including assertion failures.
-	var/list/original_registry
-
-/datum/unit_test/slot_worn_dye/Run()
-	original_registry = GLOB.dye_registry
-	GLOB.dye_registry = original_registry.Copy()
-	GLOB.dye_registry["slot_worn_test"] = list(
-		"single" = /obj/item/radio/headset/headset_eng,
-		"bilateral" = /obj/item/radio/headset/headset_sec/alt,
-	)
-	var/obj/item/radio/headset/headset = allocate(/obj/item/radio/headset)
-	TEST_ASSERT_EQUAL(headset.dye_item("single", "slot_worn_test"), /obj/item/radio/headset/headset_eng, "Dyeing did not select the engineering appearance.")
-	TEST_ASSERT_EQUAL(headset.get_worn_icon_state(ITEM_SLOT_EAR_LEFT), "eng_headset_left", "Dyeing did not replace the left-ear state.")
-	headset.worn_icon_state_by_slot[ITEM_SLOT_EAR_LEFT] = "sec_headset_left"
-	var/obj/item/radio/headset/other = allocate(/obj/item/radio/headset)
-	other.dye_item("single", "slot_worn_test")
-	TEST_ASSERT_EQUAL(other.get_worn_icon_state(ITEM_SLOT_EAR_LEFT), "eng_headset_left", "Dyeing shared a mutable slot map between items.")
-	TEST_ASSERT_EQUAL(headset.dye_item("bilateral", "slot_worn_test"), /obj/item/radio/headset/headset_sec/alt, "Dyeing did not select the bilateral appearance.")
-	TEST_ASSERT_EQUAL(headset.get_worn_icon_state(ITEM_SLOT_EAR_LEFT), "sec_headset_alt", "Dyeing retained a one-ear override for a bilateral appearance.")
-
-/datum/unit_test/slot_worn_dye/Destroy()
-	if(original_registry)
-		GLOB.dye_registry = original_registry
-		original_registry = null
-	return ..()

@@ -27,7 +27,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset, get_icon_state_by_slot)
 	// AI EDIT END
 	custom_materials = list(/datum/material/iron=SMALL_MATERIAL_AMOUNT * 0.75)
 	subspace_transmission = TRUE
@@ -211,7 +211,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "sec_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_sec/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_sec, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_sec
 
@@ -240,7 +240,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "eng_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_eng/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_eng, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_eng
 
@@ -251,7 +251,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "rob_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_rob/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_rob, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_rob
 
@@ -262,7 +262,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "med_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_med/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_med, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_med
 
@@ -273,7 +273,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "sci_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_sci/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_sci, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_sci
 
@@ -284,7 +284,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "medsci_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_medsci/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_medsci, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_medsci
 
@@ -295,7 +295,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "srvsec_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_srvsec/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_srvsec, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_srvsec
 
@@ -306,7 +306,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "srv_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_srvmed/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_srvmed, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_srvmed
 
@@ -317,7 +317,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "srv_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_srvent/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_srvent, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_srvent
 
@@ -328,7 +328,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "com_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_com/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_com, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_com
 
@@ -338,7 +338,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "com_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/heads/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/heads, get_icon_state_by_slot)
 	// AI EDIT END
 
 /obj/item/radio/headset/heads/captain
@@ -425,7 +425,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "cargo_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_cargo/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_cargo, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_cargo
 
@@ -436,7 +436,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "mine_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_cargo/mining/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_cargo/mining, get_icon_state_by_slot)
 	// AI EDIT END
 	// "puts the antenna down" while the headset is off
 	overlay_speaker_idle = "headset_up"
@@ -467,7 +467,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "srv_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_srv/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_srv, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_service
 
@@ -478,7 +478,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "cent_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/headset_cent/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/headset_cent, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_cent
 	keyslot2 = /obj/item/encryptionkey/headset_com
@@ -529,7 +529,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "rob_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	icon_state_by_slot_proc = /obj/item/radio/headset/silicon/human_ai/get_icon_state_by_slot
+	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/silicon/human_ai, get_icon_state_by_slot)
 	// AI EDIT END
 	keyslot2 = new /obj/item/encryptionkey/ai_with_binary
 	command = TRUE
