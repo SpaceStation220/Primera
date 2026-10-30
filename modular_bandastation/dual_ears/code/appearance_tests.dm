@@ -1,26 +1,4 @@
 // AI EDIT START - Verify baked ear states through the worn renderer
-/// Appearance-only prototypes must be skipped by later atom initialization passes.
-/datum/unit_test/appearance_prototype_mapload/Run()
-	var/list/existing_headsets = list()
-	for(var/obj/item/radio/headset/headset in world)
-		existing_headsets += headset
-	copy_initial_worn_icon_states(/obj/item/radio/headset)
-	var/list/prototypes = list()
-	for(var/obj/item/radio/headset/headset in world)
-		if(headset.type == /obj/item/radio/headset && !(headset in existing_headsets))
-			prototypes += headset
-
-	var/old_init_failures = SSatoms.BadInitializeCalls[/obj/item/radio/headset]
-	SSatoms.BadInitializeCalls -= /obj/item/radio/headset
-	SSatoms.InitializeAtoms(prototypes)
-	var/new_init_failures = SSatoms.BadInitializeCalls[/obj/item/radio/headset]
-	if(isnull(old_init_failures))
-		SSatoms.BadInitializeCalls -= /obj/item/radio/headset
-	else
-		SSatoms.BadInitializeCalls[/obj/item/radio/headset] = old_init_failures
-	TEST_ASSERT_EQUAL(length(prototypes), 1, "Could not capture the disposable appearance prototype.")
-	TEST_ASSERT(!(new_init_failures & BAD_INIT_QDEL_BEFORE), "Atom initialization revisited a deleted appearance prototype.")
-
 /// A one-ear headset stays on the chosen side and disappears behind the far profile.
 /datum/unit_test/dual_ear_sprites/Run()
 	var/mob/living/carbon/human/wearer = allocate(/mob/living/carbon/human/consistent)
@@ -111,6 +89,10 @@
 	rendered = wearer.overlays_standing[EARS_LAYER]
 	overlay = rendered[1]
 	TEST_ASSERT_EQUAL(overlay.icon_state, "sec_headset_alt", "A bilateral disguise retained the old one-ear override.")
+	action.update_look(/obj/item/radio/headset/headset_cent/empty)
+	rendered = wearer.overlays_standing[EARS_LAYER]
+	overlay = rendered[1]
+	TEST_ASSERT_EQUAL(overlay.icon_state, "cent_headset_left", "The disguise did not inherit its type's slot-state proc.")
 
 /// A saved changeling appearance keeps its slot states after the source item changes.
 /datum/unit_test/slot_worn_changeling/Run()
@@ -150,3 +132,31 @@
 	TEST_ASSERT_EQUAL(overlay.icon, 'icons/bandastation/mob/species/vox/clothing/ears.dmi', "The earmuffs ignored their fitted vox sprite.")
 	TEST_ASSERT_EQUAL(overlay.icon_state, muffs.worn_icon_state || muffs.icon_state, "Bilateral earmuffs were replaced with a one-ear state.")
 // AI EDIT END
+
+/// Dyeing replaces the slot map with an independent map and clears it for bilateral appearances.
+/datum/unit_test/slot_worn_dye
+	/// Original registry restored after the test, including assertion failures.
+	var/list/original_registry
+
+/datum/unit_test/slot_worn_dye/Run()
+	original_registry = GLOB.dye_registry
+	GLOB.dye_registry = original_registry.Copy()
+	GLOB.dye_registry["slot_worn_test"] = list(
+		"single" = /obj/item/radio/headset/headset_eng,
+		"bilateral" = /obj/item/radio/headset/headset_sec/alt,
+	)
+	var/obj/item/radio/headset/headset = allocate(/obj/item/radio/headset)
+	TEST_ASSERT_EQUAL(headset.dye_item("single", "slot_worn_test"), /obj/item/radio/headset/headset_eng, "Dyeing did not select the engineering appearance.")
+	TEST_ASSERT_EQUAL(headset.get_worn_icon_state(ITEM_SLOT_EAR_LEFT), "eng_headset_left", "Dyeing did not replace the left-ear state.")
+	headset.worn_icon_state_by_slot[ITEM_SLOT_EAR_LEFT] = "sec_headset_left"
+	var/obj/item/radio/headset/other = allocate(/obj/item/radio/headset)
+	other.dye_item("single", "slot_worn_test")
+	TEST_ASSERT_EQUAL(other.get_worn_icon_state(ITEM_SLOT_EAR_LEFT), "eng_headset_left", "Dyeing shared a mutable slot map between items.")
+	TEST_ASSERT_EQUAL(headset.dye_item("bilateral", "slot_worn_test"), /obj/item/radio/headset/headset_sec/alt, "Dyeing did not select the bilateral appearance.")
+	TEST_ASSERT_EQUAL(headset.get_worn_icon_state(ITEM_SLOT_EAR_LEFT), "sec_headset_alt", "Dyeing retained a one-ear override for a bilateral appearance.")
+
+/datum/unit_test/slot_worn_dye/Destroy()
+	if(original_registry)
+		GLOB.dye_registry = original_registry
+		original_registry = null
+	return ..()

@@ -27,10 +27,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "headset_right",
-		ITEM_SLOT_EAR_LEFT = "headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/get_icon_state_by_slot
 	// AI EDIT END
 	custom_materials = list(/datum/material/iron=SMALL_MATERIAL_AMOUNT * 0.75)
 	subspace_transmission = TRUE
@@ -189,7 +186,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "syndie_headset"
 	// AI EDIT START - Keep protected earpieces on their original worn state
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = null
+	icon_state_by_slot_proc = null
 	// AI EDIT END
 
 /obj/item/radio/headset/syndicate/alt/Initialize(mapload)
@@ -214,10 +211,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "sec_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "sec_headset_right",
-		ITEM_SLOT_EAR_LEFT = "sec_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_sec/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_sec
 
@@ -228,7 +222,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "sec_headset_alt"
 	// AI EDIT START - Keep protected earpieces on their original worn state
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = null
+	icon_state_by_slot_proc = null
 	// AI EDIT END
 
 /obj/item/radio/headset/headset_sec/alt/Initialize(mapload)
@@ -246,10 +240,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "eng_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "eng_headset_right",
-		ITEM_SLOT_EAR_LEFT = "eng_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_eng/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_eng
 
@@ -260,10 +251,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "rob_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "rob_headset_right",
-		ITEM_SLOT_EAR_LEFT = "rob_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_rob/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_rob
 
@@ -274,10 +262,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "med_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "med_headset_right",
-		ITEM_SLOT_EAR_LEFT = "med_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_med/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_med
 
@@ -288,10 +273,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "sci_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "sci_headset_right",
-		ITEM_SLOT_EAR_LEFT = "sci_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_sci/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_sci
 
@@ -302,10 +284,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "medsci_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "medsci_headset_right",
-		ITEM_SLOT_EAR_LEFT = "medsci_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_medsci/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_medsci
 
@@ -316,10 +295,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "srvsec_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "srvsec_headset_right",
-		ITEM_SLOT_EAR_LEFT = "srvsec_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_srvsec/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_srvsec
 
@@ -330,10 +306,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "srv_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "srv_headset_right",
-		ITEM_SLOT_EAR_LEFT = "srv_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_srvmed/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_srvmed
 
@@ -344,10 +317,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "srv_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "srv_headset_right",
-		ITEM_SLOT_EAR_LEFT = "srv_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_srvent/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_srvent
 
@@ -358,10 +328,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "com_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "com_headset_right",
-		ITEM_SLOT_EAR_LEFT = "com_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_com/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_com
 
@@ -371,10 +338,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "com_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "com_headset_right",
-		ITEM_SLOT_EAR_LEFT = "com_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/heads/get_icon_state_by_slot
 	// AI EDIT END
 
 /obj/item/radio/headset/heads/captain
@@ -389,7 +353,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "com_headset_alt"
 	// AI EDIT START - Keep protected earpieces on their original worn state
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = null
+	icon_state_by_slot_proc = null
 	// AI EDIT END
 
 /obj/item/radio/headset/heads/captain/alt/Initialize(mapload)
@@ -423,7 +387,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "com_headset_alt"
 	// AI EDIT START - Keep protected earpieces on their original worn state
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = null
+	icon_state_by_slot_proc = null
 	// AI EDIT END
 
 /obj/item/radio/headset/heads/hos/alt/Initialize(mapload)
@@ -461,10 +425,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "cargo_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "cargo_headset_right",
-		ITEM_SLOT_EAR_LEFT = "cargo_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_cargo/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_cargo
 
@@ -475,10 +436,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "mine_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "mine_headset_right",
-		ITEM_SLOT_EAR_LEFT = "mine_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_cargo/mining/get_icon_state_by_slot
 	// AI EDIT END
 	// "puts the antenna down" while the headset is off
 	overlay_speaker_idle = "headset_up"
@@ -509,10 +467,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "srv_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "srv_headset_right",
-		ITEM_SLOT_EAR_LEFT = "srv_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_srv/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_service
 
@@ -523,10 +478,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "cent_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "cent_headset_right",
-		ITEM_SLOT_EAR_LEFT = "cent_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/headset_cent/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/headset_cent
 	keyslot2 = /obj/item/encryptionkey/headset_com
@@ -546,7 +498,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "cent_headset_alt"
 	// AI EDIT START - Keep protected earpieces on their original worn state
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = null
+	icon_state_by_slot_proc = null
 	// AI EDIT END
 	keyslot2 = null
 
@@ -577,10 +529,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	worn_icon_state = "rob_headset"
 	// AI EDIT START - Choose baked headset sprites for each ear slot
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = alist(
-		ITEM_SLOT_EAR_RIGHT = "rob_headset_right",
-		ITEM_SLOT_EAR_LEFT = "rob_headset_left",
-	)
+	icon_state_by_slot_proc = /obj/item/radio/headset/silicon/human_ai/get_icon_state_by_slot
 	// AI EDIT END
 	keyslot2 = new /obj/item/encryptionkey/ai_with_binary
 	command = TRUE
@@ -661,3 +610,105 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	use_command = !use_command
 	to_chat(user, span_notice("You toggle high-volume mode [use_command ? "on" : "off"]."))
 	return CLICK_ACTION_SUCCESS
+
+/obj/item/radio/headset/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "headset_right",
+		ITEM_SLOT_EAR_LEFT = "headset_left",
+	)
+
+/obj/item/radio/headset/headset_sec/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "sec_headset_right",
+		ITEM_SLOT_EAR_LEFT = "sec_headset_left",
+	)
+
+/obj/item/radio/headset/headset_eng/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "eng_headset_right",
+		ITEM_SLOT_EAR_LEFT = "eng_headset_left",
+	)
+
+/obj/item/radio/headset/headset_rob/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "rob_headset_right",
+		ITEM_SLOT_EAR_LEFT = "rob_headset_left",
+	)
+
+/obj/item/radio/headset/headset_med/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "med_headset_right",
+		ITEM_SLOT_EAR_LEFT = "med_headset_left",
+	)
+
+/obj/item/radio/headset/headset_sci/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "sci_headset_right",
+		ITEM_SLOT_EAR_LEFT = "sci_headset_left",
+	)
+
+/obj/item/radio/headset/headset_medsci/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "medsci_headset_right",
+		ITEM_SLOT_EAR_LEFT = "medsci_headset_left",
+	)
+
+/obj/item/radio/headset/headset_srvsec/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "srvsec_headset_right",
+		ITEM_SLOT_EAR_LEFT = "srvsec_headset_left",
+	)
+
+/obj/item/radio/headset/headset_srvmed/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "srv_headset_right",
+		ITEM_SLOT_EAR_LEFT = "srv_headset_left",
+	)
+
+/obj/item/radio/headset/headset_srvent/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "srv_headset_right",
+		ITEM_SLOT_EAR_LEFT = "srv_headset_left",
+	)
+
+/obj/item/radio/headset/headset_com/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "com_headset_right",
+		ITEM_SLOT_EAR_LEFT = "com_headset_left",
+	)
+
+/obj/item/radio/headset/heads/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "com_headset_right",
+		ITEM_SLOT_EAR_LEFT = "com_headset_left",
+	)
+
+/obj/item/radio/headset/headset_cargo/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "cargo_headset_right",
+		ITEM_SLOT_EAR_LEFT = "cargo_headset_left",
+	)
+
+/obj/item/radio/headset/headset_cargo/mining/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "mine_headset_right",
+		ITEM_SLOT_EAR_LEFT = "mine_headset_left",
+	)
+
+/obj/item/radio/headset/headset_srv/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "srv_headset_right",
+		ITEM_SLOT_EAR_LEFT = "srv_headset_left",
+	)
+
+/obj/item/radio/headset/headset_cent/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "cent_headset_right",
+		ITEM_SLOT_EAR_LEFT = "cent_headset_left",
+	)
+
+/obj/item/radio/headset/silicon/human_ai/get_icon_state_by_slot()
+	return alist(
+		ITEM_SLOT_EAR_RIGHT = "rob_headset_right",
+		ITEM_SLOT_EAR_LEFT = "rob_headset_left",
+	)

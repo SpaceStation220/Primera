@@ -283,7 +283,8 @@ GLOBAL_LIST_INIT(dye_registry, list(
 	worn_icon_state = initial(target_type.worn_icon_state)
 	// AI EDIT START - Replace slot-specific worn states when dyeing changes the appearance
 	// BANDASTATION ADDITION START - Slot-specific worn states
-	worn_icon_state_by_slot = copy_initial_worn_icon_states(target_type)
+	var/slot_states_proc = target_type::icon_state_by_slot_proc
+	worn_icon_state_by_slot = slot_states_proc ? call(slot_states_proc)() : null
 	// BANDASTATION ADDITION END
 	// AI EDIT END
 	inhand_x_dimension = initial(target_type.inhand_x_dimension)

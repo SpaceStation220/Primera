@@ -216,7 +216,7 @@
 	worn_icon_state = "syndie_headset"
 	// AI EDIT START - Keep protected earpieces on their original worn state
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = null
+	icon_state_by_slot_proc = null
 	// AI EDIT END
 	freerange = TRUE
 
@@ -247,7 +247,7 @@
 	worn_icon_state = "med_headset_alt"
 	// AI EDIT START - Keep protected earpieces on their original worn state
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = null
+	icon_state_by_slot_proc = null
 	// AI EDIT END
 	freerange = TRUE
 

@@ -523,7 +523,7 @@ Return to step 11 of normal process."}
 	icon_state = "abductor_headset"
 	// AI EDIT START - Keep protected earpieces on their original worn state
 	// BANDASTATION ADDITION - Per-slot worn headset states
-	worn_icon_state_by_slot = null
+	icon_state_by_slot_proc = null
 	// AI EDIT END
 	keyslot2 = /obj/item/encryptionkey/heads/captain
 

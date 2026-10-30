@@ -39,6 +39,8 @@
 	// BANDASTATION ADDITION START - Slot-specific worn states
 	/// Worn icon states keyed by ITEM_SLOT_* bitflags.
 	var/alist/worn_icon_state_by_slot
+	/// Proc reference that creates the default slot states without an item instance; must not use src.
+	var/icon_state_by_slot_proc
 	// BANDASTATION ADDITION END
 	// AI EDIT END
 	///Icon state for the belt overlay, if null the normal icon_state will be used.
@@ -253,29 +255,19 @@
 /obj/item/proc/get_worn_icon_state(slot_id)
 	return worn_icon_state_by_slot?[slot_id] || worn_icon_state || icon_state
 
-/// Copies default slot states without running the source item's gameplay initialization.
-/proc/copy_initial_worn_icon_states(obj/item/item_type)
-	if(!ispath(item_type, /obj/item) || !item_type::worn_icon_state_by_slot)
-		return null
-	// Dynamic initial() returns a list initializer rather than a usable list.
-	var/source = GLOBAL_PROC_REF(copy_initial_worn_icon_states)
-	SSatoms.map_loader_begin(source)
-	var/obj/item/prototype
-	try
-		prototype = new item_type(null)
-	catch(var/exception/error)
-		SSatoms.map_loader_stop(source)
-		throw error
-	SSatoms.map_loader_stop(source)
-	var/alist/slot_states = prototype.worn_icon_state_by_slot?.Copy()
-	// Keep the appearance-only prototype out of later atom initialization passes.
-	prototype.flags_1 |= INITIALIZED_1
-	qdel(prototype)
-	return slot_states
+/**
+ * Creates an independent default slot map.
+ * Implementations must not use src: appearance copying calls the proc without an instance.
+ */
+/obj/item/proc/get_icon_state_by_slot()
+	return null
 // BANDASTATION ADDITION END
 // AI EDIT END
 
 /obj/item/Initialize(mapload)
+	if(icon_state_by_slot_proc)
+		worn_icon_state_by_slot = call(icon_state_by_slot_proc)()
+
 	if(attack_verb_continuous)
 		attack_verb_continuous = string_list(attack_verb_continuous)
 	if(attack_verb_simple)
