@@ -11,9 +11,6 @@
 	desc = "The headset of the guy who keeps the administration alive."
 	icon_state = "com_headset"
 	worn_icon_state = "com_headset"
-	// AI EDIT START - Choose baked headset sprites for each ear slot
-	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/blueshield, get_icon_state_by_slot)
-	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/heads/blueshield
 
 /obj/item/radio/headset/blueshield/alt
@@ -21,9 +18,6 @@
 	desc = "The headset of the guy who keeps the administration alive. Protects your ears from flashbangs."
 	icon_state = "com_headset_alt"
 	worn_icon_state = "com_headset_alt"
-	// AI EDIT START - Keep protected earpieces on their original worn state
-	icon_state_by_slot_proc = null
-	// AI EDIT END
 
 /obj/item/radio/headset/blueshield/alt/Initialize(mapload)
 	. = ..()
@@ -47,9 +41,6 @@
 	desc = "The headset of the guy who keeps the administration alive."
 	icon_state = "com_headset"
 	worn_icon_state = "com_headset"
-	// AI EDIT START - Choose baked headset sprites for each ear slot
-	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/heads/nanotrasen_representative, get_icon_state_by_slot)
-	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/heads/nanotrasen_representative
 
 /obj/item/radio/headset/heads/nanotrasen_representative/alt
@@ -57,9 +48,6 @@
 	desc = "The headset of the guy who keeps the administration alive. Protects your ears from flashbangs."
 	icon_state = "com_headset_alt"
 	worn_icon_state = "com_headset_alt"
-	// AI EDIT START - Keep protected earpieces on their original worn state
-	icon_state_by_slot_proc = null
-	// AI EDIT END
 
 /obj/item/radio/headset/heads/nanotrasen_representative/alt/Initialize(mapload)
 	. = ..()
@@ -80,9 +68,6 @@
 	desc = "Я веселое описание."
 	icon_state = "com_headset"
 	worn_icon_state = "com_headset"
-	// AI EDIT START - Choose baked headset sprites for each ear slot
-	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/heads/magistrate, get_icon_state_by_slot)
-	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/heads/magistrate
 
 /obj/item/radio/headset/heads/magistrate/alt
@@ -90,9 +75,6 @@
 	desc = "Я веселое описание. Защищает уши от громкого шума."
 	icon_state = "com_headset_alt"
 	worn_icon_state = "com_headset_alt"
-	// AI EDIT START - Keep protected earpieces on their original worn state
-	icon_state_by_slot_proc = null
-	// AI EDIT END
 
 /obj/item/radio/headset/heads/magistrate/alt/Initialize(mapload)
 	. = ..()
@@ -113,31 +95,37 @@
 	desc = "Простой наушник юриста, имеющий доступ к юридическому и каналу безопасности."
 	icon_state = "justice_headset"
 	worn_icon_state = "justice_headset"
-	// AI EDIT START - Choose baked headset sprites for each ear slot
-	icon_state_by_slot_proc = OVERRIDE_PROC_REF(/obj/item/radio/headset/lawyer, get_icon_state_by_slot)
-	// AI EDIT END
 	keyslot = /obj/item/encryptionkey/lawyer
 
-/obj/item/radio/headset/blueshield/get_icon_state_by_slot()
+/obj/item/radio/headset/blueshield/get_worn_icon_state_by_slot()
 	return alist(
 		ITEM_SLOT_EAR_RIGHT = "com_headset_right",
 		ITEM_SLOT_EAR_LEFT = "com_headset_left",
 	)
 
-/obj/item/radio/headset/heads/nanotrasen_representative/get_icon_state_by_slot()
+/obj/item/radio/headset/heads/nanotrasen_representative/get_worn_icon_state_by_slot()
 	return alist(
 		ITEM_SLOT_EAR_RIGHT = "com_headset_right",
 		ITEM_SLOT_EAR_LEFT = "com_headset_left",
 	)
 
-/obj/item/radio/headset/heads/magistrate/get_icon_state_by_slot()
+/obj/item/radio/headset/heads/magistrate/get_worn_icon_state_by_slot()
 	return alist(
 		ITEM_SLOT_EAR_RIGHT = "com_headset_right",
 		ITEM_SLOT_EAR_LEFT = "com_headset_left",
 	)
 
-/obj/item/radio/headset/lawyer/get_icon_state_by_slot()
+/obj/item/radio/headset/lawyer/get_worn_icon_state_by_slot()
 	return alist(
 		ITEM_SLOT_EAR_RIGHT = "justice_headset_right",
 		ITEM_SLOT_EAR_LEFT = "justice_headset_left",
 	)
+
+/obj/item/radio/headset/blueshield/alt/get_worn_icon_state_by_slot()
+	return null
+
+/obj/item/radio/headset/heads/nanotrasen_representative/alt/get_worn_icon_state_by_slot()
+	return null
+
+/obj/item/radio/headset/heads/magistrate/alt/get_worn_icon_state_by_slot()
+	return null

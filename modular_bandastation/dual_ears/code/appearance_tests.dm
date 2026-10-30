@@ -132,3 +132,39 @@
 	TEST_ASSERT_EQUAL(overlay.icon, 'icons/bandastation/mob/species/vox/clothing/ears.dmi', "The earmuffs ignored their fitted vox sprite.")
 	TEST_ASSERT_EQUAL(overlay.icon_state, muffs.worn_icon_state || muffs.icon_state, "Bilateral earmuffs were replaced with a one-ear state.")
 // AI EDIT END
+
+/// Changing an advertised disguise must not leave generated items behind.
+/datum/unit_test/chameleon_prototype_cleanup
+	/// Weak references avoid keeping temporary items alive during the check.
+	var/list/created_items = list()
+
+/datum/unit_test/chameleon_prototype_cleanup/Run()
+	var/obj/item/clothing/under/chameleon/disguise = allocate(/obj/item/clothing/under/chameleon)
+	var/datum/action/item_action/chameleon/change/action = locate() in disguise.actions
+	TEST_ASSERT_NOTNULL(action, "The chameleon uniform has no appearance action.")
+	// Exercise a factory if one is offered again; otherwise use an ordinary advertised disguise.
+	var/obj/item/disguise_type = action.chameleon_list[action.format_readable_name(/obj/item/clothing/under/color/random)]
+	if(!disguise_type)
+		disguise_type = action.chameleon_list[action.format_readable_name(/obj/item/clothing/under/color/black)]
+	TEST_ASSERT_NOTNULL(disguise_type, "The chameleon uniform has no selectable disguise for the cleanup check.")
+	RegisterSignal(SSdcs, COMSIG_GLOB_NEW_ITEM, PROC_REF(track_created_item))
+	action.update_look(disguise_type)
+	UnregisterSignal(SSdcs, COMSIG_GLOB_NEW_ITEM)
+	var/list/leftover_items = list()
+	for(var/datum/weakref/item_ref as anything in created_items)
+		var/obj/item/created_item = item_ref.resolve()
+		if(!QDELETED(created_item))
+			leftover_items += created_item
+	allocated += leftover_items
+	created_items.Cut()
+	TEST_ASSERT_EQUAL(length(leftover_items), 0, "Changing a disguise left unrelated items alive.")
+
+/datum/unit_test/chameleon_prototype_cleanup/Destroy()
+	UnregisterSignal(SSdcs, COMSIG_GLOB_NEW_ITEM)
+	created_items = null
+	return ..()
+
+/// Records items created while the production appearance action is running.
+/datum/unit_test/chameleon_prototype_cleanup/proc/track_created_item(datum/source, obj/item/created_item)
+	SIGNAL_HANDLER
+	created_items += WEAKREF(created_item)

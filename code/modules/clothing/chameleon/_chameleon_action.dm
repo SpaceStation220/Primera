@@ -157,8 +157,11 @@
 		item_target.worn_icon_state = picked_item::worn_icon_state
 		// AI EDIT START - Copy slot-specific worn states with the chosen disguise
 		// BANDASTATION ADDITION START - Slot-specific worn states
-		var/slot_states_proc = picked_item::icon_state_by_slot_proc
-		item_target.worn_icon_state_by_slot = slot_states_proc ? call(slot_states_proc)() : null
+		var/obj/item/picked_item_prototype = new picked_item(null)
+		item_target.worn_icon_state_by_slot = null
+		if(!QDELETED(picked_item_prototype))
+			item_target.worn_icon_state_by_slot = picked_item_prototype.get_worn_icon_state_by_slot()
+		qdel(picked_item_prototype)
 		// BANDASTATION ADDITION END
 		// AI EDIT END
 		item_target.inhand_icon_state = picked_item::inhand_icon_state
