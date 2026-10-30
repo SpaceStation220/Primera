@@ -158,9 +158,7 @@
 		// AI EDIT START - Copy slot-specific worn states with the chosen disguise
 		// BANDASTATION ADDITION START - Slot-specific worn states
 		var/obj/item/picked_item_prototype = new picked_item(null)
-		item_target.worn_icon_state_by_slot = null
-		if(!QDELETED(picked_item_prototype))
-			item_target.worn_icon_state_by_slot = picked_item_prototype.get_worn_icon_state_by_slot()
+		item_target.worn_icon_state_by_slot = picked_item_prototype.get_worn_icon_state_by_slot()
 		qdel(picked_item_prototype)
 		// BANDASTATION ADDITION END
 		// AI EDIT END

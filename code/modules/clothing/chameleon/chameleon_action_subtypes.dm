@@ -133,11 +133,6 @@
 /datum/action/item_action/chameleon/change/jumpsuit/initialize_blacklist()
 	. = ..()
 	chameleon_blacklist |= typecacheof(list(/obj/item/clothing/under, /obj/item/clothing/under/color, /obj/item/clothing/under/rank, /obj/item/clothing/under/changeling), only_root_path = TRUE)
-	// These factories spawn a sibling item that deleting the appearance prototype cannot clean up.
-	chameleon_blacklist |= typecacheof(list(
-		/obj/item/clothing/under/color/random,
-		/obj/item/clothing/under/color/jumpskirt/random,
-	))
 
 /datum/action/item_action/chameleon/change/id
 	chameleon_type = /obj/item/card/id/advanced
