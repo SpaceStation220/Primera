@@ -36,14 +36,15 @@
 		list(/datum/biome/expedition/volcanic_cave/rocky, /datum/biome/expedition/volcanic_cave/mossy, /datum/biome/expedition/volcanic_cave/obsidian, /datum/biome/expedition/volcanic_lava, /datum/biome/expedition/volcanic_lava),
 	)
 	rock_type = /turf/closed/mineral/volcanic
-	mineral_chance = 16
+	mineral_chance = 11
+	// Volcanic worlds stand out by a varied, valuable mix rather than sheer ore volume.
 	ore_types = list(
-		/obj/item/stack/ore/diamond = 5,
-		/obj/item/stack/ore/gold = 15,
-		/obj/item/stack/ore/silver = 20,
-		/obj/item/stack/ore/uranium = 20,
-		/obj/item/stack/ore/titanium = 30,
-		/obj/item/stack/ore/plasma = 50,
+		/obj/item/stack/ore/diamond = 10,
+		/obj/item/stack/ore/gold = 25,
+		/obj/item/stack/ore/silver = 25,
+		/obj/item/stack/ore/uranium = 25,
+		/obj/item/stack/ore/titanium = 35,
+		/obj/item/stack/ore/plasma = 30,
 		/obj/item/stack/ore/iron = 100,
 	)
 
