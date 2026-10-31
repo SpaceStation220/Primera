@@ -3,7 +3,6 @@
 /datum/map_template/ruin/expedition
 	prefix = "modular_bandastation/expedition_planets/maps/ruins/"
 	ruin_type = "expedition_surface"
-	allow_duplicates = FALSE
 	/// Surface biome keys compatible with this ruin template.
 	var/list/planet_biomes = list("barren", "frozen", "arid", "lush", "lava")
 
@@ -22,13 +21,17 @@
 /datum/stationtrauma_overmap_site/space/planet/lush
 	ruin_biome = "lush"
 
-/** One large complex and two smaller finds, all retained on the planet's existing level. */
+/**
+ * One large complex and one to four smaller finds at random free spots, all retained on the planet's existing level.
+ *
+ * Templates repeat across planets but never on one surface, so the biome pools do not run dry during a round.
+ */
 /datum/stationtrauma_overmap_site/space/planet/proc/prepare_ruins(datum/map_generator/expedition_barren/generator)
 	var/list/large = list()
 	var/list/small = list()
 	for(var/key in SSmapping.ruins_templates)
 		var/datum/map_template/ruin/expedition/template = SSmapping.ruins_templates[key]
-		if(!istype(template) || template.unpickable || (template.loaded && !template.allow_duplicates) || !(ruin_biome in template.planet_biomes))
+		if(!istype(template) || template.unpickable || !(ruin_biome in template.planet_biomes))
 			continue
 		if(template.width > 54 || template.height > 54)
 			continue
@@ -36,21 +39,45 @@
 			large += template
 		else
 			small += template
+	if(!length(large) || !length(small))
+		stack_trace("Planet [id] lacks eligible large and small [ruin_biome] ruins")
+		return null
+	var/list/chosen = list(pick(large))
+	for(var/index in 1 to min(rand(1, 4), length(small)))
+		chosen += pick_n_take(small)
 	var/list/placements = list()
-	var/list/slots = list(list(70, 5), list(5, 70), list(70, 70))
-	for(var/index in 1 to length(slots))
-		var/list/pool = index == 1 ? large : small
-		if(!length(pool))
-			stack_trace("Planet [id] lacks an eligible [index == 1 ? "large" : "small"] ruin")
+	for(var/datum/map_template/ruin/expedition/template as anything in chosen)
+		var/list/spot = generator.reserve_ruin(template.width, template.height)
+		if(spot)
+			placements += list(list(template, spot[1], spot[2]))
+		else if(!length(placements))
+			stack_trace("Planet [id] has no room for its large ruin [template.id]")
 			return null
-		var/choice = 1 + text2num(copytext(md5("ruin:[generator.seed]:[index]"), 1, 7), 16) % length(pool)
-		var/datum/map_template/ruin/expedition/template = pool[choice]
-		pool -= template
-		var/x = slots[index][1]
-		var/y = slots[index][2]
-		generator.ruin_bounds += list(list(x, y, x + template.width - 1, y + template.height - 1))
-		placements += list(list(template, x, y))
 	return placements
+
+/**
+ * Reserve a random spot for a ruin in a quadrant away from the camp; returns its relative southwest corner, or null when none fits.
+ *
+ * Ruins stay off the open cross, and ruins on one side of it never share rows, so each access corridor reaches the cross unobstructed.
+ */
+/datum/map_generator/expedition_barren/proc/reserve_ruin(ruin_width, ruin_height)
+	var/middle = round(width / 2)
+	for(var/attempt in 1 to 20)
+		// The camp holds the southwest quadrant.
+		var/list/quadrant = pick(list(list(FALSE, TRUE), list(TRUE, TRUE), list(TRUE, FALSE)))
+		var/east = quadrant[1]
+		var/x = east ? rand(middle + 3, width - 3 - ruin_width) : rand(4, middle - 2 - ruin_width)
+		var/y = quadrant[2] ? rand(middle + 3, width - 3 - ruin_height) : rand(4, middle - 2 - ruin_height)
+		var/top = y + ruin_height - 1
+		var/clear = TRUE
+		for(var/list/bounds as anything in ruin_bounds)
+			if((bounds[1] > middle) == east && y <= bounds[4] + 2 && top >= bounds[2] - 2)
+				clear = FALSE
+				break
+		if(clear)
+			ruin_bounds += list(list(x, y, x + ruin_width - 1, top))
+			return list(x, y)
+	return null
 
 /** Load reserved ruins and retain their IDs, yielding to `budget` between templates. */
 /datum/stationtrauma_overmap_site/space/planet/proc/load_ruins(list/placements, turf/origin, datum/stationtrauma_work_budget/budget)
