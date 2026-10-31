@@ -3,6 +3,7 @@
 /datum/map_template/ruin/expedition
 	prefix = "modular_bandastation/expedition_planets/maps/ruins/"
 	ruin_type = "expedition_surface"
+	allow_duplicates = FALSE
 	/// Surface biome keys compatible with this ruin template.
 	var/list/planet_biomes = list("barren", "frozen", "arid", "lush", "lava")
 
@@ -24,14 +25,14 @@
 /**
  * One large complex and one to four smaller finds at random free spots, all retained on the planet's existing level.
  *
- * Templates repeat across planets but never on one surface, so the biome pools do not run dry during a round.
+ * Each template appears on one planet per round, so planets surveyed later may get fewer ruins, or none, once their biome's pool runs dry.
  */
 /datum/stationtrauma_overmap_site/space/planet/proc/prepare_ruins(datum/map_generator/expedition_barren/generator)
 	var/list/large = list()
 	var/list/small = list()
 	for(var/key in SSmapping.ruins_templates)
 		var/datum/map_template/ruin/expedition/template = SSmapping.ruins_templates[key]
-		if(!istype(template) || template.unpickable || !(ruin_biome in template.planet_biomes))
+		if(!istype(template) || template.unpickable || (template.loaded && !template.allow_duplicates) || !(ruin_biome in template.planet_biomes))
 			continue
 		if(template.width > 54 || template.height > 54)
 			continue
@@ -39,20 +40,19 @@
 			large += template
 		else
 			small += template
-	if(!length(large) || !length(small))
-		stack_trace("Planet [id] lacks eligible large and small [ruin_biome] ruins")
-		return null
-	var/list/chosen = list(pick(large))
+	var/list/chosen = list()
+	if(length(large))
+		chosen += pick(large)
 	for(var/index in 1 to min(rand(1, 4), length(small)))
 		chosen += pick_n_take(small)
 	var/list/placements = list()
 	for(var/datum/map_template/ruin/expedition/template as anything in chosen)
 		var/list/spot = generator.reserve_ruin(template.width, template.height)
-		if(spot)
-			placements += list(list(template, spot[1], spot[2]))
-		else if(!length(placements))
-			stack_trace("Planet [id] has no room for its large ruin [template.id]")
-			return null
+		if(!spot)
+			continue
+		// Claimed on reservation, so surfaces generating side by side never take the same template.
+		template.loaded++
+		placements += list(list(template, spot[1], spot[2]))
 	return placements
 
 /**
@@ -87,7 +87,6 @@
 		var/turf/center = locate(bottom.x + round(template.width / 2), bottom.y + round(template.height / 2), origin.z)
 		if(!template.load(bottom))
 			return FALSE
-		template.loaded++
 		new /obj/effect/landmark/ruin(center, template)
 		ruin_ids += template.id
 		budget?.yield()
