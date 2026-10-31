@@ -598,6 +598,7 @@
 
 /turf/closed/mineral/random/volcanic/mineral_chances()
 	return list(
+		/turf/closed/mineral/xenoarchaeology = 1, // BANDASTATION ADDITION - Manual xenoarchaeology samples
 		/obj/item/stack/ore/bluespace_crystal = 1,
 		/obj/item/stack/ore/diamond = 2,
 		/obj/item/stack/ore/gold = 8,
@@ -626,6 +627,7 @@
 
 /turf/closed/mineral/random/volcanic/red_rock/mineral_chances()
 	return list(
+		/turf/closed/mineral/xenoarchaeology/red_rock = 1, // BANDASTATION ADDITION - Manual xenoarchaeology samples
 		// Cannot spawn these two
 		// /obj/item/stack/ore/bluespace_crystal = 0,
 		// /obj/item/stack/ore/diamond = 0,
@@ -655,6 +657,7 @@
 
 /turf/closed/mineral/random/volcanic/shale/mineral_chances()
 	return list(
+		/turf/closed/mineral/xenoarchaeology/shale = 1, // BANDASTATION ADDITION - Manual xenoarchaeology samples
 		/obj/item/stack/ore/bluespace_crystal = 1.5,
 		/obj/item/stack/ore/diamond = 3,
 		/obj/item/stack/ore/gold = 12,
@@ -693,6 +696,7 @@
 
 /turf/closed/mineral/random/snow/mineral_chances()
 	return list(
+		/turf/closed/mineral/xenoarchaeology/ice = 1, // BANDASTATION ADDITION - Manual xenoarchaeology samples
 		/obj/item/stack/ore/bluespace_crystal = 1,
 		/obj/item/stack/ore/diamond = 2,
 		/obj/item/stack/ore/gold = 8,
@@ -716,6 +720,7 @@
 
 /turf/closed/mineral/random/snow/underground/mineral_chances()
 	return list(
+		/turf/closed/mineral/xenoarchaeology/ice/underground = 1, // BANDASTATION ADDITION - Manual xenoarchaeology samples
 		/obj/item/stack/ore/bananium = 1,
 		/obj/item/stack/ore/bluespace_crystal = 2,
 		/obj/item/stack/ore/diamond = 4,

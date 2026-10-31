@@ -422,6 +422,12 @@
 #include "../../../modular_bandastation/shadow_demon/code/shadow_demon_tests.dm"
 #include "../../../modular_bandastation/shadow_demon/code/shadow_demon_dynamic_regression_tests.dm"
 #include "../../../modular_bandastation/shadow_demon/code/shadow_demon_light_regression_tests.dm"
+// BANDASTATION ADDITION START - Modular tests stay outside the sorted upstream include block
+// BANDASTATION ADDITION - Manual xenoarchaeology depth, lifecycle and mining regression tests
+#include "../../../modular_bandastation/xenoarchaeology/tests/xenoarchaeology.dm"
+#include "../../../modular_bandastation/xenoarchaeology/tests/extended.dm"
+#include "../../../modular_bandastation/xenoarchaeology/tests/plants.dm"
+// BANDASTATION ADDITION END
 #ifdef REFERENCE_TRACKING_DEBUG //Don't try and parse this file if ref tracking isn't turned on. IE: don't parse ref tracking please mr linter
 #include "find_reference_sanity.dm"
 #endif

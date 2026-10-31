@@ -1,0 +1,50 @@
+Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0).
+https://creativecommons.org/licenses/by-sa/3.0/
+
+Source project: NovaSector / Skyrat / upstream SS13 contributors.
+Source revision: 3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9
+Asset licensing statement:
+https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/README.md#license
+
+The xenoarch module credits Jake Park:
+https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/readme.md#credits
+The xenoarchartifacts directory and DMI metadata do not identify individual
+sprite artists. Attribution is retained at project/contributor level; Jake Park
+is credited for the module, not asserted to be the sole artist of these files.
+
+Changes for BandaStation: copied complete DMI files into this module and changed
+DM resource paths. File bytes, pixels, directions, frame timing and metadata are
+identical to the pinned source; no sprite was redrawn or recolored.
+The source paths, Git blob IDs and SHA-256 digests are recorded in sources.json.
+
+base/ore_visuals.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/ore_visuals.dmi
+base/xenoarch_items.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/xenoarch_items.dmi
+base/xenoarch_machines.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/xenoarch_machines.dmi
+artifacts/artifacts.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/artifacts.dmi
+artifacts/artifacts_64x32.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/artifacts_64x32.dmi
+artifacts/coop_mech.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/coop_mech.dmi
+artifacts/machinery.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/machinery.dmi
+artifacts/mecha.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/mecha.dmi
+artifacts/mining.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/mining.dmi
+artifacts/tools.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/tools.dmi
+artifacts/worn.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/worn.dmi
+
+plants/growing.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/growing.dmi
+
+plants/harvest.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/harvest.dmi
+
+plants/seeds.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/seeds.dmi
