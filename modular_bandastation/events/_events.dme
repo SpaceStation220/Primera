@@ -1,0 +1,27 @@
+#include "_events.dm"
+
+#include "avangarde17/code/obj/area.dm"
+#include "avangarde17/code/obj/bobik.dm"
+#include "avangarde17/code/obj/lada.dm"
+#include "avangarde17/code/obj/closet.dm"
+#include "avangarde17/code/obj/cursed_arch.dm"
+#include "avangarde17/code/obj/effect.dm"
+#include "avangarde17/code/obj/misc.dm"
+// AI EDIT START - Compile event scenery with preserved render layers.
+#include "avangarde17/code/obj/map_fixes.dm"
+// AI EDIT END
+#include "avangarde17/code/obj/portrait.dm"
+#include "avangarde17/code/obj/tools.dm"
+#include "avangarde17/code/obj/talon_machine.dm"
+#include "avangarde17/code/obj/talons.dm"
+#include "avangarde17/code/obj/decals.dm"
+#include "avangarde17/code/obj/photocopiers.dm"
+#include "avangarde17/code/obj/shelfs.dm"
+#include "avangarde17/code/obj/windowsills.dm"
+#include "avangarde17/code/obj/ramps.dm"
+#include "avangarde17/code/obj/store_scanner.dm"
+
+#include "avangarde17/code/turf/turf.dm"
+
+#include "avangarde17/thaumicnik_part/thaumicnik_part.dme"
+

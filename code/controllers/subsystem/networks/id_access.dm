@@ -216,10 +216,19 @@ SUBSYSTEM_DEF(id_access)
 	var/list/station_job_trims = subtypesof(/datum/id_trim/job)
 	for(var/trim_path in station_job_trims)
 		var/datum/id_trim/job/trim = trim_singletons_by_path[trim_path]
-		if(!length(trim.template_access))
+		// AI EDIT START - Hide templates for jobs excluded from the current map.
+		if(!trim.job || !length(trim.template_access)) // BANDASTATION EDIT - Map-excluded jobs do not offer access or paint templates.
 			continue
+		// AI EDIT END
 
-		station_job_templates[trim_path] = trim.assignment
+		// AI EDIT START - Disambiguate templates with the same public ID assignment.
+		// BANDASTATION EDIT START - Distinguish jobs that share the same public ID assignment.
+		var/template_name = trim.assignment
+		if(trim.job && !is_unassigned_job(trim.job) && trim.job.title != trim.assignment)
+			template_name = "[trim.assignment] ([trim.job.title])"
+		station_job_templates[trim_path] = template_name
+		// BANDASTATION EDIT END
+		// AI EDIT END
 		for(var/access in trim.template_access)
 			var/list/manager = sub_department_managers_tgui["[access]"]
 			if(!manager)
@@ -227,7 +236,9 @@ SUBSYSTEM_DEF(id_access)
 					WARNING("Invalid template access access \[[access]\] registered with [trim_path]. Template added to global list anyway.")
 				continue
 			var/list/templates = manager["templates"]
-			templates[trim_path] = trim.assignment
+			// AI EDIT START - Keep department manager template labels consistent.
+			templates[trim_path] = template_name // BANDASTATION EDIT - Use the same job label for department managers.
+			// AI EDIT END
 
 	var/list/centcom_job_trims = typesof(/datum/id_trim/centcom) - typesof(/datum/id_trim/centcom/corpse)
 	for(var/trim_path in centcom_job_trims)

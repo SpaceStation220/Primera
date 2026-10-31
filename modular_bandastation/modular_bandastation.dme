@@ -47,6 +47,9 @@
 #include "dynamic/_dynamic.dme"
 #include "emote_panel/_emote_panel.dme"
 #include "ert/_ert.dme"
+// AI EDIT START - Compile the Avangarde event module.
+#include "events/_events.dme"
+// AI EDIT END
 #include "examine_panel/_examine_panel.dme"
 #include "food_and_drinks/_food_and_drinks.dme"
 #include "galactic_map/_galactic_map.dme"
