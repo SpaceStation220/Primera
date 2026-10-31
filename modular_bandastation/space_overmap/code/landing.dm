@@ -4,8 +4,8 @@
 	var/obj/docking_port/stationary/stationtrauma_space_flight/flight_berth
 	/// Native shuttle movement yields; navigation commands cannot interrupt a partially moved hull.
 	var/relocating = FALSE
-	/// world.time at which the current planetary descent began; zero outside a descent, which locks the helm.
-	var/landing_started = 0
+	/// world.time at which the current approach or planetary descent began; zero outside one, which locks the helm.
+	var/approach_started = 0
 
 /** Retained native berth marking the hull position on its stationary flight level. */
 /obj/docking_port/stationary/stationtrauma_space_flight
@@ -148,21 +148,21 @@
 	return TRUE
 
 /**
- * Hold the hull on its approach for the descent, generating an uncharted surface meanwhile, then land.
+ * Hold the hull on its approach, loading an uncharted destination meanwhile; returns whether docking may proceed.
  *
- * Crew aboard feel atmospheric entry through the middle of the descent; the shake is purely visual.
+ * Planetary descents last longer, and crew aboard feel atmospheric entry through their middle; the shake is purely visual.
  */
-/datum/stationtrauma_overmap/space/proc/descend(datum/stationtrauma_overmap_site/space/site, revision)
-	landing_started = world.time
-	status = "Посадка: [site.name]"
+/datum/stationtrauma_overmap/space/proc/approach(datum/stationtrauma_overmap_site/space/site, revision)
+	approach_started = world.time
+	status = site.landing ? "Посадка: [site.name]" : "Сближение: [site.name]"
 	update_parallax()
-	var/datum/stationtrauma_overmap_site/space/planet/planet = istype(site, /datum/stationtrauma_overmap_site/space/planet) ? site : null
-	if(planet?.awaits_surface() && !planet.generating)
-		INVOKE_ASYNC(planet, TYPE_PROC_REF(/datum/stationtrauma_overmap_site/space/planet, generate_surface))
+	if(site.awaits_map() && !site.loading_map)
+		INVOKE_ASYNC(site, TYPE_PROC_REF(/datum/stationtrauma_overmap_site/space, load_map))
+	var/duration = site.landing ? ST_SPACE_LANDING_TIME : ST_SPACE_APPROACH_TIME
 	var/elapsed = 0
-	while((elapsed = world.time - landing_started) < ST_SPACE_LANDING_TIME || planet?.generating)
-		var/entry = elapsed / ST_SPACE_LANDING_TIME
-		if(entry > 0.25 && entry < 0.75)
+	while((elapsed = world.time - approach_started) < duration || site.loading_map)
+		var/entry = elapsed / duration
+		if(site.landing && entry > 0.25 && entry < 0.75)
 			// Strongest halfway through atmospheric entry, at most a fifth of a tile.
 			var/strength = 0.2 * sin(180 * (entry - 0.25) / 0.5)
 			for(var/mob/crew as anything in SSmobs.clients_by_zlevel[vessel.z])
@@ -171,8 +171,8 @@
 		sleep(1 SECONDS)
 		if(QDELETED(src) || QDELETED(site))
 			return FALSE
-	if(!site.failed && can_dock(site, revision) && relocate(site.berth))
-		return TRUE
-	status = site.failed ? "Посадка отменена: поверхность не картографирована" : "Посадка прервана"
-	return FALSE
+	if(site.failed)
+		status = site.landing ? "Посадка отменена: поверхность не картографирована" : "Стыковка отменена: объект не обнаружен"
+		return FALSE
+	return can_dock(site, revision)
 // AI EDIT END

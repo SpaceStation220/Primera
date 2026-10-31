@@ -81,12 +81,13 @@ export type NavigationData = Position & {
     breathable: BooleanLike;
     modifiers: string[];
   };
-  descent: {
+  approach: {
     elapsed: number;
     duration: number;
     site: string;
+    scene: 'planet' | 'ruin' | 'cargo' | 'asteroids';
     biome: string | null;
-    surveying: BooleanLike;
+    loading: BooleanLike;
   } | null;
 };
 

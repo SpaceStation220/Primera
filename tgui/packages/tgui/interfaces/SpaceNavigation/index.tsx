@@ -6,6 +6,7 @@ import { useBackend } from '../../backend';
 import { Window } from '../../layouts';
 import { Chart } from './Chart';
 import { Descent } from './Descent';
+import { Docking } from './Docking';
 import {
   closestApproach,
   distanceLabel,
@@ -44,8 +45,10 @@ function Navigation({ data }: { data: NavigationData }) {
       data.vy * Math.cos((data.course * Math.PI) / 180) <
     -0.05;
   const needle = Math.PI * (1 - Math.min(1, data.speed / 5));
-  const mode = data.descent
-    ? 'ПОСАДКА'
+  const mode = data.approach
+    ? data.approach.scene === 'planet'
+      ? 'ПОСАДКА'
+      : 'СТЫКОВКА'
     : data.preparing
       ? 'ПОДГОТОВКА'
     : moored
@@ -111,8 +114,10 @@ function Navigation({ data }: { data: NavigationData }) {
           </div>
         </aside>
         <section className="SpaceNavigation__plot">
-          {data.descent ? (
-            <Descent descent={data.descent} />
+          {data.approach?.scene === 'planet' ? (
+            <Descent approach={data.approach} />
+          ) : data.approach ? (
+            <Docking approach={data.approach} />
           ) : (
             <Chart
               data={data}

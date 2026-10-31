@@ -1,4 +1,31 @@
 // AI EDIT START - space overmap module integration
+/datum/stationtrauma_overmap_site/space
+	/// Deferred map load run by the first approach; null once the destination exists or has failed.
+	var/datum/callback/map_loader
+	/// Set while the first approach loads the destination.
+	var/loading_map = FALSE
+	/// Approach schematic on the navigation console: "ruin", "cargo" or "asteroids".
+	var/approach_scene = "ruin"
+
+/** Whether docking may begin before the berth exists because the approach loads the destination. */
+/datum/stationtrauma_overmap_site/space/proc/awaits_map()
+	return !!map_loader
+
+/**
+ * Load the charted destination once, beside live gameplay.
+ *
+ * Approaches wait on [/datum/stationtrauma_overmap_site/space/var/loading_map]. A crash inside the load only aborts that call,
+ * so the site is still released as failed instead of waiting for another attempt. No try block here: it would turn any
+ * runtime from a single loaded atom's Initialize into a failed destination.
+ */
+/datum/stationtrauma_overmap_site/space/proc/load_map()
+	if(!map_loader || loading_map)
+		return
+	loading_map = TRUE
+	failed = !map_loader.Invoke()
+	map_loader = null
+	loading_map = FALSE
+
 /** Only reviewed local templates participate; native blacklists and round duplicate limits still apply. */
 /datum/stationtrauma_overmap_sector/space/proc/load_ruin_sector()
 	var/list/approved = list(
@@ -29,42 +56,50 @@
 		return FALSE
 	var/list/positions = list(list(1100, 400), list(-1100, 600), list(1400, -1100), list(-1400, -450), list(450, 1350), list(-650, -1400))
 	var/count = min(length(positions), length(candidates))
+	// Templates are chosen now so the chart can name each signal; the first approach loads it.
 	for(var/index in 1 to count)
-		var/datum/space_level/level = SSmapping.add_new_zlevel("Экспедиционный сектор [index]", ZTRAITS_AWAY)
-		seedRuins(list(level.z_value), 1, list(/area/space), candidates, mineral_budget = 0, ruins_type = ZTRAIT_SPACE_RUINS, immediate_load = TRUE)
-		var/turf/origin
-		var/datum/map_template/ruin/placed
-		for(var/turf/anchor as anything in SSmapping.active_ruins)
-			if(anchor.z == level.z_value)
-				origin = anchor
-				placed = SSmapping.active_ruins[anchor]
-				break
-		if(!placed || !placed.loaded)
-			stack_trace("Expedition ruin generation failed on z [level.z_value]")
-			return FALSE
-		candidates -= placed.name
-		stationtrauma_space_vacuum(level.z_value)
-		var/right_edge = origin.x + placed.width - 1
-		var/approach_y = origin.y + round(placed.height / 2)
-		var/closest_door = origin.x - 1
-		for(var/turf/tile as anything in block(origin, locate(right_edge, origin.y + placed.height - 1, origin.z)))
-			for(var/obj/machinery/door/airlock/door in tile)
-				if(door.x > closest_door && isspaceturf(get_step(door, EAST)))
-					closest_door = door.x
-					approach_y = door.y
+		var/key = pick(candidates)
+		var/datum/map_template/ruin/template = candidates[key]
+		candidates -= key
 		var/datum/stationtrauma_overmap_site/space/site = new
 		site.id = "expedition_[index]"
-		site.name = approved[placed.type]
+		site.name = approved[template.type]
 		site.pos_x = positions[index][1]
 		site.pos_y = positions[index][2]
 		site.discovered = FALSE
 		site.needs_scan = TRUE
-		site.ruin_id = placed.id
-		site.berth = new /obj/docking_port/stationary/stationtrauma_space_site(locate(right_edge + 2, approach_y, origin.z))
-		var/obj/effect/landmark/stationtrauma_research_site/marker = new(get_turf(site.berth))
-		marker.site_id = site.id
-		marker.name = site.name
+		site.map_loader = CALLBACK(src, PROC_REF(load_ruin_site), site, index, key, template)
 		sites[site.id] = site
+	return TRUE
+
+/** Load one charted ruin on its own level, berthing the approach beside its outermost eastern airlock. */
+/datum/stationtrauma_overmap_sector/space/proc/load_ruin_site(datum/stationtrauma_overmap_site/space/site, index, key, datum/map_template/ruin/template)
+	var/datum/space_level/level = SSmapping.add_new_zlevel("Экспедиционный сектор [index]", ZTRAITS_AWAY)
+	seedRuins(list(level.z_value), 1, list(/area/space), list((key) = template), mineral_budget = 0, ruins_type = ZTRAIT_SPACE_RUINS, immediate_load = TRUE)
+	var/turf/origin
+	var/datum/map_template/ruin/placed
+	for(var/turf/anchor as anything in SSmapping.active_ruins)
+		if(anchor.z == level.z_value)
+			origin = anchor
+			placed = SSmapping.active_ruins[anchor]
+			break
+	if(!placed || !placed.loaded)
+		stack_trace("Expedition ruin [key] failed to load on z [level.z_value]")
+		return FALSE
+	stationtrauma_space_vacuum(level.z_value)
+	var/right_edge = origin.x + placed.width - 1
+	var/approach_y = origin.y + round(placed.height / 2)
+	var/closest_door = origin.x - 1
+	for(var/turf/tile as anything in block(origin, locate(right_edge, origin.y + placed.height - 1, origin.z)))
+		for(var/obj/machinery/door/airlock/door in tile)
+			if(door.x > closest_door && isspaceturf(get_step(door, EAST)))
+				closest_door = door.x
+				approach_y = door.y
+	site.ruin_id = placed.id
+	site.berth = new /obj/docking_port/stationary/stationtrauma_space_site(locate(right_edge + 2, approach_y, origin.z))
+	var/obj/effect/landmark/stationtrauma_research_site/marker = new(get_turf(site.berth))
+	marker.site_id = site.id
+	marker.name = site.name
 	return TRUE
 
 /** Known planets carry their chart symbol without disclosing hidden signals. */

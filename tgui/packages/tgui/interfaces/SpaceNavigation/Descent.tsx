@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { NavigationData } from './types';
 
 type Props = {
-  descent: NonNullable<NavigationData['descent']>;
+  approach: NonNullable<NavigationData['approach']>;
 };
 
 const WIDTH = 620;
@@ -19,8 +19,8 @@ const BIOME_COLOURS: Record<string, string> = {
   lava: '#a8442c',
 };
 
-/** Seconds into the descent, extrapolated between server updates. */
-function useDescentClock(elapsed: number, duration: number) {
+/** Seconds into the approach, extrapolated between server updates. */
+export function useApproachClock(elapsed: number, duration: number) {
   const [now, setNow] = useState(elapsed);
   useEffect(() => {
     const received = performance.now();
@@ -35,30 +35,32 @@ function useDescentClock(elapsed: number, duration: number) {
   return now;
 }
 
+/** Position and heading of the hull at a fraction of a plotted path. */
+export function pointOnPath(path: SVGPathElement | null, progress: number) {
+  if (!path) return null;
+  const length = path.getTotalLength();
+  const here = path.getPointAtLength(progress * length);
+  const ahead = path.getPointAtLength(Math.min(length, progress * length + 1));
+  const behind = path.getPointAtLength(Math.max(0, progress * length - 1));
+  return {
+    x: here.x,
+    y: here.y,
+    angle: (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI,
+  };
+}
+
 /** Planetary descent plot: the hull follows its approach to the landing site. */
-export function Descent({ descent }: Props) {
+export function Descent({ approach }: Props) {
   const path = useRef<SVGPathElement>(null);
-  const seconds = useDescentClock(descent.elapsed, descent.duration);
-  const progress = Math.min(1, seconds / descent.duration);
+  const seconds = useApproachClock(approach.elapsed, approach.duration);
+  const progress = Math.min(1, seconds / approach.duration);
   const entry = progress > 0.25 && progress < 0.75;
-  let ship = { x: 575, y: 45, angle: 180 };
-  if (path.current) {
-    const length = path.current.getTotalLength();
-    const here = path.current.getPointAtLength(progress * length);
-    const ahead = path.current.getPointAtLength(
-      Math.min(length, progress * length + 1),
-    );
-    const behind = path.current.getPointAtLength(
-      Math.max(0, progress * length - 1),
-    );
-    ship = {
-      x: here.x,
-      y: here.y,
-      angle:
-        (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI,
-    };
-  }
-  const colour = (descent.biome && BIOME_COLOURS[descent.biome]) || '#8b8f8c';
+  const ship = pointOnPath(path.current, progress) || {
+    x: 575,
+    y: 45,
+    angle: 180,
+  };
+  const colour = (approach.biome && BIOME_COLOURS[approach.biome]) || '#8b8f8c';
   const phase =
     progress < 0.25
       ? 'СХОД С ОРБИТЫ'
@@ -66,16 +68,16 @@ export function Descent({ descent }: Props) {
         ? 'ВХОД В АТМОСФЕРУ'
         : progress < 1
           ? 'ЗАХОД НА ТОЧКУ ВЫСАДКИ'
-          : descent.surveying
+          : approach.loading
             ? 'ОЖИДАНИЕ КАРТЫ ПОВЕРХНОСТИ'
             : 'КАСАНИЕ';
-  const left = Math.max(0, Math.ceil(descent.duration - seconds));
+  const left = Math.max(0, Math.ceil(approach.duration - seconds));
   const heat = entry ? Math.sin(((progress - 0.25) / 0.5) * Math.PI) : 0;
 
   return (
     <>
       <div className="SpaceNavigation__plot-head">
-        <span>ПОСАДКА · {descent.site}</span>
+        <span>ПОСАДКА · {approach.site}</span>
         <span>
           {phase} · T−{Math.floor(left / 60)}:
           {String(left % 60).padStart(2, '0')}
@@ -126,7 +128,7 @@ export function Descent({ descent }: Props) {
           <path d="M8 0L-6 -5L-3 0L-6 5Z" fill="#d6edc0" />
         </g>
       </svg>
-      {!!descent.surveying && (
+      {!!approach.loading && (
         <p className="SpaceNavigation__help" role="status">
           Картографирование поверхности…
         </p>

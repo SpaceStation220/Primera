@@ -160,19 +160,11 @@
 			sites[site.id] = site
 		ready = length(sites) > 0
 		return ready
-	var/datum/map_template/stationtrauma_space/template
 	var/list/locations = list(
-		list("asteroid_field", "Астероидное поле", 1250, -450, 'modular_bandastation/space_overmap/maps/asteroid_field.dmm', /atom/movable/screen/parallax_layer/random/asteroids),
-		list("drift_cargo", "Дрейфующий груз", rand(700, 900), rand(-160, -40), 'modular_bandastation/space_overmap/maps/drift_cargo.dmm', /atom/movable/screen/parallax_layer/layer_3),
+		list("asteroid_field", "Астероидное поле", 1250, -450, 'modular_bandastation/space_overmap/maps/asteroid_field.dmm', /atom/movable/screen/parallax_layer/random/asteroids, "asteroids"),
+		list("drift_cargo", "Дрейфующий груз", rand(700, 900), rand(-160, -40), 'modular_bandastation/space_overmap/maps/drift_cargo.dmm', /atom/movable/screen/parallax_layer/layer_3, "cargo"),
 	)
 	for(var/list/location as anything in locations)
-		template = new(location[5], location[2])
-		var/datum/space_level/level = template.load_new_z()
-		if(!level)
-			QDEL_NULL(template)
-			return null
-		level.space_parallax_background = location[6]
-		var/right_edge = round((world.maxx - template.width) / 2) + template.width
 		var/datum/stationtrauma_overmap_site/space/site = new
 		site.id = location[1]
 		site.name = location[2]
@@ -180,9 +172,9 @@
 		site.pos_y = location[4]
 		site.discovered = FALSE
 		site.needs_scan = TRUE
-		site.berth = new /obj/docking_port/stationary/stationtrauma_space_site(locate(right_edge + 2, round(world.maxy / 2), level.z_value))
+		site.approach_scene = location[7]
+		site.map_loader = CALLBACK(src, PROC_REF(load_location), site, location[5], location[6])
 		sites[site.id] = site
-		QDEL_NULL(template)
 	var/list/positions = list(list(800, 350), list(-100, -1250), list(-1500, 800), list(1800, 1100), list(-1800, -1300))
 	var/list/profiles = list(/datum/stationtrauma_overmap_site/space/planet, /datum/stationtrauma_overmap_site/space/planet/frozen, /datum/stationtrauma_overmap_site/space/planet/arid, /datum/stationtrauma_overmap_site/space/planet/lush, /datum/stationtrauma_overmap_site/space/planet/lava)
 	var/first_seed = rand(1, 1000001 - length(positions))
@@ -200,5 +192,18 @@
 		return null
 	build_encounters()
 	ready = TRUE
+	return TRUE
+
+/** Load a charted fixed location on its own level; the first approach runs this. */
+/datum/stationtrauma_overmap_sector/space/proc/load_location(datum/stationtrauma_overmap_site/space/site, map_path, parallax)
+	var/datum/map_template/stationtrauma_space/template = new(map_path, site.name)
+	var/datum/space_level/level = template.load_new_z()
+	if(!level)
+		qdel(template)
+		return FALSE
+	level.space_parallax_background = parallax
+	var/right_edge = round((world.maxx - template.width) / 2) + template.width
+	site.berth = new /obj/docking_port/stationary/stationtrauma_space_site(locate(right_edge + 2, round(world.maxy / 2), level.z_value))
+	qdel(template)
 	return TRUE
 // AI EDIT END

@@ -5,6 +5,8 @@
 #define ST_SPACE_DOCK_REQUEST_TIME (30 SECONDS)
 /// Planetary descent duration; a first landing generates the surface meanwhile.
 #define ST_SPACE_LANDING_TIME (2 MINUTES)
+/// Approach to a space destination before its seam is built; a first visit loads the destination meanwhile.
+#define ST_SPACE_APPROACH_TIME (45 SECONDS)
 #define COMSIG_AREA_SPACE_PARALLAX_CHANGED "area_space_parallax_changed"
 #define SHIP_CHAMBER_OFF "off"
 #define SHIP_CHAMBER_STARTING "starting"

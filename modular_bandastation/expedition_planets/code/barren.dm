@@ -37,8 +37,6 @@
 	var/list/modifier_names = list()
 	/// Charted generator awaiting the first landing; null once the surface is built or has failed.
 	var/datum/map_generator/expedition_barren/generator
-	/// Set while the first descent builds the surface.
-	var/generating = FALSE
 
 /** Serialize environment observations without exposing the planet generation seed. */
 /datum/stationtrauma_overmap_site/space/planet/proc/survey_data()
@@ -442,23 +440,17 @@
 	site.modifier_names = site.generator.apply_modifiers(modifier_level)
 	return site
 
-/datum/stationtrauma_overmap_site/space/planet/awaits_surface()
+/datum/stationtrauma_overmap_site/space/planet/awaits_map()
 	return !!generator
 
-/**
- * Build the surface once beside live gameplay; subsequent landings only move the vessel onto the retained native berth.
- *
- * Descents wait on [/datum/stationtrauma_overmap_site/space/planet/var/generating]. A crash inside the build only aborts that call,
- * so the planet is still released as failed instead of waiting for another attempt. No try block here: it would turn any
- * runtime from a single generated atom's Initialize into a failed planet.
- */
-/datum/stationtrauma_overmap_site/space/planet/proc/generate_surface()
-	if(!generator || generating)
+/** Build the surface once; subsequent landings only move the vessel onto the retained native berth. */
+/datum/stationtrauma_overmap_site/space/planet/load_map()
+	if(!generator || loading_map)
 		return
-	generating = TRUE
+	loading_map = TRUE
 	failed = !build_surface()
 	QDEL_NULL(generator)
-	generating = FALSE
+	loading_map = FALSE
 
 /** Generate every level of the surface, yielding between work slices; returns whether the planet is ready for landing. */
 /datum/stationtrauma_overmap_site/space/planet/proc/build_surface()
