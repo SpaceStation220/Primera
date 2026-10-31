@@ -44,7 +44,7 @@
 	deltimer(timeout)
 	TEST_ASSERT(!timed_out, "A replaced local wall never withdrew its remote preview cell.")
 	TEST_ASSERT(!QDELETED(carrier) && preview.projections[actor] == carrier, "An unrelated actor's carrier was torn down for a single geometry change.")
-	TEST_ASSERT(!QDELETED(unchanged_light) && unchanged_light in preview.lighting, "An unrelated cell's lighting was torn down for a single geometry change.")
+	TEST_ASSERT(!QDELETED(unchanged_light) && (unchanged_light in preview.lighting), "An unrelated cell's lighting was torn down for a single geometry change.")
 	changed_local.ChangeTurf(/turf/open/space)
 	timeout = addtimer(VARSET_CALLBACK(src, timed_out, TRUE), 5 SECONDS, TIMER_STOPPABLE)
 	UNTIL(preview.tiles[changed_remote] || timed_out)
