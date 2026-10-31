@@ -41,10 +41,6 @@
 /obj/structure/barricade/sandbags,
 /turf/template_noop,
 /area/ruin/space/has_grav/expedition_content/exp_celadon_cap_pod/exterior)
-"fU" = (
-/obj/effect/decal/cleanable/blood/footprints,
-/turf/closed/wall/mineral/titanium,
-/area/ruin/space/has_grav/expedition_content/exp_celadon_cap_pod/exterior)
 "jp" = (
 /obj/structure/door_assembly/door_assembly_com,
 /turf/template_noop,
@@ -484,7 +480,7 @@ ti
 Eh
 Eh
 cn
-fU
+cn
 Vd
 oE
 wp

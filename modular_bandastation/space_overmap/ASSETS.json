@@ -675,7 +675,7 @@
 		},
 		{
 			"path": "modular_bandastation/space_overmap/maps/ruins/celadon_fueldepot.dmm",
-			"sha256": "af13f10063f9536f992f0c9a3f24e7131d05f81c75f4515de204d8fa0967596a",
+			"sha256": "9562dc8bc319b75c45c04cb980b7c07c39814fcef2a49cc3cc0f0293c3f1c825",
 			"license": "CC-BY-SA-3.0",
 			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
 			"source": {
@@ -771,7 +771,7 @@
 		},
 		{
 			"path": "modular_bandastation/expedition_planets/maps/ruins/celadon_medtech.dmm",
-			"sha256": "7a498ab6d5bee5110494dcc27c096b3bd53a9d73ee01f62b6b6d0f853622074f",
+			"sha256": "f91c7859315a3abcf67864aeb1f5484b16443c74b9d75d6408184c8aea582ed0",
 			"license": "CC-BY-SA-3.0",
 			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
 			"source": {
@@ -835,7 +835,7 @@
 		},
 		{
 			"path": "modular_bandastation/expedition_planets/maps/ruins/celadon_cap_pod.dmm",
-			"sha256": "855cdfd6f554afd34a1d4b354dc6884e637eb1d41271c9f24d945e89363a052a",
+			"sha256": "7c389c0f4d0cfae6eaf789238c615825d9a2b47e3306e9375ff3219f6157bf0c",
 			"license": "CC-BY-SA-3.0",
 			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
 			"source": {
@@ -867,7 +867,7 @@
 		},
 		{
 			"path": "modular_bandastation/expedition_planets/maps/ruins/celadon_waterplant.dmm",
-			"sha256": "26c006635e96ee6cc8f039122f5b8b00751503c8dc251b29b3a282c280f67360",
+			"sha256": "4e27b67fc2af5a1f7b9eedd318275fc01e2332fefa77e8920d708ffe9a63c967",
 			"license": "CC-BY-SA-3.0",
 			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
 			"source": {

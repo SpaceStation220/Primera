@@ -803,7 +803,6 @@
 /area/ruin/space/has_grav/expedition_content/exp_celadon_waterplant/ruin/powered)
 "uo" = (
 /obj/structure/sign/poster/official/random/directional/east,
-/obj/effect/decal/cleanable/dirt,
 /turf/closed/wall,
 /area/ruin/space/has_grav/expedition_content/exp_celadon_waterplant/ruin/powered)
 "up" = (

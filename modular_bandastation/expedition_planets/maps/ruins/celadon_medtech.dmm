@@ -437,10 +437,6 @@
 /obj/structure/sink/directional/south,
 /turf/open/floor/iron/white,
 /area/ruin/space/has_grav/expedition_content/exp_celadon_medtech/ship/science)
-"gt" = (
-/obj/effect/decal/cleanable/dirt,
-/turf/closed/wall,
-/area/ruin/space/has_grav/expedition_content/exp_celadon_medtech/ship/science/storage)
 "gz" = (
 /obj/effect/turf_decal/tile/purple{
 	dir = 10
@@ -3669,7 +3665,7 @@ Pg
 yr
 yr
 yr
-gt
+yr
 Tr
 EY
 RS

@@ -1220,10 +1220,6 @@
 /obj/item/stack/rods,
 /turf/open/space/basic,
 /area/ruin/space/has_grav/expedition_content/exp_celadon_fueldepot/ruin/unpowered)
-"Uk" = (
-/obj/effect/decal/cleanable/dirt,
-/turf/closed/wall/rust,
-/area/ruin/space/has_grav/expedition_content/exp_celadon_fueldepot/ruin/unpowered)
 "Um" = (
 /obj/machinery/atmospherics/pipe/smart/simple/scrubbers/hidden/layer4{
 	dir = 1
@@ -1343,10 +1339,6 @@
 /obj/structure/broken_flooring/singular/directional/east,
 /turf/open/space/basic,
 /area/ruin/space/has_grav/expedition_content/exp_celadon_fueldepot/ruin/unpowered)
-"YH" = (
-/obj/effect/decal/cleanable/dirt,
-/turf/closed/wall/mineral/plastitanium,
-/area/ruin/space/has_grav/expedition_content/exp_celadon_fueldepot/ruin/unpowered)
 "YJ" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -1357,10 +1349,6 @@
 /obj/machinery/atmospherics/components/binary/pump/layer2,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plating,
-/area/ruin/space/has_grav/expedition_content/exp_celadon_fueldepot/ruin/unpowered)
-"Zh" = (
-/obj/effect/decal/cleanable/dirt,
-/turf/closed/wall/mineral/plastitanium/nodiagonal,
 /area/ruin/space/has_grav/expedition_content/exp_celadon_fueldepot/ruin/unpowered)
 "Zy" = (
 /obj/structure/table/reinforced,
@@ -1694,7 +1682,7 @@ Xj
 Sq
 fi
 fi
-Uk
+zv
 fI
 ZO
 ZO
@@ -2714,7 +2702,7 @@ ZO
 tC
 nK
 XM
-Zh
+nK
 nK
 nK
 nK
@@ -2873,7 +2861,7 @@ TE
 cq
 LQ
 TZ
-Zh
+nK
 NN
 HW
 iW
@@ -2917,7 +2905,7 @@ ZO
 Xj
 KK
 yr
-YH
+tC
 hK
 tC
 nK
@@ -2974,9 +2962,9 @@ ZO
 tC
 nK
 Aj
-Zh
-Zh
-Zh
+nK
+nK
+nK
 wK
 vx
 Mz
