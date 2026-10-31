@@ -1,0 +1,122 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_8.dmm
+"a" = (
+/turf/template_noop,
+/area/template_noop)
+"b" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"i" = (
+/obj/structure/flora/rock/pile/jungle,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"n" = (
+/obj/structure/flora/bush/jungle/a,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"u" = (
+/obj/structure/flora/ash/tall_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"w" = (
+/obj/structure/flora/ash/stem_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"x" = (
+/obj/structure/flora/ash/leaf_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"E" = (
+/obj/structure/flora/ash/cap_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"Q" = (
+/turf/open/water/jungle,
+/area/expedition_planet/barren)
+"S" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"X" = (
+/obj/structure/flora/rock,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+a
+b
+b
+S
+b
+b
+b
+a
+"}
+(2,1,1) = {"
+b
+b
+S
+u
+E
+b
+x
+b
+"}
+(3,1,1) = {"
+a
+u
+x
+X
+u
+E
+u
+b
+"}
+(4,1,1) = {"
+b
+S
+n
+Q
+x
+i
+w
+S
+"}
+(5,1,1) = {"
+a
+b
+w
+i
+X
+E
+S
+b
+"}
+(6,1,1) = {"
+b
+u
+S
+x
+w
+u
+b
+b
+"}
+(7,1,1) = {"
+b
+b
+E
+b
+b
+S
+b
+a
+"}
+(8,1,1) = {"
+a
+b
+b
+a
+b
+b
+a
+a
+"}

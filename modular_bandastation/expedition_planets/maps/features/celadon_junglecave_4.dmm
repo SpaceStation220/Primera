@@ -1,0 +1,320 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_4.dmm
+"af" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"ag" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"ah" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/item/storage/toolbox/electrical,
+/obj/structure/closet/emcloset{
+	name = "repair closet"
+	},
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"as" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/frame/machine,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"aw" = (
+/turf/closed/wall/concrete/reinforced,
+/area/expedition_planet/barren)
+"aA" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/obj/effect/decal/cleanable/blood/oil,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"aD" = (
+/turf/closed/wall/concrete,
+/area/expedition_planet/barren)
+"aE" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/generic,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"aI" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"aJ" = (
+/obj/item/wallframe/apc,
+/obj/item/stack/cable_coil/cut,
+/obj/item/stack/ore/gold{
+	amount = 5
+	},
+/obj/effect/decal/cleanable/glass,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"aM" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/obj/machinery/light/broken/directional/west,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"aO" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/glass,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"aR" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"aW" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/machinery/airalarm/directional/south,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"aY" = (
+/obj/effect/decal/cleanable/glass,
+/obj/item/wallframe/light_fixture,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"aZ" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/frame/machine,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"dv" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/obj/effect/decal/cleanable/generic,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"jB" = (
+/obj/machinery/door/poddoor/shutters,
+/obj/machinery/door/airlock/grunge{
+	locked = 1
+	},
+/turf/open/floor/concrete/reinforced,
+/area/expedition_planet/barren)
+"oE" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/obj/machinery/light/broken/directional/east,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"pQ" = (
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"re" = (
+/obj/structure/sign/directions/evac{
+	dir = 1
+	},
+/turf/closed/wall/concrete/reinforced,
+/area/expedition_planet/barren)
+"rp" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/closet/firecloset,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"vU" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"xw" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/blood/oil,
+/obj/effect/spawner/random/decoration/glowstick,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"zk" = (
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"zY" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/machinery/light/small/broken/directional/north,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"Ch" = (
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/structure/frame/computer{
+	desc = "An interface between crew and the cryogenic storage oversight systems. This one has a "EMERGENCY-POWER LOSS" Warning burned into the monitor."
+	},
+/obj/effect/decal/remains/human,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"Ez" = (
+/obj/structure/railing{
+	dir = 8
+	},
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"Fu" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"IW" = (
+/obj/structure/railing{
+	dir = 4
+	},
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"Ko" = (
+/obj/structure/table/reinforced,
+/obj/structure/closet/emcloset{
+	name = "emergency supplies";
+	desc = "It's a basic storage unit, designed to hold supplies for the event of awakening in a hostile environment.."
+	},
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/item/storage/medkit,
+/obj/item/reagent_containers/cup/glass/waterbottle/large,
+/obj/item/reagent_containers/cup/glass/waterbottle/large,
+/obj/item/reagent_containers/cup/glass/waterbottle/large,
+/obj/item/pickaxe/emergency,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/obj/item/food/rationpack,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"OP" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"Qp" = (
+/obj/machinery/door/poddoor/shutters,
+/obj/machinery/door/airlock/vault/derelict,
+/turf/open/floor/concrete/reinforced,
+/area/expedition_planet/barren)
+"Uj" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/structure/frame/computer{
+	dir = 8
+	},
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"WM" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+aI
+aI
+aw
+aI
+aw
+aw
+aw
+aw
+aI
+"}
+(2,1,1) = {"
+aI
+aI
+aY
+aZ
+as
+aM
+af
+aw
+aI
+"}
+(3,1,1) = {"
+aI
+aJ
+ah
+aR
+aO
+aE
+aW
+aw
+aI
+"}
+(4,1,1) = {"
+aw
+aD
+aD
+aD
+ag
+aA
+dv
+re
+IW
+"}
+(5,1,1) = {"
+aw
+Ch
+zk
+aD
+rp
+xw
+Fu
+Qp
+pQ
+"}
+(6,1,1) = {"
+aw
+zY
+OP
+jB
+aE
+WM
+Fu
+Qp
+pQ
+"}
+(7,1,1) = {"
+aw
+Ko
+Uj
+aD
+vU
+oE
+af
+re
+Ez
+"}
+(8,1,1) = {"
+aw
+aw
+aw
+aw
+aw
+aw
+aw
+aw
+aI
+"}

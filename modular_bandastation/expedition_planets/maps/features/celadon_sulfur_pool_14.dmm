@@ -1,0 +1,65 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_14.dmm
+"a" = (
+/turf/template_noop,
+/area/template_noop)
+"b" = (
+/obj/effect/spawner/random/expedition_arid/shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"i" = (
+/obj/effect/spawner/random/expedition_arid/cactus,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"v" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"J" = (
+/obj/effect/spawner/random/expedition_arid/fauna,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"Z" = (
+/turf/open/water/expedition_arid,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+v
+Z
+b
+a
+a
+"}
+(2,1,1) = {"
+v
+v
+b
+b
+Z
+"}
+(3,1,1) = {"
+b
+Z
+Z
+b
+Z
+"}
+(4,1,1) = {"
+v
+Z
+i
+v
+v
+"}
+(5,1,1) = {"
+v
+b
+Z
+J
+a
+"}
+(6,1,1) = {"
+a
+v
+v
+v
+v
+"}

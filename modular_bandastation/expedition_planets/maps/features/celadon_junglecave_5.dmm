@@ -1,0 +1,226 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_5.dmm
+"h" = (
+/obj/structure/table,
+/obj/structure/closet/emcloset{
+	name = "emergency supplies";
+	desc = "Covered in claw marks."
+	},
+/obj/item/reagent_containers/cup/glass/waterbottle/large,
+/obj/effect/decal/cleanable/shreds,
+/obj/effect/decal/cleanable/shreds{
+	pixel_x = 9;
+	pixel_y = 12
+	},
+/obj/effect/decal/cleanable/shreds{
+	pixel_y = 4;
+	pixel_x = -8
+	},
+/obj/effect/spawner/random/decoration/glowstick,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"i" = (
+/obj/effect/decal/cleanable/generic,
+/obj/item/reagent_containers/cup/glass/waterbottle/large/empty,
+/turf/open/floor/concrete/slab_1,
+/area/expedition_planet/barren)
+"l" = (
+/turf/template_noop,
+/area/template_noop)
+"m" = (
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/obj/structure/closet/firecloset,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"n" = (
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/machinery/light/broken/directional/north,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"q" = (
+/obj/structure/sign/directions/evac{
+	dir = 1
+	},
+/turf/closed/wall/concrete/reinforced,
+/area/expedition_planet/barren)
+"t" = (
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/remains/human,
+/obj/machinery/airalarm/directional/south,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"u" = (
+/obj/item/stack/ore/iron,
+/mob/living/basic/mining/wolf,
+/obj/effect/decal/cleanable/blood/footprints{
+	dir = 4;
+	color = "#4D0000"
+	},
+/turf/open/floor/concrete/slab_1,
+/area/expedition_planet/barren)
+"v" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"x" = (
+/obj/structure/railing{
+	dir = 8
+	},
+/obj/structure/railing{
+	dir = 8
+	},
+/turf/open/floor/iron/stairs,
+/area/expedition_planet/barren)
+"G" = (
+/obj/structure/railing{
+	dir = 4
+	},
+/obj/effect/decal/cleanable/generic,
+/turf/open/floor/iron/stairs,
+/area/expedition_planet/barren)
+"H" = (
+/obj/effect/decal/cleanable/blood/gibs/robot_debris,
+/obj/effect/decal/cleanable/blood/old,
+/obj/effect/decal/cleanable/shreds{
+	pixel_x = 9;
+	pixel_y = 12
+	},
+/obj/effect/decal/remains/human,
+/turf/open/floor/concrete/slab_1,
+/area/expedition_planet/barren)
+"N" = (
+/turf/closed/wall/concrete/reinforced,
+/area/expedition_planet/barren)
+"P" = (
+/obj/structure/railing{
+	dir = 4
+	},
+/obj/machinery/light/small/broken/directional/east,
+/turf/open/floor/concrete/slab_1,
+/area/expedition_planet/barren)
+"R" = (
+/obj/structure/railing{
+	dir = 8
+	},
+/obj/effect/decal/cleanable/generic,
+/turf/open/floor/concrete/slab_1,
+/area/expedition_planet/barren)
+"S" = (
+/obj/structure/door_assembly/door_assembly_vault,
+/turf/open/floor/concrete/reinforced,
+/area/expedition_planet/barren)
+"V" = (
+/obj/structure/fluff/empty_cryostasis_sleeper,
+/obj/effect/decal/cleanable/blood/old,
+/obj/machinery/light/broken/directional/north,
+/turf/open/floor/concrete/slab_4,
+/area/expedition_planet/barren)
+"W" = (
+/obj/item/stack/ore/iron{
+	amount = 10
+	},
+/obj/item/stack/cable_coil/cut,
+/obj/effect/decal/cleanable/blood/oil/slippery,
+/turf/open/floor/concrete/reinforced,
+/area/expedition_planet/barren)
+"X" = (
+/obj/structure/frame/computer,
+/mob/living/basic/mining/wolf,
+/obj/effect/decal/cleanable/blood/splatter{
+	color = "#4D0000"
+	},
+/obj/effect/decal/remains/human,
+/turf/open/floor/concrete/tiles,
+/area/expedition_planet/barren)
+"Z" = (
+/obj/effect/decal/remains/human,
+/obj/effect/decal/cleanable/blood/gibs/old,
+/obj/effect/decal/cleanable/shreds,
+/obj/effect/decal/cleanable/shreds{
+	pixel_x = 9;
+	pixel_y = 12
+	},
+/obj/item/clothing/head/helmet/old,
+/obj/item/knife/combat/survival,
+/turf/open/floor/concrete/slab_1,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+l
+v
+v
+v
+l
+v
+v
+l
+"}
+(2,1,1) = {"
+v
+v
+N
+N
+N
+N
+v
+v
+"}
+(3,1,1) = {"
+v
+N
+N
+n
+m
+N
+q
+v
+"}
+(4,1,1) = {"
+l
+N
+X
+i
+H
+W
+R
+x
+"}
+(5,1,1) = {"
+v
+N
+h
+Z
+u
+S
+P
+G
+"}
+(6,1,1) = {"
+v
+N
+N
+V
+t
+N
+N
+v
+"}
+(7,1,1) = {"
+l
+v
+N
+N
+N
+N
+v
+v
+"}
+(8,1,1) = {"
+l
+v
+v
+l
+v
+v
+v
+l
+"}

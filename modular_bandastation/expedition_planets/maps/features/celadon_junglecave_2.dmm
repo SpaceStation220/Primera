@@ -1,0 +1,226 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_2.dmm
+"a" = (
+/turf/template_noop,
+/area/template_noop)
+"b" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 8
+	},
+/obj/effect/decal/cleanable/blood/tracks{
+	dir = 1;
+	color = "#4D0000";
+	pixel_y = 9
+	},
+/turf/open/floor/wood,
+/area/expedition_planet/barren)
+"e" = (
+/obj/structure/flora/ash/tall_shroom,
+/obj/effect/turf_decal/siding/wood{
+	dir = 4
+	},
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"f" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 8
+	},
+/turf/open/floor/wood,
+/area/expedition_planet/barren)
+"h" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 8
+	},
+/obj/item/stack/ore/iron{
+	amount = 12
+	},
+/obj/effect/decal/cleanable/blood/old,
+/turf/open/floor/wood,
+/area/expedition_planet/barren)
+"k" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 4
+	},
+/turf/open/floor/wood,
+/area/expedition_planet/barren)
+"n" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 8
+	},
+/obj/item/stack/tile/wood,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"p" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 4
+	},
+/obj/item/stack/tile/wood,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"s" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 4
+	},
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"t" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"u" = (
+/obj/structure/flora/ash/stem_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"w" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 8
+	},
+/obj/structure/flora/rock/pile,
+/obj/structure/flora/rock/pile,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"x" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 8
+	},
+/obj/structure/flora/ash/stem_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"y" = (
+/obj/structure/railing/wooden_fence{
+	dir = 6
+	},
+/turf/closed/wall/mineral/wood,
+/area/expedition_planet/barren)
+"z" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 8
+	},
+/obj/item/pickaxe,
+/turf/open/floor/wood,
+/area/expedition_planet/barren)
+"C" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 4
+	},
+/obj/structure/flora/rock/pile,
+/obj/structure/flora/rock/pile,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"G" = (
+/obj/structure/railing/wooden_fence{
+	dir = 10
+	},
+/turf/closed/wall/mineral/wood,
+/area/expedition_planet/barren)
+"O" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 4
+	},
+/obj/item/stack/sheet/mineral/wood{
+	amount = 25
+	},
+/turf/open/floor/wood,
+/area/expedition_planet/barren)
+"P" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"S" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 8
+	},
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"Y" = (
+/obj/effect/turf_decal/siding/wood{
+	dir = 4
+	},
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+a
+a
+t
+t
+a
+a
+t
+a
+a
+"}
+(2,1,1) = {"
+a
+t
+t
+t
+t
+t
+t
+t
+a
+"}
+(3,1,1) = {"
+t
+y
+s
+C
+y
+s
+e
+y
+a
+"}
+(4,1,1) = {"
+a
+P
+f
+n
+f
+z
+h
+b
+P
+"}
+(5,1,1) = {"
+a
+p
+Y
+O
+Y
+p
+k
+p
+a
+"}
+(6,1,1) = {"
+t
+G
+S
+x
+G
+S
+w
+G
+u
+"}
+(7,1,1) = {"
+a
+t
+t
+t
+t
+t
+t
+t
+a
+"}
+(8,1,1) = {"
+a
+a
+t
+a
+a
+t
+t
+a
+a
+"}
