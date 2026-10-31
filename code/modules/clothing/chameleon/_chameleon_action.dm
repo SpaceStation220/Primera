@@ -223,7 +223,7 @@
 		if(!ispath(item_type, /obj/item))
 			stack_trace("Invalid item type passed to apply_outfit ([item_type])")
 			continue
-		if(chameleon_typecache[item_type])
+		if(chameleon_typecache[item_type] && !is_type_in_typecache(item_type, chameleon_blacklist))
 			using_item_type = item_type
 			break
 
