@@ -481,6 +481,8 @@
 
 #include "../../../modular_bandastation/uplink_items/code/tests/syndicate_items.dm"
 
+#include "../../../modular_bandastation/objects/code/tests/lighter_lighting.dm"
+
 #undef TEST_ASSERT
 #undef TEST_ASSERT_EQUAL
 #undef TEST_ASSERT_NOTEQUAL
