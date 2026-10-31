@@ -435,18 +435,6 @@
 	field_notes = "В трещинах породы видны неоднородные кристаллические включения с острыми гранями. Следов растительности нет."
 	laboratory_notes = "Включения образуют несколько минеральных фракций. Состав и возможное применение требуют дальнейших испытаний."
 
-/** Mapped surface camp supplies kept across repeat visits. */
-/obj/structure/closet/crate/expedition_planet_supplies
-	name = "ящик полевого исследователя"
-
-/obj/structure/closet/crate/expedition_planet_supplies/PopulateContents()
-	..()
-	new /obj/item/stationtrauma_field_scanner(src)
-	new /obj/item/pickaxe(src)
-	new /obj/item/flashlight(src)
-	for(var/index in 1 to 6)
-		new /obj/item/stationtrauma_sample(src)
-
 /**
  * Chart a planet without building it; the first landing generates its surface.
  *
@@ -510,7 +498,7 @@
 	var/list/turfs = block(bottom, locate(bottom.x + generator.width - 1, bottom.y + generator.width - 1, bottom.z))
 	var/area/expedition_planet/barren/surface = new
 	surface.name = "[name]: поверхность"
-	// Storms only reach outdoor areas; the camp, ruins and landed vessels keep their own sheltered areas.
+	// Storms only reach outdoor areas, the landing clearing included; ruins and landed vessels keep their own sheltered areas.
 	surface.outdoors = generator.storms
 	generator.generate_terrain(turfs, surface)
 	budget.yield()
@@ -532,13 +520,7 @@
 			break
 	if(!berth || generator.populate_terrain(turfs, surface) != 3)
 		CRASH("Expedition planet [seed] lacks its landing berth or research sources")
-	// Field equipment waits beside the vessel footprint, where landing never needs to trample it.
-	var/list/pad_bounds = berth.return_coords()
-	var/turf/supplies_turf = locate(min(pad_bounds[1], pad_bounds[3]) - 2, berth.y, berth.z)
-	if(!isopenturf(supplies_turf) || supplies_turf.is_blocked_turf(TRUE))
-		CRASH("Expedition planet [seed] has no free ground beside its landing berth for field equipment")
-	new /obj/structure/closet/crate/expedition_planet_supplies(supplies_turf)
-	var/obj/effect/landmark/stationtrauma_research_site/marker = new(supplies_turf)
+	var/obj/effect/landmark/stationtrauma_research_site/marker = new(get_turf(berth))
 	marker.site_id = id
 	marker.name = name
 	budget.yield()
