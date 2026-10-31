@@ -404,6 +404,8 @@
 #include "tutorial_sanity.dm"
 #include "unequip_defib.dm"
 #include "unit_test.dm"
+// BANDASTATION ADDITION - Cortical borer lifecycle and trust-boundary regression tests
+#include "../../../modular_bandastation/cortical_borer/tests/borer.dm"
 #include "verify_config_tags.dm"
 #include "verify_emoji_names.dm"
 #include "wallmount.dm"
