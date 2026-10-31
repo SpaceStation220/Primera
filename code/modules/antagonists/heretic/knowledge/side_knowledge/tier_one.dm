@@ -295,8 +295,6 @@
 	is_shop_only = TRUE // not actually but it's got special requirements
 
 /datum/heretic_knowledge/spell/cloak_of_shadows/spell_check(datum/action/the_spell, feedback)
-	SIGNAL_HANDLER
-
 	var/datum/antagonist/heretic/heretic_datum = GET_HERETIC(the_spell.owner)
 	if(heretic_datum?.has_living_heart())
 		return ..()
