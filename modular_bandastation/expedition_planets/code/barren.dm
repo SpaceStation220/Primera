@@ -137,6 +137,19 @@
 	)
 	/// Surface features placed on each planet when free space allows.
 	var/feature_count = 6
+	/// Cave-level feature maps with pick weights; the default set of shacks, bunkers, wells and mushroom groves suits every profile.
+	var/list/cave_feature_maps = list(
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_2.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_4.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_5.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_7.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_9.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_10.dmm" = 1,
+	)
+	/// Cave features placed on each cave level when free space allows.
+	var/cave_feature_count = 6
+	/// Research sources placed in each cave level's open pockets.
+	var/cave_source_count = 2
 	/// Turfs covered by placed features; flora and fauna never start on them.
 	var/list/feature_turfs
 	/// Work slice shared by every generation step of this surface.
@@ -266,8 +279,8 @@
 /datum/map_generator/expedition_barren/proc/feature_fits(x, y, datum/map_template/template, list/placed, z)
 	var/right = x + template.width - 1
 	var/top = y + template.height - 1
-	// Features may carry hostile fauna, so they stay outside the camp's fauna clearance.
-	if(x < camp_x + camp_width + fauna_clearance && y < camp_y + camp_height + fauna_clearance)
+	// Features may carry hostile fauna, so surface features stay outside the camp's fauna clearance.
+	if(!cave_level && x < camp_x + camp_width + fauna_clearance && y < camp_y + camp_height + fauna_clearance)
 		return FALSE
 	for(var/list/bounds as anything in placed)
 		if(x <= bounds[3] + 1 && right >= bounds[1] - 1 && y <= bounds[4] + 1 && top >= bounds[2] - 1)
@@ -275,20 +288,23 @@
 	var/open = 0
 	for(var/tile_x in x to right)
 		for(var/tile_y in y to top)
-			if(is_reserved(tile_x, tile_y))
+			if(cave_level ? in_clearing(tile_x, tile_y) : is_reserved(tile_x, tile_y))
 				return FALSE
 			if(isopenturf(locate(origin_x + tile_x - 1, origin_y + tile_y - 1, z)))
 				open++
+	// Cave features carve their own rooms into the mountain, so a third of open floor is enough there.
+	if(cave_level)
+		return open * 3 >= template.width * template.height
 	return open * 4 >= template.width * template.height * 3
 
-/** Load this profile's small surface features at random free spots after the camp and ruins; returns how many were placed. */
-/datum/map_generator/expedition_barren/proc/place_features(turf/bottom, area/surface)
+/** Load small features from `maps` at random free spots of the level at `bottom`; returns how many were placed. */
+/datum/map_generator/expedition_barren/proc/place_features(turf/bottom, area/surface, list/maps = feature_maps, count = feature_count)
 	var/static/list/templates = list()
 	var/list/placed = list()
-	for(var/attempt in 1 to feature_count * 5)
-		if(length(placed) >= feature_count)
+	for(var/attempt in 1 to count * 5)
+		if(length(placed) >= count)
 			break
-		var/map = pick_weight(feature_maps)
+		var/map = pick_weight(maps)
 		var/datum/map_template/template = templates[map]
 		if(!template)
 			template = new(map)
@@ -346,8 +362,17 @@
 	var/area/expedition_planet/barren/caves_area = new
 	caves_area.name = "[planet_name]: пещеры"
 	cave_level = TRUE
-	generate_terrain(block(bottom, locate(bottom.x + width - 1, bottom.y + width - 1, bottom.z)), caves_area)
+	var/list/cave_turfs = block(bottom, locate(bottom.x + width - 1, bottom.y + width - 1, bottom.z))
+	generate_terrain(cave_turfs, caves_area)
+	place_features(bottom, caves_area, cave_feature_maps, cave_feature_count)
 	populate_biomes()
+	// Research sources wait in open pockets away from the connectors and features.
+	var/list/pockets = list()
+	for(var/turf/open/tile in cave_turfs)
+		if(tile.loc == caves_area && !LAZYACCESS(feature_turfs, tile) && !in_clearing(tile.x - origin_x + 1, tile.y - origin_y + 1) && !tile.is_blocked_turf(TRUE))
+			pockets += tile
+	for(var/index in 1 to min(cave_source_count, length(pockets)))
+		new source_type(pick_n_take(pockets))
 	for(var/index in 1 to length(connector_points))
 		var/list/point = connector_points[index]
 		var/turf/upper = locate(origin_x + point[1] - 1, origin_y + point[2] - 1, surface_bottom.z)
@@ -517,8 +542,13 @@
 	marker.site_id = id
 	marker.name = name
 	budget.yield()
-	if(caves && !generator.generate_underground(bottom, caves, surface, name))
-		CRASH("Expedition planet [seed] has no free surface for cave connectors")
+	if(caves)
+		if(!generator.generate_underground(bottom, caves, surface, name))
+			CRASH("Expedition planet [seed] has no free surface for cave connectors")
+		// Specimens resolve their site per level, so the caves carry the surface's site marker too.
+		var/obj/effect/landmark/stationtrauma_research_site/cave_marker = new(locate(bottom.x, bottom.y, caves.z_value))
+		cave_marker.site_id = id
+		cave_marker.name = name
 	SSmapping.reg_in_areas_in_z(list(surface))
 	smooth_zlevel(level.z_value)
 	// Storm traits are registered only once the surface is complete; SSweather then alternates storms with calm periods.

@@ -66,6 +66,19 @@
 		"modular_bandastation/expedition_planets/maps/features/celadon_jungle_anomaly_12.dmm" = 1,
 	)
 	feature_count = 8
+	// Jungle caves also get the springs, overgrown dens and glowing pools of Celadon's jungle caves.
+	cave_feature_maps = list(
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_1.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_2.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_3.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_4.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_5.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_6.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_7.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_8.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_9.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_10.dmm" = 1,
+	)
 	biome_table = list(
 		list(/datum/biome/expedition/jungle_wasteland, /datum/biome/expedition/jungle_wasteland, /datum/biome/expedition/jungle/plains, /datum/biome/expedition/jungle/plains, /datum/biome/expedition/mudlands),
 		list(/datum/biome/expedition/jungle_wasteland, /datum/biome/expedition/jungle/plains, /datum/biome/expedition/jungle, /datum/biome/expedition/mudlands, /datum/biome/expedition/mudlands),

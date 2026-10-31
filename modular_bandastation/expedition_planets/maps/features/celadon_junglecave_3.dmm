@@ -1,0 +1,127 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_3.dmm
+"c" = (
+/obj/effect/decal/remains/human,
+/obj/structure/spacevine,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"i" = (
+/turf/template_noop,
+/area/template_noop)
+"k" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"p" = (
+/mob/living/basic/mining/wolf,
+/obj/effect/decal/remains/human,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"L" = (
+/obj/structure/spacevine,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"N" = (
+/obj/effect/decal/remains/human,
+/obj/effect/decal/cleanable/blood/splatter{
+	color = "#4D0000"
+	},
+/obj/structure/spacevine,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"S" = (
+/obj/structure/flora/rock/pile,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"W" = (
+/obj/structure/flora/rock/pile,
+/obj/structure/spacevine,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"X" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"Z" = (
+/obj/effect/mob_spawn/corpse/human/damaged,
+/obj/effect/decal/cleanable/blood/old,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+i
+i
+X
+S
+W
+X
+X
+i
+"}
+(2,1,1) = {"
+i
+X
+X
+L
+c
+W
+X
+X
+"}
+(3,1,1) = {"
+X
+X
+Z
+k
+L
+S
+L
+L
+"}
+(4,1,1) = {"
+X
+X
+L
+S
+p
+k
+S
+X
+"}
+(5,1,1) = {"
+L
+W
+c
+X
+S
+W
+X
+X
+"}
+(6,1,1) = {"
+X
+X
+S
+L
+k
+Z
+X
+i
+"}
+(7,1,1) = {"
+X
+X
+W
+W
+N
+L
+k
+i
+"}
+(8,1,1) = {"
+i
+X
+X
+L
+X
+X
+i
+i
+"}

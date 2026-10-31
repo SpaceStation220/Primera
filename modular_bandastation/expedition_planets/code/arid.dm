@@ -22,6 +22,29 @@
 	biome_zoom = 70
 	mountain_height = 0.8
 	mineral_chance = 8
+	// Celadon's Whitesands sulfur pools return to the sulfur plains, with a rare dried oasis.
+	feature_maps = list(
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_1.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_2.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_3.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_4.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_5.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_6.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_7.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_8.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_9.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_10.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_11.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_14.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_15.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_16.dmm" = 3,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_12.dmm" = 2,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_13.dmm" = 2,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_17.dmm" = 2,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_18.dmm" = 2,
+		"modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_19.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_oasis_1.dmm" = 1,
+	)
 	biome_table = list(
 		list(/datum/biome/expedition/sand, /datum/biome/expedition/sand, /datum/biome/expedition/sand/grass/dead, /datum/biome/expedition/sand/flats, /datum/biome/expedition/sand/flats),
 		list(/datum/biome/expedition/sand, /datum/biome/expedition/sand/riverbed, /datum/biome/expedition/sand/wasteland, /datum/biome/expedition/sand/wasteland, /datum/biome/expedition/sand/flats),
@@ -192,4 +215,41 @@
 /turf/open/openspace/expedition_arid
 	initial_gas_mix = /turf/open/misc/asteroid/expedition_arid::initial_gas_mix
 	planetary_atmos = TRUE
+
+/** Celadon's Whitesands sulfur pools and oasis water, in the arid profile atmosphere. */
+/turf/open/water/expedition_arid
+	name = "сернистая вода"
+	desc = "Мутная тёплая вода с резким запахом серы."
+	initial_gas_mix = /turf/open/misc/asteroid/expedition_arid::initial_gas_mix
+	baseturfs = /turf/open/water/expedition_arid
+
+/** Whitesands pool spawners keep their donor chances and spawn local arid flora and fauna. */
+/obj/effect/spawner/random/expedition_arid
+	name = "arid pool spawner"
+
+/obj/effect/spawner/random/expedition_arid/shroom
+	spawn_loot_chance = 20
+	loot = list(
+		/obj/structure/flora/ash/leaf_shroom,
+		/obj/structure/flora/ash/cap_shroom,
+		/obj/structure/flora/ash/stem_shroom,
+	)
+
+/obj/effect/spawner/random/expedition_arid/rock
+	spawn_loot_chance = 70
+	loot = list(
+		/obj/structure/flora/rock/style_random,
+		/obj/structure/flora/rock/pile/style_random,
+	)
+
+/obj/effect/spawner/random/expedition_arid/cactus
+	spawn_loot_chance = 50
+	loot = list(/obj/structure/flora/ash/cacti)
+
+/obj/effect/spawner/random/expedition_arid/fauna
+	spawn_loot_chance = 40
+	loot = list(
+		/mob/living/basic/mining/goldgrub = 2,
+		/mob/living/basic/mining/basilisk = 1,
+	)
 // AI EDIT END

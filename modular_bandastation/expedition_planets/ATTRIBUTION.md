@@ -109,12 +109,17 @@ Celadon, Shiptest, Whitesands и TG. Расстановка по планете 
 | `maps/features/celadon_jungle_1.dmm` … `celadon_jungle_29.dmm` | [_maps/templates/greebles/jungle/greeble_jungle_1.dmm](https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_jungle_1.dmm) … `greeble_jungle_29.dmm` |
 | `maps/features/celadon_jungle_30.dmm` | [_maps/templates/greebles/jungle/jungle_greeble_30.dmm](https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/jungle_greeble_30.dmm) |
 | `maps/features/celadon_jungle_anomaly_1.dmm` … `celadon_jungle_anomaly_12.dmm` | [_maps/templates/greebles/jungle/greeble_jungle_anomaly_1.dmm](https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_jungle_anomaly_1.dmm) … `greeble_jungle_anomaly_12.dmm` |
+| `maps/features/celadon_junglecave_1.dmm` … `celadon_junglecave_10.dmm` | [_maps/templates/greebles/jungle/greeble_junglecave_1.dmm](https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_1.dmm) … `greeble_junglecave_10.dmm` |
+| `maps/features/celadon_sulfur_pool_1.dmm` … `celadon_sulfur_pool_19.dmm` | [_maps/templates/greebles/whitesands/sulfur_pool_1.dmm](https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_1.dmm) … `sulfur_pool_19.dmm` |
+| `maps/features/celadon_oasis_1.dmm` | [_maps/templates/greebles/whitesands/oasis_1.dmm](https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/oasis_1.dmm) |
 
 Природный грунт и скала стали заглушками, которые генератор заменяет грунтом и
 породой планеты. Аномалии Shiptest заменены неподвижными бессрочными аномалиями TG,
 источники радиации — декалями без излучения, оружие — ближайшими местными аналогами.
+Вода Whitesands несёт атмосферу пустынного профиля, а её случайные спавнеры сохраняют
+донорские шансы с местной флорой и фауной; пещерные медведи стали шахтёрскими волками.
 
-Исходные permalink, коммиты и контрольные суммы всех 33 карт руин и 48 деталей рельефа
+Исходные permalink, коммиты и контрольные суммы всех 33 карт руин и 78 деталей рельефа
 включены в общий [ASSETS.json](../space_overmap/ASSETS.json). Указание авторства не означает
 одобрения этой адаптации исходными проектами.
 <!-- AI EDIT END -->

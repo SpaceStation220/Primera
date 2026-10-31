@@ -1680,6 +1680,486 @@
 			},
 			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
 			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_1.dmm",
+			"sha256": "74780d0e24965574da03a8e3ede8f5a4b93ea723be5c5c30987be207875b335d",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_1.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_1.dmm",
+				"sha256": "f681e938ecd3113b8535f4cf85d7c7426e78d3575169b941580eb2e81a6dea94",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_10.dmm",
+			"sha256": "8946504ee16b99eb11d957a1594e323896d0808ef4f1fc84d398fc957272fc0e",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_10.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_10.dmm",
+				"sha256": "fb75ae93aa9fcccb32b500f4a1786a1cf72cff04fd0a7726ff6aba169d9e4345",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_2.dmm",
+			"sha256": "fb037470b8c03de439f8283d6ed3cc82145b0e44acff648e782d9064bb1327b2",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_2.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_2.dmm",
+				"sha256": "000bd4d93f6375007e67ce2e911e9f936182fb0ebddc47c235892a3bd9bbf41b",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_3.dmm",
+			"sha256": "49e9a2b17ce6fea4406d5d0d34dd6bd878ead31f4162134d7e06fbef51d7213d",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_3.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_3.dmm",
+				"sha256": "dfb2cacbba3d1cd21359ea1db88c2d7c5f515f0aa8274ce5ef155848d32bcffd",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_4.dmm",
+			"sha256": "94fb1c4239f896a7610e95e4a9a179b0ce053a17140d475b69e57a0156e6a2d2",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_4.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_4.dmm",
+				"sha256": "7cd27ee986f6623be81b8f94a249729c5ceb5fb8b219156559070d2daa4f11c7",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_5.dmm",
+			"sha256": "96e84511800c314c34e3f54bf728d5621549c03e4887a087d66a52d514eb1228",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_5.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_5.dmm",
+				"sha256": "a68572441be7471a3af418f5d74c59bdaeb95c8d0a98d144ea67f4ab78a9c271",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_6.dmm",
+			"sha256": "05c350e856e29bacfb08c69666edeed4534e43045b3c4c9f05b639f2f5b8144a",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_6.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_6.dmm",
+				"sha256": "77b4c317f52d23971641bd47e8c78c82e1b3ddb7a1f8004bf058521456cc8301",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_7.dmm",
+			"sha256": "9eab8fc6327f455397323677cecb91fadbf66a14ea2491b1c8aba9f9364f93b1",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_7.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_7.dmm",
+				"sha256": "736763bd5eae584eb89feaae510663bf7f70f0a866b6bc9587b221594cb2f593",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_8.dmm",
+			"sha256": "e1f7e779e37e4c548bb0d6f277216d4394e2612783c41467fdf63a22cf105090",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_8.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_8.dmm",
+				"sha256": "e1679c5050909d4b403e9bd185d76aa8bfdc6f0adc6493b81ab6e5dfc3153c98",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_junglecave_9.dmm",
+			"sha256": "310618484e3b3efe002a63a3d34e74abf0de598bd99d2868f424793dd99529c4",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/jungle/greeble_junglecave_9.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_9.dmm",
+				"sha256": "4b5f401a293da1beb7aeb01d65d9090dfb177b12e06cba89efabe60ec17952c7",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_oasis_1.dmm",
+			"sha256": "24432267cf79e52f740d9df820d98154f8606a27abcad2fc23a7e9f9c3821fe8",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/oasis_1.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/oasis_1.dmm",
+				"sha256": "bad71ec4497fb1def87c8963257aee4055884803b401ea02f82a06c983ccb310",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_1.dmm",
+			"sha256": "0a0e11e5a89692a2047cc41a65be861d9260fc7f28960e50093cd6d3ea1a641f",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_1.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_1.dmm",
+				"sha256": "b6d99b794c259b1b0206aa10b8dc0eed677fe509e9e1a7bcd183763e4f3dfb5a",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_10.dmm",
+			"sha256": "0949deefd05c119d5b71470866a1969764c678ce0d0abacad53594755b5c2d54",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_10.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_10.dmm",
+				"sha256": "09b0ae505a151cd514709c046c7e3be15e79cabdd5c4d2f7276ffc12c8471d53",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_11.dmm",
+			"sha256": "5ef3029700ebc0cab2f6291f9c4092e7548bbf432e7292e0cdbe977a9a421fc1",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_11.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_11.dmm",
+				"sha256": "9f94d742dd764a4c285fffd2960028d560123a39b77a30e50f6aece4f3e32b15",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_12.dmm",
+			"sha256": "adb0f46422c778f10f9bfdd4e12e3a2e98af8f43389f7a70ddb3e1ece713727a",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_12.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_12.dmm",
+				"sha256": "7cf17d277e5a4d87baa144280e94595483966b0a22fac57c71061354bf2c4808",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_13.dmm",
+			"sha256": "9267181b87c824c4b32047ab5b493a907ec8d0cebce28b1099f19a33d17b46d0",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_13.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_13.dmm",
+				"sha256": "f62b40e0333e99bc2e187fdb7ad785158794eb1ef329ed2e69eb9617d7fd5816",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_14.dmm",
+			"sha256": "288225d3993908a58155311e4ebb61ae988cdb153d3f625f4d2241a3b4cb389e",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_14.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_14.dmm",
+				"sha256": "3273942538036752c65ccfed8c09feeaacd36538d62bd490b5d7f2dfdb7659d5",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_15.dmm",
+			"sha256": "0fbc6b5f1d514b87b26c4c90b48090dbd4b6702c550edc22f7028b5f384d8845",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_15.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_15.dmm",
+				"sha256": "9324a05be9590494969354fcd4b741a2f2ea5f6de95b537a2ee9277d2d618e7a",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_16.dmm",
+			"sha256": "e14569c6fc18dc2dbaaa23310969faf83e2abbaa804e6e7f2d86fc2275debb11",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_16.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_16.dmm",
+				"sha256": "a62f0d07f86077eb96bea5f22bcba9c21e3bc4bf72af3d644a5d83e0b207cfb4",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_17.dmm",
+			"sha256": "82e62d2fa6adde8889f2cc491707c8f50d3886427e2cc688e73b5855b0d22057",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_17.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_17.dmm",
+				"sha256": "fe909ace5c08fdc90c17f2cda0c818ec3d52bf9700a26e0043fa2495e3dba690",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_18.dmm",
+			"sha256": "2689b189e8e7067bc159f630f5a05382c55b000525597d8e4b3c8087c3f62d70",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_18.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_18.dmm",
+				"sha256": "36640fb4906546374eb7d26de9cdc1f84619db5dbb2ead8d16f443c3a25bbc7b",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_19.dmm",
+			"sha256": "b28b49856965f9317f70229dc8d20245de218432990875e7899dc81e1f431237",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_19.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_19.dmm",
+				"sha256": "1664ce488bee438c28a39f377e33f466ac39cc207f50d0e81c610c76ec001817",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_2.dmm",
+			"sha256": "b43bd7df21a15d2619d1b75a0f37e1beda67390579b2b400ae41503ef25e690f",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_2.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_2.dmm",
+				"sha256": "3f8e3d37ae8f3d203bac0f48cdba3fa8e6388cf72c3d0cdc0193e34f57163587",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_3.dmm",
+			"sha256": "c7255fca1ae3f76bbd6459e412c02c4fe9486d174a91b5a0d8c3af496c4096c9",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_3.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_3.dmm",
+				"sha256": "8657e2b8f60ab79cf45b7fe430eeef79a11064a3528e275bfc181f748698eb0e",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_4.dmm",
+			"sha256": "cce782b7e025be0ea2e50d5181bad1294b399d5b1cdb2d159de1b96abbbad7ff",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_4.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_4.dmm",
+				"sha256": "68593812b3315d2d24e609ff9afadfa3c0b8750e8eb0a26939298b0b2c95ac39",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_5.dmm",
+			"sha256": "53de242fccf6673579b488141357231f4cc1300e464514cf466c2e397b2163f8",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_5.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_5.dmm",
+				"sha256": "9e9aae02819f66264ce35e026a91352cff0952c66f741687ac98b6b02ac9c9ec",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_6.dmm",
+			"sha256": "4fb5a4ef495a750b70866172b805530b74622dcfe4184a8af2baf809f4210976",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_6.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_6.dmm",
+				"sha256": "02fe339d7d568a1c46fe0d64a315f4ae8f369e9e54343279ca5047ff38618fa9",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_7.dmm",
+			"sha256": "c3daa9232e62c8e48add2e3eaa9b273dfa4d4f203063657316daa2d41d167546",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_7.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_7.dmm",
+				"sha256": "cbaa3cc05f02f9951d1fc16e147a0abd57a24e7e05b9ec31089c6df78846e30c",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_8.dmm",
+			"sha256": "66909339b708858d7bc7cbe0409fb41a23040a3155d1cb4f86936c4f5f25645c",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_8.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_8.dmm",
+				"sha256": "4fd760cee7d47e6d00edbfc0590e881b4227681f5d3c9e2bcb50ac58a1b08936",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/expedition_planets/maps/features/celadon_sulfur_pool_9.dmm",
+			"sha256": "6ebb3e9c4f3e984a76388e85d72a610506bac59059dbebbb7e1e79c2346ad33e",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/templates/greebles/whitesands/sulfur_pool_9.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_9.dmm",
+				"sha256": "167034f9c19104bccda8390eee1b6872ef8fe8b8d9b54a0f74e6d818d012f323",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted greeble layout; natural ground and rock became generator placeholders, incompatible entities replaced with local types.",
+			"byte_identical": false
 		}
 	]
 }
