@@ -233,5 +233,198 @@
 	// Ordinary augmented humans get thermal immunity here. IPCs use their species' thermal limits.
 	return
 
+/obj/item/bodypart/head/robot/ipc/yangcompany
+	limb_id = SPECIES_IPC
+	change_exempt_flags = NONE
+	icon = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	icon_state = "ipc_head"
+	icon_static = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	brute_modifier = 1
+	burn_modifier = 1
+	head_flags = HEAD_NO_DISFIGURE
+	ipc_display_name = /datum/sprite_accessory/ipc_display/humanoid_optics::name
+
+/obj/item/bodypart/head/robot/ipc/yangcompany/update_limb(dropping_limb = FALSE, is_creating = FALSE)
+	. = ..()
+	if(!.)
+		return
+	ipc_head_name = update_ipc_appearance()
+	var/mob/living/carbon/human/human = owner
+	ipc_display_name = sanitize_inlist(human.dna.features[FEATURE_IPC_SCREEN], get_ipc_display_choices(ipc_head_name), get_default_ipc_display(ipc_head_name))
+	ipc_display_color = sanitize_hexcolor(human.dna.features[FEATURE_IPC_SCREEN_COLOR], default = COLOR_BLACK)
+	ipc_display_color_secondary = sanitize_hexcolor(human.dna.features[FEATURE_IPC_SCREEN_COLOR_SECONDARY], default = COLOR_WHITE)
+	ipc_antenna_name = sanitize_inlist(human.dna.features[FEATURE_IPC_ANTENNA], GLOB.ipc_antennae, /datum/sprite_accessory/ipc_antenna/none::name)
+	ipc_antenna_color = sanitize_hexcolor(human.dna.features[FEATURE_IPC_ANTENNA_COLOR], default = COLOR_BLACK)
+
+/obj/item/bodypart/head/robot/ipc/yangcompany/generate_icon_key()
+	. = ..()
+	. += species_color
+	. += list(ipc_head_name, ipc_display_name, ipc_display_color, ipc_display_color_secondary, ipc_antenna_name, ipc_antenna_color)
+	. += "[!isnull(owner) && owner.stat != DEAD]"
+	. += "[owner?.obscured_slots & HIDEHAIR]"
+
+/obj/item/bodypart/head/robot/ipc/yangcompany/get_limb_icon(dropped)
+	. = ..()
+	color_ipc_limb(.)
+	if(is_invisible || (owner?.obscured_slots & HIDEHAIR))
+		return
+	var/image_dir = dropped ? SOUTH : null
+	var/datum/sprite_accessory/ipc_antenna/antenna = GLOB.ipc_antennae[ipc_antenna_name]
+	if(antenna && antenna.icon_state != SPRITE_ACCESSORY_NONE)
+		var/image/antenna_image = image(antenna.icon, antenna.icon_state, layer = -HAIR_LAYER, dir = image_dir)
+		antenna_image.color = ipc_additive_color(ipc_antenna_color)
+		if(!dropped)
+			owner?.apply_height(antenna_image, UPPER_BODY)
+		.[antenna_image] = NONE
+	if(!owner || owner.stat == DEAD)
+		return
+	var/datum/sprite_accessory/ipc_display/display = GLOB.ipc_displays[ipc_display_name]
+	if(isnull(display) || display.icon_state == SPRITE_ACCESSORY_NONE)
+		return
+	var/image/screen_image = image(display.icon, display.icon_state, layer = -BODY_ADJ_LAYER, dir = image_dir)
+	screen_image.color = ipc_additive_color(ipc_display_color)
+	if(!dropped)
+		owner.apply_height(screen_image, UPPER_BODY)
+	.[screen_image] = NONE
+	if(display.secondary_state)
+		var/image/foreground = image(display.icon, display.secondary_state, layer = -BODY_ADJ_LAYER, dir = image_dir)
+		foreground.color = list(null, null, null, null, ipc_display_color_secondary)
+		if(!dropped)
+			owner.apply_height(foreground, UPPER_BODY)
+		.[foreground] = NONE
+
+/obj/item/bodypart/head/robot/ipc/yangcompany/emp_effect(severity, protection)
+	return ipc_receive_emp(severity)
+
+/obj/item/bodypart/chest/robot/ipc/yangcompany
+	limb_id = SPECIES_IPC
+	change_exempt_flags = NONE
+	icon = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	icon_state = "ipc_chest"
+	icon_static = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	brute_modifier = 1
+	burn_modifier = 1
+
+/obj/item/bodypart/chest/robot/ipc/yangcompany/update_limb(dropping_limb = FALSE, is_creating = FALSE)
+	. = ..()
+	if(!.)
+		return
+	update_ipc_appearance()
+
+/obj/item/bodypart/chest/robot/ipc/yangcompany/generate_icon_key()
+	. = ..()
+	. += species_color
+
+/obj/item/bodypart/chest/robot/ipc/yangcompany/get_limb_icon(dropped)
+	. = ..()
+	color_ipc_limb(.)
+
+/obj/item/bodypart/chest/robot/ipc/yangcompany/emp_effect(severity, protection)
+	return ipc_receive_emp(severity)
+
+/obj/item/bodypart/arm/left/robot/ipc/yangcompany
+	limb_id = SPECIES_IPC
+	change_exempt_flags = NONE
+	icon = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	icon_state = "ipc_l_arm"
+	icon_static = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	brute_modifier = 1
+	burn_modifier = 1
+
+/obj/item/bodypart/arm/left/robot/ipc/yangcompany/update_limb(dropping_limb = FALSE, is_creating = FALSE)
+	. = ..()
+	if(!.)
+		return
+	update_ipc_appearance()
+
+/obj/item/bodypart/arm/left/robot/ipc/yangcompany/generate_icon_key()
+	. = ..()
+	. += species_color
+
+/obj/item/bodypart/arm/left/robot/ipc/yangcompany/get_limb_icon(dropped)
+	. = ..()
+	color_ipc_limb(.)
+
+/obj/item/bodypart/arm/left/robot/ipc/yangcompany/emp_effect(severity, protection)
+	return ipc_receive_emp(severity)
+
+/obj/item/bodypart/arm/right/robot/ipc/yangcompany
+	limb_id = SPECIES_IPC
+	change_exempt_flags = NONE
+	icon = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	icon_state = "ipc_r_arm"
+	icon_static = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	brute_modifier = 1
+	burn_modifier = 1
+
+/obj/item/bodypart/arm/right/robot/ipc/yangcompany/update_limb(dropping_limb = FALSE, is_creating = FALSE)
+	. = ..()
+	if(!.)
+		return
+	update_ipc_appearance()
+
+/obj/item/bodypart/arm/right/robot/ipc/yangcompany/generate_icon_key()
+	. = ..()
+	. += species_color
+
+/obj/item/bodypart/arm/right/robot/ipc/yangcompany/get_limb_icon(dropped)
+	. = ..()
+	color_ipc_limb(.)
+
+/obj/item/bodypart/arm/right/robot/ipc/yangcompany/emp_effect(severity, protection)
+	return ipc_receive_emp(severity)
+
+/obj/item/bodypart/leg/left/robot/ipc/yangcompany
+	limb_id = SPECIES_IPC
+	change_exempt_flags = NONE
+	icon = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	icon_state = "ipc_l_leg"
+	icon_static = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	brute_modifier = 1
+	burn_modifier = 1
+
+/obj/item/bodypart/leg/left/robot/ipc/yangcompany/update_limb(dropping_limb = FALSE, is_creating = FALSE)
+	. = ..()
+	if(!.)
+		return
+	update_ipc_appearance()
+
+/obj/item/bodypart/leg/left/robot/ipc/yangcompany/generate_icon_key()
+	. = ..()
+	. += species_color
+
+/obj/item/bodypart/leg/left/robot/ipc/yangcompany/get_limb_icon(dropped)
+	. = ..()
+	color_ipc_limb(.)
+
+/obj/item/bodypart/leg/left/robot/ipc/yangcompany/emp_effect(severity, protection)
+	return ipc_receive_emp(severity)
+
+/obj/item/bodypart/leg/right/robot/ipc/yangcompany
+	limb_id = SPECIES_IPC
+	change_exempt_flags = NONE
+	icon = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	icon_state = "ipc_r_leg"
+	icon_static = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
+	brute_modifier = 1
+	burn_modifier = 1
+
+/obj/item/bodypart/leg/right/robot/ipc/yangcompany/update_limb(dropping_limb = FALSE, is_creating = FALSE)
+	. = ..()
+	if(!.)
+		return
+	update_ipc_appearance()
+
+/obj/item/bodypart/leg/right/robot/ipc/yangcompany/generate_icon_key()
+	. = ..()
+	. += species_color
+
+/obj/item/bodypart/leg/right/robot/ipc/yangcompany/get_limb_icon(dropped)
+	. = ..()
+	color_ipc_limb(.)
+
+/obj/item/bodypart/leg/right/robot/ipc/yangcompany/emp_effect(severity, protection)
+	return ipc_receive_emp(severity)
+
 #undef IPC_EMP_HEAVY_LIMB_DAMAGE
 #undef IPC_EMP_LIGHT_LIMB_DAMAGE
