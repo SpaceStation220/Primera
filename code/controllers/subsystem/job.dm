@@ -191,6 +191,12 @@ SUBSYSTEM_DEF(job)
 					new_joinable_departments_by_type[department_type] = department
 				department.add_job(job)
 
+	// AI EDIT START - Resolve canonical job titles before alternate titles.
+	// BANDASTATION ADDITION START - A job title takes precedence over another job's alternate title.
+	for(var/datum/job/job as anything in new_all_occupations)
+		name_occupations[job.title] = job
+	// BANDASTATION ADDITION END
+	// AI EDIT END
 	sortTim(new_all_occupations, GLOBAL_PROC_REF(cmp_job_display_with_departments_asc))
 	for(var/datum/job/job as anything in new_all_occupations)
 		if(!job.exp_granted_type)

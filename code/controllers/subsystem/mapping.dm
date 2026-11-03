@@ -491,6 +491,12 @@ Used by the AI doomsday and the self-destruct nuke.
 
 	if(current_map.minetype == MINETYPE_LAVALAND)
 		LoadGroup(FailedZs, "Lavaland", "map_files/Mining", "Lavaland.dmm", default_traits = ZTRAITS_LAVALAND)
+	// AI EDIT START - Load the event mining level through the existing map-specific branch.
+	// BANDASTATION ADDITION START - Avangarde's mining level, without changing other maps.
+	else if(current_map.minetype == MINETYPE_ROBASTOVO)
+		LoadGroup(FailedZs, "Robastovo", "bandastation", "robastovo.dmm", default_traits = ZTRAITS_ROBASTOVO)
+	// BANDASTATION ADDITION END
+	// AI EDIT END
 	else if (!isnull(current_map.minetype) && current_map.minetype != MINETYPE_NONE && current_map.minetype != MINETYPE_ICE)
 		INIT_ANNOUNCE("WARNING: An unknown minetype '[current_map.minetype]' was set! This is being ignored! Update the maploader code!")
 #endif

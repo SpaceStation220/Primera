@@ -300,13 +300,21 @@ const TemplateDropdown = (props) => {
         <Dropdown
           width="100%"
           placeholder="Выбрать шаблон..."
-          options={templateKeys.map((path) => {
-            return templates[path];
-          })}
-          onSelected={(sel) =>
-            act('PRG_template', {
-              name: sel,
-            })
+          options={
+            // AI EDIT START - Use template paths as values while displaying readable job labels.
+            templateKeys.map((path) => ({
+              displayText: templates[path],
+              value: path,
+            }))
+            // AI EDIT END
+          }
+          onSelected={
+            // AI EDIT START - Submit the selected authorized template path.
+            (sel) =>
+              act('PRG_template', {
+                path: sel,
+              })
+            // AI EDIT END
           }
           selected="None"
         />
