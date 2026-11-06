@@ -1906,6 +1906,7 @@
 		/datum/stock_part/micro_laser = 1,
 		/datum/stock_part/capacitor = 1,
 	)
+	def_components = list(/datum/stock_part/micro_laser = /datum/stock_part/micro_laser/tier2)
 
 /obj/item/circuitboard/machine/engine
 	name = "Shuttle Engine"
