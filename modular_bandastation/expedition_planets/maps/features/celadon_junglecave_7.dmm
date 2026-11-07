@@ -1,0 +1,115 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_7.dmm
+"d" = (
+/obj/effect/decal/cleanable/blood/oil,
+/obj/item/stack/cable_coil/cut,
+/obj/item/stack/ore/iron{
+	amount = 5
+	},
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"l" = (
+/obj/structure/sink/oil_well,
+/obj/structure/girder,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"n" = (
+/obj/structure/flora/rock/style_random,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"p" = (
+/obj/effect/decal/cleanable/blood/oil,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"q" = (
+/obj/effect/decal/cleanable/blood/oil/slippery,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"v" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"x" = (
+/obj/structure/sink/oil_well,
+/obj/item/shovel,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"y" = (
+/obj/item/clothing/head/utility/hardhat/orange,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"z" = (
+/obj/item/stack/ore/iron{
+	amount = 5
+	},
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"I" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"K" = (
+/obj/structure/sink/oil_well,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"U" = (
+/obj/structure/flora/rock/pile,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"Z" = (
+/turf/template_noop,
+/area/template_noop)
+
+(1,1,1) = {"
+Z
+Z
+Z
+I
+I
+Z
+"}
+(2,1,1) = {"
+Z
+I
+v
+U
+I
+I
+"}
+(3,1,1) = {"
+I
+I
+K
+v
+z
+v
+"}
+(4,1,1) = {"
+I
+y
+n
+q
+x
+U
+"}
+(5,1,1) = {"
+U
+v
+d
+p
+v
+I
+"}
+(6,1,1) = {"
+I
+I
+l
+v
+I
+I
+"}
+(7,1,1) = {"
+Z
+I
+I
+q
+Z
+Z
+"}

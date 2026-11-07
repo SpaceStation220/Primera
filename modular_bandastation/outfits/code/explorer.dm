@@ -7,7 +7,7 @@
 	shoes = /obj/item/clothing/shoes/workboots
 	id_trim = /datum/id_trim/job/explorer
 	// AI EDIT START - Use the right ear slot for existing equipment
-	ear_right = /obj/item/radio/headset/headset_cargo
+	ear_right = /obj/item/radio/headset/headset_cargo/explorer
 	// AI EDIT END
 
 	backpack = /obj/item/storage/backpack/explorer
@@ -16,6 +16,7 @@
 
 	box = /obj/item/storage/box/survival/mining
 	belt = /obj/item/modular_computer/pda/crew/explorer
+	backpack_contents = list(/obj/item/stationtrauma_distress_beacon = 1)
 
 /datum/outfit/plasmaman/explorer
 	name = "Explorer Plasmaman"

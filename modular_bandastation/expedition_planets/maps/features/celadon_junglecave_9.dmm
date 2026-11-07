@@ -1,0 +1,64 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_9.dmm
+"a" = (
+/turf/template_noop,
+/area/template_noop)
+"c" = (
+/obj/structure/flora/ash/cap_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"q" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"r" = (
+/obj/structure/flora/ash/stem_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"v" = (
+/obj/effect/mob_spawn/corpse/human/charredskeleton,
+/obj/structure/flora/ash/leaf_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"A" = (
+/obj/structure/flora/ash/leaf_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"H" = (
+/obj/structure/flora/ash/tall_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+a
+c
+A
+q
+a
+"}
+(2,1,1) = {"
+c
+q
+r
+c
+A
+"}
+(3,1,1) = {"
+A
+r
+v
+H
+a
+"}
+(4,1,1) = {"
+a
+q
+c
+A
+a
+"}
+(5,1,1) = {"
+a
+c
+A
+a
+c
+"}

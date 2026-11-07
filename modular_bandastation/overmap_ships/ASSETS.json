@@ -1,0 +1,113 @@
+{
+	"version": 1,
+	"scope": "Maps of ships flown on the space overmap and their mapper area icons, introduced or modified by the overmap_ships module. Embedded code and existing referenced assets retain their original notices.",
+	"assets": [
+		{
+			"path": "_maps/map_files/overmap_ships/pocketrocket.dmm",
+			"sha256": "9ad882443babfc45aaa2eed7086f2ea8dce5e429bb37a1dc29358f0d3c1fb2d9",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["Voidcrew-LRP, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "Void-Crew/Voidcrew-LRP",
+				"commit": "66c552922bf2a28963c2a8f5d89993623a141a1f",
+				"path": "_maps/shuttles/shiptest/voidcrew/pocketrocket.dmm",
+				"url": "https://github.com/Void-Crew/Voidcrew-LRP/blob/66c552922bf2a28963c2a8f5d89993623a141a1f/_maps/shuttles/shiptest/voidcrew/pocketrocket.dmm",
+				"sha256": "ae47dacb12e728844a303b5e3eb56687c21bf47152bb8fc8823a3c644f120b8a",
+				"license_policy_url": "https://github.com/Void-Crew/Voidcrew-LRP/blob/66c552922bf2a28963c2a8f5d89993623a141a1f/README.md"
+			},
+			"changes": "Adapted layout; incompatible entities, area IDs, equipment, loot and inhabitants replaced with local types. Vessel/camp maps have overmap consoles and docking/landing integration.",
+			"byte_identical": false
+		},
+		{
+			"path": "_maps/map_files/overmap_ships/raven.dmm",
+			"sha256": "72d8b7bd376a18cafaa0cb0b3c9937eaf11f65911e15d06f34b802f352e2e111",
+			"license": "CC-BY-SA-3.0",
+			"authors": [
+				"TG, BandaStation and Primera contributors",
+				"Junkkky (revised layout)"
+			],
+			"source": {
+				"repository": "SpaceStation220/Primera",
+				"commit": "65a9bd040b816783f0b6c24ba1e84ee7aab48456",
+				"path": "_maps/shuttles/emergency/emergency_raven.dmm",
+				"url": "https://github.com/SpaceStation220/Primera/blob/65a9bd040b816783f0b6c24ba1e84ee7aab48456/_maps/shuttles/emergency/emergency_raven.dmm",
+				"sha256": "92cea4ce13f09b84782d96f7339fc6738e5ef18d6a9e7b58771a0ff2277f599b",
+				"license_policy_url": "https://github.com/SpaceStation220/Primera/blob/65a9bd040b816783f0b6c24ba1e84ee7aab48456/README.md"
+			},
+			"changes": "Reworked Raven layout with a centred 3x3 fusion core, exterior gas ports, gas-fed nozzles, overmap equipment and per-compartment areas; original Raven attribution retained.",
+			"byte_identical": false
+		},
+		{
+			"path": "_maps/map_files/overmap_ships/venture.dmm",
+			"sha256": "193ba657c08085a36eddd1c8f9e210f63da63ecef77e92fd5d1f1a357e6f8f04",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/_mod_celadon/shuttles/nanotrasen/nanotrasen_venture.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/_mod_celadon/shuttles/nanotrasen/nanotrasen_venture.dmm",
+				"sha256": "a36d8d4ca7e0812a356bc6128be83fc12b144a2705a327b0a1434026f07912fa",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted ship layout; helm, engines and docking port replaced with overmap navigation, native engines and an overmap mobile port, cargo console replaced with the bluespace console, transponder added; incompatible entities, area IDs, equipment, loot, ship turrets and inhabitants replaced with local types or dropped.",
+			"byte_identical": false
+		},
+		{
+			"path": "_maps/map_files/overmap_ships/bubble.dmm",
+			"sha256": "3a9d352fc80406808ad9c25d90ec765138768c04a22c81d76b4513ab1e5d5e7b",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/_mod_celadon/shuttles/independent/independent_bubble.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/_mod_celadon/shuttles/independent/independent_bubble.dmm",
+				"sha256": "2e3027ca9927d2264017b1faf184debdd24f9a237a99bbc3de8fd65610d6c932",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted ship layout; helm, engines and docking port replaced with overmap navigation, native engines and an overmap mobile port, cargo console replaced with the bluespace console, transponder added; incompatible entities, area IDs, equipment, loot, ship turrets and inhabitants replaced with local types or dropped.",
+			"byte_identical": false
+		},
+		{
+			"path": "_maps/map_files/overmap_ships/glimpse.dmm",
+			"sha256": "ba2032b2c95dacc9fdc9131837222d32e6d1369b4f4454388d1af1497f9cd3c5",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/_mod_celadon/shuttles/solfed/solfed_glimpse.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/_mod_celadon/shuttles/solfed/solfed_glimpse.dmm",
+				"sha256": "481309a2adb6e882dca26c6432627d95e14aa57eb856fbc096a10d54b9d6bfd3",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted ship layout; helm, engines and docking port replaced with overmap navigation, native engines and an overmap mobile port, cargo console replaced with the bluespace console, transponder added; incompatible entities, area IDs, equipment, loot, ship turrets and inhabitants replaced with local types or dropped.",
+			"byte_identical": false
+		},
+		{
+			"path": "_maps/map_files/overmap_ships/kilo.dmm",
+			"sha256": "1405273d21dc23d3a83e57e75c637c253c72ccd5a6198032fcc27c5c2f306d26",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["CeladonSS13/Shiptest, Shiptest, Whitesands and TG contributors"],
+			"source": {
+				"repository": "CeladonSS13/Shiptest",
+				"commit": "4214796c7289b74779f10dd25df2d695c264aa8f",
+				"path": "_maps/_mod_celadon/shuttles/independent/independent_kilo.dmm",
+				"url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/_mod_celadon/shuttles/independent/independent_kilo.dmm",
+				"sha256": "096bd02caefb772242bbf9e4f6b6c2a3d5d123205f7d0673114ae4e274daa399",
+				"license_policy_url": "https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md"
+			},
+			"changes": "Adapted ship layout; helm, engines and docking port replaced with overmap navigation, native engines and an overmap mobile port, cargo console replaced with the bluespace console, transponder added; incompatible entities, area IDs, equipment, loot, ship turrets and inhabitants replaced with local types or dropped.",
+			"byte_identical": false
+		},
+		{
+			"path": "modular_bandastation/overmap_ships/icons/raven_areas.dmi",
+			"sha256": "1a2bdb829c087a465ae6cbdfcb8a8a084dba7aea5fb2dabc9cba45111a154eca",
+			"license": "CC-BY-SA-3.0",
+			"authors": ["StationTrauma / BandaStation contributors"],
+			"source": null,
+			"changes": "Original mapper-only area icons for Raven compartments."
+		}
+	]
+}
