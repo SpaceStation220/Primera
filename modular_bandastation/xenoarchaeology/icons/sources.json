@@ -1,0 +1,114 @@
+[
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/base/ore_visuals.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/ore_visuals.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "a9754f4bac312ef78c38765b436e2966fa3822da",
+    "sha256": "83b8491392e59161618ab22f1623aa7669c8979cc30fa6bf9e31e878605bdcff",
+    "bytes": 445
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/base/xenoarch_items.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/xenoarch_items.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "99d8b2bf76b1abd3bf10f02d8eba93038ebb5f2a",
+    "sha256": "5bcbb4766090ff177557b7056593ca2d7d354b99649ffbca8d2df3dbe85c4935",
+    "bytes": 11058
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/base/xenoarch_machines.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/xenoarch_machines.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "f3183bec26eea97a95b138c22ae4e917223a76a6",
+    "sha256": "17c69de6dd95bf13a0669ebd900f5ebbc317278288ccab5383d23098fbbf3684",
+    "bytes": 1040
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/artifacts.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/artifacts.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "0d2bd2eb4294a635aeae78d0cd6ae0e2b9f63773",
+    "sha256": "732f4d1cf40b9e11b79aac6b92f5d30adf85aa4b9f6d4dd5e0ae1517be8e43cf",
+    "bytes": 39270
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/artifacts_64x32.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/artifacts_64x32.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "ebc694e87aa6325d6ae1e9fdb3a14c5663b5d5f2",
+    "sha256": "f26f2654c39165a9643f299795ea240a62d193eea2c98f90379b43c6596bc379",
+    "bytes": 19428
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/coop_mech.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/coop_mech.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "14a8fac9fd77b64ba4e2f68b3726bb5c373f690e",
+    "sha256": "2b18e519ae8bdb33f19f0018b4f07e790bcbe2ab736ba3e386f1df2d37eac2a1",
+    "bytes": 9887
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/machinery.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/machinery.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "a93aa7adc46c55c61b839a8b9b40ade231f002ce",
+    "sha256": "311f4aaa6fe0b4c33c70d30503527e563bbb9b9fc7d8366ff1b6cfdb5b3396e7",
+    "bytes": 24455
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/mecha.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/mecha.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "47695fe67a22980904dc30d53c2b229dc8d1e62c",
+    "sha256": "ef6f8484b1e6eee6c1f4ce959c304ba113c885db6535d9fb8ab4fc961bd5e144",
+    "bytes": 5054
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/mining.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/mining.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "3c71f023d56407ac66d6858fc0e23edc608f157f",
+    "sha256": "f0697dcb4df9f3b39e74c1308034d3364410460cdafccc1e0bf51f81e0ddd93f",
+    "bytes": 981
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/tools.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/tools.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "9c1a39eea983ab29eeb428f2ccad384691990156",
+    "sha256": "718f7dd31d1f7761af9b5c4adff778865aa568e2eb2650beaa22a2ebe33f0c13",
+    "bytes": 5742
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/worn.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/worn.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "c3640cf66115807a550d9b1aa5730399d9042353",
+    "sha256": "8e1b63a2784a3e7d27e1a1a4cc9e46c069eb774ae666f9b4b18a2d0ec9c4a80c",
+    "bytes": 1656
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/plants/growing.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/growing.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "4bab24c4fc374afb3073a7430c73b1e6f6cd51d7",
+    "sha256": "353ed58562ce899c1d655ce097baaa2707bb933719f52a91d4ca7a21b2a85326",
+    "bytes": 16266
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/plants/harvest.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/harvest.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "1bdf1e3ea825bf25027116de0df8260a45e0f8da",
+    "sha256": "b90082c9487129da0c53ede00fb057f1689ea0955f9b37326d2520e8ca4ec8b7",
+    "bytes": 4749
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/plants/seeds.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/seeds.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "e1aa7739f73608000d84915f420cd672af3356ae",
+    "sha256": "809b69e70e45f3fb32ca5c879c1b042a143422a19ffef44721d544bcd35ed76b",
+    "bytes": 2600
+  }
+]
