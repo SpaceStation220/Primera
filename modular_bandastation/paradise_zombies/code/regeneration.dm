@@ -1,0 +1,218 @@
+/** Paradise's darkness-dependent healing, repeated resurrection and abandoned-body hunger. */
+/datum/component/paradise_zombie_regen
+	dupe_mode = COMPONENT_DUPE_UNIQUE
+	/// The corpse's last player, retained when its mind moves into its removed brain.
+	var/player_ckey
+	/// Retains the original once-per-second NPC decision cadence independently of subsystem frequency.
+	var/ai_accumulator = 0
+	var/datum/action/cooldown/paradise_zombie_scream/scream_action
+	var/list/removed_emote_verbs
+	var/static/list/ordinary_footsteps = list('modular_bandastation/paradise_zombies/sound/footsteps/ds13/ordinary_1.ogg', 'modular_bandastation/paradise_zombies/sound/footsteps/ds13/ordinary_2.ogg')
+	var/static/list/ordinary_cries = list('modular_bandastation/paradise_zombies/sound/voices/ordinary_1.ogg')
+	/// Movement delay when the abandoned body follows prey.
+	COOLDOWN_DECLARE(next_step)
+
+/datum/component/paradise_zombie_regen/Initialize()
+	if(!ishuman(parent))
+		return COMPONENT_INCOMPATIBLE
+	var/mob/living/carbon/human/zombie = parent
+	player_ckey = zombie.ckey || ckey(zombie.mind?.key) || ckey(zombie.last_mind?.key)
+	START_PROCESSING(SSprocessing, src)
+
+/datum/component/paradise_zombie_regen/RegisterWithParent()
+	RegisterSignals(parent, list(SIGNAL_ADDTRAIT(TRAIT_PARADISE_ZOMBIE), SIGNAL_REMOVETRAIT(TRAIT_PARADISE_ZOMBIE)), PROC_REF(refresh_bleeding))
+	RegisterSignal(parent, COMSIG_HUMAN_FOOTSTEP_SOUND, PROC_REF(on_footstep_sound))
+	RegisterSignals(parent, list(COMSIG_MOB_EMOTE_SOUND("scream"), COMSIG_MOB_EMOTE_SOUND("deathgasp"), COMSIG_MOB_EMOTE_SOUND("gasp"), COMSIG_MOB_EMOTE_SOUND("moan")), PROC_REF(on_monster_cry))
+	refresh_scream()
+	refresh_emotes()
+	ADD_TRAIT(parent, TRAIT_TRUE_NIGHT_VISION, REF(src))
+
+/datum/component/paradise_zombie_regen/UnregisterFromParent()
+	QDEL_NULL(scream_action)
+	refresh_emotes(restore = TRUE)
+	UnregisterSignal(parent, list(SIGNAL_ADDTRAIT(TRAIT_PARADISE_ZOMBIE), SIGNAL_REMOVETRAIT(TRAIT_PARADISE_ZOMBIE)))
+	UnregisterSignal(parent, list(COMSIG_HUMAN_FOOTSTEP_SOUND, COMSIG_MOB_EMOTE_SOUND("scream"), COMSIG_MOB_EMOTE_SOUND("deathgasp"), COMSIG_MOB_EMOTE_SOUND("gasp"), COMSIG_MOB_EMOTE_SOUND("moan")))
+	REMOVE_TRAIT(parent, TRAIT_TRUE_NIGHT_VISION, REF(src))
+
+/datum/component/paradise_zombie_regen/Destroy(force)
+	STOP_PROCESSING(SSprocessing, src)
+	return ..()
+
+/// Change only the selected file, after native movement, terrain and silence checks.
+/datum/component/paradise_zombie_regen/proc/on_footstep_sound(mob/living/carbon/human/source, list/step_sound)
+	SIGNAL_HANDLER
+	if(!HAS_TRAIT(source, TRAIT_PARADISE_ZOMBIE))
+		return
+	var/datum/component/paradise_zombie_mutation/mutation = source.GetComponent(/datum/component/paradise_zombie_mutation)
+	step_sound[1] = pick(mutation?.form?.footstep_sounds || ordinary_footsteps)
+
+/// Body-owned voices override human organs and masks without replacing their listeners.
+/datum/component/paradise_zombie_regen/proc/on_monster_cry(mob/living/carbon/human/source, key, list/sounds)
+	SIGNAL_HANDLER
+	if(!HAS_TRAIT(source, TRAIT_PARADISE_ZOMBIE))
+		return
+	// Keep silent death messages outside the native audio cooldown path.
+	if(key == "deathgasp" && !source.death_sound)
+		return
+	var/datum/component/paradise_zombie_mutation/mutation = source.GetComponent(/datum/component/paradise_zombie_mutation)
+	sounds[pick(mutation?.form?.cry_sounds || ordinary_cries)] = EMOTE_SOUND_STATUS_EFFECT + 1
+
+/// Update wound bleeding immediately on transformation and cure.
+/datum/component/paradise_zombie_regen/proc/refresh_bleeding(mob/living/carbon/human/zombie)
+	SIGNAL_HANDLER
+	for(var/obj/item/bodypart/limb as anything in zombie.get_bodyparts())
+		limb.refresh_bleed_rate()
+	refresh_scream()
+	refresh_emotes()
+
+/// This body keeps its lower-zombie action even without a mind or ordinary outbreak membership.
+/datum/component/paradise_zombie_regen/proc/refresh_scream()
+	if(QDELETED(src) || QDELETED(parent))
+		return
+	var/mob/living/carbon/human/host = parent
+	var/datum/component/paradise_zombie_mutation/controller = host.GetComponent(/datum/component/paradise_zombie_mutation)
+	if(HAS_TRAIT(host, TRAIT_PARADISE_ZOMBIE) && !controller?.form)
+		if(!scream_action)
+			scream_action = new(src)
+			scream_action.Grant(host)
+	else
+		QDEL_NULL(scream_action)
+
+/datum/component/paradise_zombie_regen/process(seconds_per_tick)
+	var/mob/living/carbon/human/zombie = parent
+	if(!istype(zombie))
+		return PROCESS_KILL
+	if(HAS_TRAIT(zombie, TRAIT_SUICIDED) || HAS_TRAIT(zombie, TRAIT_STASIS))
+		return
+	var/turf/current_turf = get_turf(zombie)
+	if(!current_turf)
+		return
+	if(zombie.ckey)
+		player_ckey = zombie.ckey
+	var/healing_factor = max(1, 6 * (1 - current_turf.get_lumcount()))
+	if(HAS_TRAIT(zombie, TRAIT_PARADISE_PLAGUE_ZOMBIE))
+		healing_factor *= 1.6
+	if(zombie.reagents.has_reagent(/datum/reagent/medicine/paradise_zombie_cure/gamma))
+		healing_factor /= 3
+	if(zombie.stat == DEAD)
+		healing_factor *= 2
+	for(var/datum/wound/burn/burn in zombie.all_wounds)
+		if(burn.severity >= WOUND_SEVERITY_CRITICAL)
+			if(SPT_PROB(20, seconds_per_tick))
+				burn.remove_wound()
+			break
+	var/healing_amount = healing_factor * seconds_per_tick
+	zombie.heal_overall_damage(healing_amount, healing_amount, required_bodytype = BODYTYPE_ORGANIC)
+	zombie.adjust_organ_loss(ORGAN_SLOT_BRAIN, -healing_amount)
+	zombie.adjust_blood_volume(healing_amount, maximum = zombie.default_blood_volume)
+	if(zombie.stat == DEAD && zombie.get_brute_loss_for_type(BODYTYPE_ORGANIC) <= 1 && zombie.get_fire_loss_for_type(BODYTYPE_ORGANIC) <= 1 && zombie.timeofdeath + 15 SECONDS <= world.time)
+		var/datum/reagent/medicine/paradise_zombie_cure/omega/treatment = zombie.reagents.has_reagent(/datum/reagent/medicine/paradise_zombie_cure/omega)
+		if(treatment)
+			zombie.reagents.remove_reagent(treatment.type, 2 * treatment.metabolization_rate * zombie.metabolism_efficiency * seconds_per_tick)
+			return
+		if(zombie_rejuv())
+			to_chat(zombie, span_userdanger("Мы... Пробуждаемся..."))
+			zombie.notify_revival("Ваше тело зомби снова восстало. Вернитесь в него, чтобы продолжить пир!", source = zombie)
+
+	if(zombie.stat != STABLE || HAS_TRAIT(zombie, TRAIT_HANDS_BLOCKED) || zombie.client || zombie.key)
+		return
+	if(HAS_TRAIT(zombie, TRAIT_PARADISE_PLAGUE_ZOMBIE))
+		return
+	if(!player_ckey && !HAS_TRAIT(zombie, TRAIT_PARADISE_NPC_ZOMBIE))
+		return
+	ai_accumulator += seconds_per_tick
+	if(ai_accumulator >= 1)
+		ai_accumulator %= 1
+		mindless_hunger()
+
+/** Restores existing organs and damage without curing the plague or closing its opened skull. */
+/datum/component/paradise_zombie_regen/proc/zombie_rejuv()
+	var/mob/living/carbon/human/zombie = parent
+	var/list/preserved_openings = list()
+	for(var/obj/item/bodypart/limb as anything in zombie.get_bodyparts())
+		if(!HAS_TRAIT(limb, TRAIT_PARADISE_ZOMBIE_LIMB))
+			continue
+		var/opening_states = limb.surgery_state & (SURGERY_SKIN_OPEN|SURGERY_BONE_SAWED)
+		if(opening_states)
+			preserved_openings[limb] = opening_states
+	zombie.fully_heal(HEAL_DAMAGE|HEAL_TEMP|HEAL_BLOOD|HEAL_STATUS|HEAL_CC_STATUS|HEAL_TRAUMAS|HEAL_WOUNDS)
+	for(var/obj/item/bodypart/limb as anything in preserved_openings)
+		if(!QDELETED(limb) && limb.owner == zombie)
+			limb.add_surgical_state(preserved_openings[limb])
+	var/static/list/cured_mutations = list(/datum/mutation/mute, /datum/mutation/deaf, /datum/mutation/epilepsy, /datum/mutation/cough, /datum/mutation/nervousness)
+	zombie.dna?.remove_mutation_group(cured_mutations)
+	zombie.cure_trauma_type(/datum/brain_trauma/severe/paralysis/paraplegic, TRAUMA_RESILIENCE_ABSOLUTE)
+	zombie.become_husk(PARADISE_ZOMBIE_TRAIT)
+	zombie.bodytemperature = 310
+	zombie.set_coretemperature(310)
+	zombie.SetAllImmobility(0)
+	zombie.SetSleeping(0)
+	zombie.set_nutrition(max(zombie.nutrition, NUTRITION_LEVEL_HUNGRY))
+	zombie.extinguish_mob()
+	zombie.set_fire_stacks(0)
+	qdel(zombie.GetComponent(/datum/component/irradiated))
+	if(zombie.buckled)
+		zombie.buckled.unbuckle_mob(zombie, force = TRUE)
+	var/list/missing_organ_types = list(ORGAN_SLOT_HEART = zombie.dna?.species?.mutantheart, ORGAN_SLOT_LUNGS = zombie.dna?.species?.mutantlungs)
+	for(var/slot in missing_organ_types)
+		var/organ_type = missing_organ_types[slot]
+		if(!zombie.get_organ_slot(slot) && ispath(organ_type, /obj/item/organ))
+			var/obj/item/organ/replacement = new organ_type()
+			replacement.Insert(zombie)
+	for(var/obj/item/organ/organ as anything in zombie.organs)
+		organ.set_organ_damage(0)
+		organ.organ_flags &= ~ORGAN_EMP
+	for(var/obj/item/bodypart/limb as anything in zombie.get_bodyparts())
+		limb.heal_damage(1000, 1000)
+		var/datum/component/paradise_zombie_limb/rot = limb.GetComponent(/datum/component/paradise_zombie_limb)
+		rot?.necrotize()
+	zombie.set_heartattack(FALSE)
+	zombie.restore_blood()
+	zombie.update_body_parts()
+	if(zombie.stat == DEAD)
+		return zombie.revive(force_grab_ghost = FALSE)
+	zombie.updatehealth()
+	return TRUE
+
+/** Uses the normal item attack path for adjacent prey, otherwise walks toward a visible human. */
+/datum/component/paradise_zombie_regen/proc/mindless_hunger()
+	var/mob/living/carbon/human/zombie = parent
+	var/list/distant_targets
+	var/mob/living/carbon/human/target
+	for(var/mob/living/carbon/human/candidate in view(6, zombie))
+		if(candidate.stat != STABLE || HAS_TRAIT(candidate, TRAIT_PARADISE_ZOMBIE))
+			continue
+		if(zombie.Adjacent(candidate))
+			target = candidate
+			break
+		LAZYADD(distant_targets, candidate)
+	if(!target && length(distant_targets))
+		target = pick(distant_targets)
+	if(target && zombie.Adjacent(target) && safe_active_hand(zombie))
+		if(!zombie.get_active_held_item() && !zombie.get_inactive_held_item() && zombie.usable_hands >= 2 && !HAS_TRAIT(zombie, TRAIT_NO_TWOHANDING))
+			var/obj/item/paradise_zombie_claw/claw = new()
+			if(!zombie.put_in_hand(claw, zombie.active_hand_index))
+				qdel(claw)
+		zombie.set_combat_mode(TRUE)
+		zombie.ClickOn(target)
+		return
+	if(!COOLDOWN_FINISHED(src, next_step) || !(zombie.mobility_flags & MOBILITY_MOVE) || zombie.buckled || !isturf(zombie.loc))
+		return
+	if(!target && prob(90))
+		return
+	var/target_direction = target ? get_dir(zombie, target) : pick(GLOB.cardinals)
+	var/delay = zombie.cached_multiplicative_slowdown
+	if(ISDIAGONALDIR(target_direction))
+		delay *= sqrt(2)
+	COOLDOWN_START(src, next_step, delay)
+	zombie.set_glide_size(DELAY_TO_GLIDE_SIZE(delay))
+	step(zombie, target_direction)
+
+/** Selects a surviving hand before creating the NPC's claws. */
+/datum/component/paradise_zombie_regen/proc/safe_active_hand(mob/living/carbon/human/zombie)
+	if(zombie.has_active_hand())
+		return TRUE
+	for(var/index in 1 to zombie.get_num_hand_slots())
+		if(zombie.has_hand_for_held_index(index))
+			return zombie.swap_hand(index)
+	return FALSE
