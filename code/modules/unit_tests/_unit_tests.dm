@@ -486,6 +486,13 @@
 
 #include "../../../modular_bandastation/objects/code/tests/lighter_lighting.dm"
 
+#include "../../../modular_bandastation/phoenix/_defines.dm"
+#include "../../../modular_bandastation/phoenix/tests/phoenix_strain.dm"
+#include "../../../modular_bandastation/phoenix/tests/phoenix_weaver.dm"
+#include "../../../modular_bandastation/phoenix/tests/phoenix_goal.dm"
+#include "../../../modular_bandastation/phoenix/tests/phoenix_adaptation.dm"
+#include "../../../modular_bandastation/phoenix/tests/phoenix_fiber_value.dm"
+
 #include "../../../modular_bandastation/telephones/_defines.dm"
 #include "../../../modular_bandastation/telephones/code/telephone_tests.dm"
 #include "../../../modular_bandastation/telephones/code/telephone_speech_tests.dm"
