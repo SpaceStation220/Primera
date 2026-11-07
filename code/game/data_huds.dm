@@ -230,6 +230,11 @@ Medical HUD! Basic mode needs suit sensors on.
 	if(istype(uniform) && uniform.has_sensor == BROKEN_SENSORS)
 		set_hud_image_state(STATUS_HUD, hud_state = "hudnosensor")
 		return FALSE
+	// BANDASTATION ADDITION START - Active cortical borer control is visible to medical HUDs
+	var/mob/living/basic/cortical_borer/borer = get_cortical_borer()
+	if(borer?.controlling && !borer.sneaking)
+		set_hud_image_state(STATUS_HUD, hud_state = "hudill3")
+	// BANDASTATION ADDITION END
 
 
 /***********************************************
