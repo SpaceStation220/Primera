@@ -22,6 +22,10 @@
  * * list/attack_modifiers - attack modifiers such as force, damage type, etc. Only used in attacks
  */
 /obj/item/proc/melee_attack_chain(mob/user, atom/target, list/modifiers, list/attack_modifiers = list())
+	var/zombie_attack = HAS_TRAIT(user, TRAIT_PARADISE_ZOMBIE)
+	if(zombie_attack && !istype(src, /obj/item/paradise_zombie_claw))
+		return FALSE
+
 	//Proxy replaces src cause it returns an atom that will attack the target on our behalf
 	var/obj/item/source_atom = get_proxy_attacker_for(target, user)
 	if(source_atom != src) //if we are someone else then call that attack chain else we can proceed with the usual stuff
@@ -29,11 +33,13 @@
 
 	var/is_right_clicking = LAZYACCESS(modifiers, RIGHT_CLICK)
 
-	var/item_interact_result = target.base_item_interaction(user, src, modifiers)
-	if(item_interact_result & ITEM_INTERACT_SUCCESS)
-		return TRUE
-	if(item_interact_result & ITEM_INTERACT_BLOCKING)
-		return FALSE
+	// Ladders use item interaction for movement when the climber has claws out.
+	if(!zombie_attack || istype(target, /obj/structure/ladder))
+		var/item_interact_result = target.base_item_interaction(user, src, modifiers)
+		if(item_interact_result & ITEM_INTERACT_SUCCESS)
+			return TRUE
+		if(item_interact_result & ITEM_INTERACT_BLOCKING)
+			return FALSE
 
 	// At this point it means we're not doing a non-combat interaction so let's just try to bash it
 
@@ -329,14 +335,7 @@
 	if(!LAZYACCESS(attack_modifiers, SILENCE_DEFAULT_MESSAGES))
 		send_item_attack_message(attacking_item, user, targeting_human_readable, targeting)
 
-	var/armor_block = min(run_armor_check(
-			def_zone = targeting,
-			attack_flag = MELEE,
-			absorb_text = span_notice("Ваша броня защитила вашу [targeting_human_readable]!"),
-			soften_text = span_warning("Ваша броня смягчила удар, нанесённый в вашу [targeting_human_readable]!"),
-			armour_penetration = attacking_item.armour_penetration,
-			weak_against_armour = attacking_item.weak_against_armour,
-		), ARMOR_MAX_BLOCK)
+	var/armor_block = attacking_item.get_melee_armor_block(src, targeting, targeting_human_readable)
 
 	var/final_force = CALCULATE_FORCE(attacking_item, attack_modifiers)
 	if(mob_biotypes & (MOB_ROBOTIC|MOB_MINERAL|MOB_SKELETAL)) // this should probably check hit bodypart for humanoids
@@ -378,6 +377,17 @@
 	attack_effects(damage_done, targeting, armor_block, attacking_item, user)
 
 	return damage_done
+
+/// Allows weapons with a different armor model to resolve their block after the hit zone is chosen.
+/obj/item/proc/get_melee_armor_block(mob/living/target, target_zone, target_zone_text)
+	return min(target.run_armor_check(
+		def_zone = target_zone,
+		attack_flag = MELEE,
+		absorb_text = span_notice("Ваша броня защитила вашу [target_zone_text]!"),
+		soften_text = span_warning("Ваша броня смягчила удар, нанесённый в вашу [target_zone_text]!"),
+		armour_penetration = armour_penetration,
+		weak_against_armour = weak_against_armour,
+	), ARMOR_MAX_BLOCK)
 
 /**
  * Called when we take damage, used to cause effects such as a blood splatter.

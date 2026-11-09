@@ -258,7 +258,7 @@
 	if(!intentional)
 		return TRUE
 
-	if(user.emotes_used && user.emotes_used[src] + cooldown > world.time)
+	if(user.emotes_used && !isnull(user.emotes_used[src]) && user.emotes_used[src] + cooldown > world.time)
 		var/datum/emote/default_emote = /datum/emote
 		if(cooldown > initial(default_emote.cooldown)) // only worry about longer-than-normal emotes
 			to_chat(user, span_danger("You must wait another [DisplayTimeText(user.emotes_used[src] - world.time + cooldown)] before using that emote."))
@@ -383,6 +383,8 @@
  * Returns a bool about whether or not the user can run the emote.
  */
 /datum/emote/proc/can_run_emote(mob/user, status_check = TRUE, intentional = FALSE, params)
+	if(!paradise_zombie_can_emote(user, src, intentional))
+		return FALSE
 	// BANDASTATION ADDITION START - IPC emote anatomy also filters panels and keybindings.
 	if(ishuman(user))
 		var/mob/living/carbon/human/human = user

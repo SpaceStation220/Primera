@@ -1211,7 +1211,7 @@
 			bodypart_flags &= ~BODYPART_VIRGIN
 		if(!(bodypart_flags & BODYPART_UNHUSKABLE) && owner && HAS_TRAIT(owner, TRAIT_HUSK))
 			dmg_overlay_type = "" //no damage overlay shown when husked
-			is_husked = HAS_TRAIT_FROM_ONLY(owner, TRAIT_HUSK, /datum/status_effect/zombie::id) ? HUSKED_ZOMBIE : HUSKED_BURN
+			is_husked = HAS_TRAIT_FROM_ONLY(owner, TRAIT_HUSK, PARADISE_ZOMBIE_TRAIT) ? HUSKED_ZOMBIE : HUSKED_BURN
 		else if(owner && HAS_TRAIT(owner, TRAIT_INVISIBLE_MAN))
 			dmg_overlay_type = "" //no damage overlay shown when invisible since the wounds themselves are invisible.
 			is_invisible = TRUE
@@ -1676,7 +1676,7 @@
 	if(!owner)
 		return
 
-	if(!can_bleed())
+	if(!can_bleed() || HAS_TRAIT(owner, TRAIT_PARADISE_ZOMBIE))
 		if(cached_bleed_rate != old_bleed_rate)
 			update_part_wound_overlay()
 		return

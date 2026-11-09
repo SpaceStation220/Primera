@@ -34,6 +34,7 @@
 	remove_from_mob_list()
 	remove_from_dead_mob_list()
 	remove_from_alive_mob_list()
+	remove_from_current_living_antags()
 	remove_from_mob_suicide_list()
 	focus = null
 	if(length(progressbars))
@@ -792,6 +793,8 @@ GAME_VERB_CONTEXT(/mob, examinate, "Examine", "", null, /atom)
 
 	var/obj/item/I = get_active_held_item()
 	if(I)
+		if(HAS_TRAIT(src, TRAIT_PARADISE_ZOMBIE) && !istype(I, /obj/item/paradise_zombie_claw))
+			return
 		I.attack_self(src)
 		update_held_items()
 		return

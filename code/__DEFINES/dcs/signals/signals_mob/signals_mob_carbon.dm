@@ -3,6 +3,9 @@
 #define COMSIG_CARBON_STOMACH_DIGEST "carbon_stomach_digest"
 // BANDASTATION ADDITION END
 
+/// From /datum/element/footstep/play_humanstep(): (list/step_sound), containing the selected file at index 1.
+#define COMSIG_HUMAN_FOOTSTEP_SOUND "human_footstep_sound"
+
 ///Called from /datum/species/proc/help : (mob/living/carbon/human/helper, datum/martial_art/helper_style)
 #define COMSIG_CARBON_PRE_HELP "carbon_pre_help"
 	/// Stops the rest of the help
@@ -20,6 +23,12 @@
 
 ///When a carbon slips. Called on /turf/open/handle_slip()
 #define COMSIG_ON_CARBON_SLIP "carbon_slip"
+/// Before a caltrop stuns its victim, after foot damage: (atom/caltrop).
+#define COMSIG_CARBON_PRE_CALTROP_STUN "carbon_pre_caltrop_stun"
+	#define COMPONENT_BLOCK_CALTROP_STUN (1<<0)
+/// Before the human skeleton flash, without changing electrocution damage: (anim_duration).
+#define COMSIG_HUMAN_ELECTROCUTION_ANIMATION "human_electrocution_animation"
+	#define COMPONENT_BLOCK_ELECTROCUTION_ANIMATION (1<<0)
 // /mob/living/carbon physiology signals
 #define COMSIG_CARBON_GAIN_WOUND "carbon_gain_wound" //from /datum/wound/proc/apply_wound() (/mob/living/carbon/C, /datum/wound/W, /obj/item/bodypart/L)
 #define COMSIG_CARBON_LOSE_WOUND "carbon_lose_wound" //from /datum/wound/proc/remove_wound() (/mob/living/carbon/C, /datum/wound/W, /obj/item/bodypart/L)
@@ -90,6 +99,8 @@
 ///Called when someone attempts to cuff a carbon
 #define COMSIG_CARBON_CUFF_ATTEMPTED "carbon_attempt_cuff"
 	#define COMSIG_CARBON_CUFF_PREVENT (1<<0)
+/// Before cuffs are actually attached, including after a cuffing delay: (mob/user).
+#define COMSIG_CARBON_PRE_CUFF_APPLY "carbon_pre_cuff_apply"
 ///Called when a carbon mutates (source = dna, mutation = mutation added)
 #define COMSIG_CARBON_GAIN_MUTATION "carbon_gain_mutation"
 ///Called when a carbon loses a mutation (source = dna, mutation = mutation lose)
@@ -124,7 +135,11 @@
 	#define BLOCK_EAT_ATTEMPT (1 << 0)
 ///Called when a carbon vomits : (distance, force)
 #define COMSIG_CARBON_VOMITED "carbon_vomited"
-///Called from apply_overlay(cache_index, overlay)
+/// Called before a carbon applies a cached overlay: (cache_index)
+#define COMSIG_CARBON_PRE_APPLY_OVERLAY "carbon_pre_apply_overlay"
+	/// Keeps the overlay in the cache without drawing it.
+	#define COMPONENT_BLOCK_CARBON_OVERLAY (1 << 0)
+/// Called after the appearance is updated from a cached layer: (cache_index, applied_overlay)
 #define COMSIG_CARBON_APPLY_OVERLAY "carbon_apply_overlay"
 ///Called from remove_overlay(cache_index, overlay)
 #define COMSIG_CARBON_REMOVE_OVERLAY "carbon_remove_overlay"
@@ -233,3 +248,6 @@
 #define COMSIG_END_DREAMING "end_dreaming"
 /// From /mob/living/carbon/item_coverage_changed: (added_slots, removed_slots)
 #define COMSIG_CARBON_ITEM_COVERAGE_CHANGED "carbon_item_coverage_changed"
+/// Sent before traumatic dismemberment (including chest evisceration): (obj/item/bodypart/limb).
+#define COMSIG_CARBON_PRE_DISMEMBER "carbon_pre_dismember"
+	#define COMPONENT_CANCEL_DISMEMBER (1<<0)

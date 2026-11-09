@@ -480,7 +480,7 @@ BANDASTATION REMOVAL - END */
 
 /datum/emote/living/scream/get_sound(mob/living/user)
 	. = ..()
-	if(!ishuman(user) || !.)
+	if(!ishuman(user) || !. || HAS_TRAIT(user, TRAIT_PARADISE_ZOMBIE))
 		return
 	var/mob/living/carbon/human/humie = user
 	//Rare chance for this banger of a classic to play instead of the avarage joe screams
@@ -732,7 +732,7 @@ BANDASTATION REMOVAL - END */
 
 /// This yawn has been triggered by someone else yawning specifically, likely after a delay. Check again if they don't have the yawned recently trait
 /datum/emote/living/yawn/proc/propagate_yawn(mob/user)
-	if(!istype(user) || TIMER_COOLDOWN_RUNNING(user, COOLDOWN_YAWN_PROPAGATION))
+	if(!istype(user) || QDELETED(user) || TIMER_COOLDOWN_RUNNING(user, COOLDOWN_YAWN_PROPAGATION))
 		return
 	user.emote("yawn")
 

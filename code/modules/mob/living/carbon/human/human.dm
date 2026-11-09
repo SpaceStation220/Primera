@@ -506,7 +506,7 @@
 
 /// Performs CPR on the target after a delay.
 /mob/living/carbon/human/proc/do_cpr(mob/living/carbon/target)
-	if(target == src)
+	if(target == src || HAS_TRAIT(src, TRAIT_PARADISE_ZOMBIE))
 		return
 
 	var/panicking = FALSE
@@ -548,7 +548,7 @@
 			balloon_alert(src, "у вас не получается провести СЛР!")
 			return FALSE
 
-		if (target.health > target.crit_threshold)
+		if (HAS_TRAIT(src, TRAIT_PARADISE_ZOMBIE) || target.health > target.crit_threshold)
 			return FALSE
 
 		visible_message(span_notice("[capitalize(declent_ru(NOMINATIVE))] проводит СЛР [target.declent_ru(DATIVE)]!"), span_notice("Вы проводите СЛР [target.declent_ru(DATIVE)]."))
@@ -584,6 +584,8 @@
 /mob/living/carbon/human/cuff_resist(obj/item/cuffs, breakouttime = null, cuff_break = 0)
 	if(HAS_TRAIT(src, TRAIT_HULK))
 		say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ), forced = "hulk")
+		. = ..(cuffs, cuff_break = FAST_CUFFBREAK)
+	else if(HAS_TRAIT(src, TRAIT_PARADISE_ZOMBIE))
 		. = ..(cuffs, cuff_break = FAST_CUFFBREAK)
 	else
 		. = ..()
@@ -637,6 +639,8 @@
 //Turns a mob black, flashes a skeleton overlay
 //Just like a cartoon!
 /mob/living/carbon/human/proc/electrocution_animation(anim_duration)
+	if(SEND_SIGNAL(src, COMSIG_HUMAN_ELECTROCUTION_ANIMATION, anim_duration) & COMPONENT_BLOCK_ELECTROCUTION_ANIMATION)
+		return
 	var/mutable_appearance/zap_appearance
 
 	// If we have a species, we need to handle mutant parts and stuff
