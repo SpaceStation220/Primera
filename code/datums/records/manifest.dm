@@ -111,6 +111,7 @@ GLOBAL_DATUM_INIT(manifest, /datum/manifest, new)
 	// Attempt to get assignment from ID, otherwise default to mind.
 	var/obj/item/card/id/id_card = person.get_idcard(hand_first = FALSE)
 	var/assignment = id_card?.get_trim_assignment() || person.mind.assigned_role.title
+	var/display_rank = id_card?.assignment || person.mind.get_job_title()
 
 	var/mutable_appearance/character_appearance = new(appearance_proxy?.appearance || person.appearance)
 	var/person_gender = "Other"
@@ -130,7 +131,7 @@ GLOBAL_DATUM_INIT(manifest, /datum/manifest, new)
 		gender = person.gender,
 		initial_rank = assignment,
 		name = person.real_name,
-		rank = assignment,
+		rank = display_rank,
 		species = record_dna.species.name,
 		trim = assignment,
 		// Locked specifics
@@ -147,7 +148,7 @@ GLOBAL_DATUM_INIT(manifest, /datum/manifest, new)
 		gender = person_gender,
 		initial_rank = assignment,
 		name = person.real_name,
-		rank = assignment,
+		rank = display_rank,
 		species = record_dna.species.name,
 		trim = assignment,
 		// Crew specific

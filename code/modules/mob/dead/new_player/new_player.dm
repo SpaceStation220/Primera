@@ -301,6 +301,10 @@
 		preserved_mind.transfer_to(spawning_mob) //won't transfer key since the mind is not active
 		preserved_mind.set_original_character(spawning_mob)
 
+	var/datum/mind/spawned_mind = spawning_mob.mind
+	var/chosen_title = player_client.prefs.alt_job_titles[spawned_mind?.assigned_role.title]
+	if(istext(chosen_title) && (chosen_title in spawned_mind?.assigned_role.alt_titles))
+		spawned_mind.assigned_job_title = chosen_title
 	// BANDASTATION ADDITION - Freeze only after job-specific profile selection and the final mind transfer.
 	spawning_mob.mind?.capture_sierra_antagonist_background(player_client.prefs)
 

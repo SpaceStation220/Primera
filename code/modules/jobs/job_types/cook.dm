@@ -102,9 +102,9 @@
 	var/obj/item/modular_computer/pda/pda = user.get_item_by_slot(pda_slot)
 	if(!istype(worn_id) || !istype(pda))
 		return
-	var/assignment = worn_id.get_trim_assignment()
+	var/assignment = worn_id.assignment
 	if(!isnull(assignment))
-		pda.imprint_id(user.real_name, assignment)
+		pda.imprint_id(user.real_name, assignment, worn_id.get_trim_assignment())
 
 /datum/outfit/job/cook/get_types_to_preload()
 	. = ..()

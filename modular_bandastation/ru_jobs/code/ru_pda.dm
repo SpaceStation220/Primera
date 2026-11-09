@@ -7,4 +7,4 @@
 	var/obj/item/card/id/card = equipped.wear_id
 	if(!istype(card))
 		return
-	pda.imprint_id(equipped.real_name, card.get_trim_assignment())
+	pda.imprint_id(equipped.real_name, card.assignment, card.get_trim_assignment())

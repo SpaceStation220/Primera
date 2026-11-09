@@ -2,6 +2,8 @@
 	abstract_type = /datum/job
 	/// The name of the job , used for preferences, bans and more. Make sure you know what you're doing before changing this.
 	var/title = "NOPE"
+	/// Allowed display-only titles. These are never registered as job identifiers.
+	var/list/alt_titles
 
 	/// The description of the job, used for preferences menu.
 	/// Keep it short and useful. Avoid in-jokes, these are for new players.
@@ -236,7 +238,7 @@
 /datum/job/proc/announce_head(mob/living/carbon/human/human, channels) //tells the given channel that the given mob is the new department head. See communications.dm for valid channels.
 	if(human)
 		//timer because these should come after the captain announcement
-		SSticker.OnRoundstart(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(_addtimer), CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(aas_config_announce), /datum/aas_config_entry/newhead, list("PERSON" = human.real_name, "RANK" = human.job), null, channels, null, TRUE), 1))
+		SSticker.OnRoundstart(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(_addtimer), CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(aas_config_announce), /datum/aas_config_entry/newhead, list("PERSON" = human.real_name, "RANK" = human.mind?.get_job_title() || human.job), null, channels, null, TRUE), 1))
 
 //If the configuration option is set to require players to be logged as old enough to play certain jobs, then this proc checks that they are, otherwise it just returns 1
 /datum/job/proc/player_old_enough(client/player)
@@ -410,6 +412,8 @@
 
 	if(istype(card))
 		ADD_TRAIT(card, TRAIT_JOB_FIRST_ID_CARD, ROUNDSTART_TRAIT)
+		if(equipped_job == equipped.mind?.assigned_role && equipped.mind?.assigned_job_title)
+			card.assignment = equipped.mind.get_job_title()
 		shuffle_inplace(card.access) // Shuffle access list to make NTNet passkeys less predictable
 		card.registered_name = equipped.real_name
 
@@ -436,7 +440,7 @@
 		stack_trace("pda_slot was set but we couldn't find a PDA!")
 		return
 
-	pda.imprint_id(equipped.real_name, equipped_job?.title || equipped.job)
+	pda.imprint_id(equipped.real_name, (istype(card) && card.assignment) || equipped_job?.title || equipped.job, equipped_job?.title)
 	pda.update_ringtone(equipped_job?.job_tone)
 	pda.UpdateDisplay()
 

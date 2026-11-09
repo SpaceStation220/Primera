@@ -362,6 +362,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	var/tree_key = "character[slot]"
 	var/list/save_data = savefile.get_entry(tree_key)
 	if(isnull(save_data)) // This is the case where we have a new character slot being switched to
+		alt_job_titles = list()
 		for (var/datum/preference/preference as anything in get_preferences_in_priority_order()) // clear the cache in this case
 			if (preference.savefile_identifier != PREFERENCE_CHARACTER)
 				continue
@@ -370,6 +371,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	var/data_validity_integer = check_savedata_version(save_data)
 	if(IS_DATA_OBSOLETE(data_validity_integer)) //fatal, can't load any data
+		alt_job_titles = list()
 		default_slot = original_default_slot
 		savefile.set_entry("default_slot", original_default_slot)
 		return FALSE
@@ -393,6 +395,28 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	//Load prefs
 	job_preferences = save_data?["job_preferences"]
+	alt_job_titles = list()
+	var/list/saved_alt_titles = save_data?["alt_job_titles"]
+	if(islist(saved_alt_titles))
+		for(var/job_title in saved_alt_titles)
+			if(!istext(job_title))
+				continue
+			var/datum/job/job = SSjob.get_job(job_title)
+			var/list/allowed_titles
+			if(job?.title == job_title && (job in SSjob.joinable_occupations))
+				allowed_titles = job.alt_titles
+			else if(isnull(job))
+				// A map-disabled job still has a valid definition and must retain its saved choice.
+				for(var/datum/job/job_type as anything in subtypesof(/datum/job))
+					if(initial(job_type.title) != job_title || !(initial(job_type.job_flags) & JOB_NEW_PLAYER_JOINABLE))
+						continue
+					var/datum/job/unavailable_job = new job_type
+					allowed_titles = unavailable_job.alt_titles
+					qdel(unavailable_job)
+					break
+			var/chosen_title = saved_alt_titles[job_title]
+			if(istext(chosen_title) && (chosen_title in allowed_titles))
+				alt_job_titles[job_title] = chosen_title
 	if(isnull(job_preferences))
 		job_preferences = savefile.get_entry("job_preferences")
 
@@ -460,6 +484,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	//Write prefs
 	save_data["job_preferences"] = job_preferences
+	save_data["alt_job_titles"] = alt_job_titles.Copy()
 
 	// BANDASTATION ADD - Emote Panel
 	save_data["custom_emote_panel"] = custom_emote_panel // BANDASTATION ADD - Emote Panel

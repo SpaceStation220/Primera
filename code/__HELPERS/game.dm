@@ -241,6 +241,8 @@
 /proc/announce_arrival(mob/living/carbon/human/character, rank, announce_to_ghosts = TRUE)
 	if(!SSticker.IsRoundInProgress() || QDELETED(character))
 		return
+	if(rank == character.mind?.assigned_role.title)
+		rank = character.mind.get_job_title()
 	if (announce_to_ghosts)
 		var/area/player_area = get_area(character)
 		deadchat_broadcast(span_game(" прибыл на станцию у [span_name(player_area.name)]."), span_game("[span_name(character.real_name)] ([job_title_ru(rank)])"), follow_target = character, message_type=DEADCHAT_ARRIVALRATTLE)

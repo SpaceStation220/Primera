@@ -97,6 +97,8 @@
 	var/saved_identification
 	///The job title of the stored ID card
 	var/saved_job
+	/// Canonical imprinted job for software logic, independent of the displayed assignment.
+	var/saved_job_role
 
 	///The 'computer' itself, as an obj. Primarily used for Adjacent() and UI visibility checks, especially for computers.
 	var/obj/physical
@@ -806,9 +808,13 @@
 
 ///Imprints name and job into the modular computer, and calls back to necessary functions.
 ///Acts as a replacement to directly setting the imprints fields. All fields are optional, the proc will try to fill in missing gaps.
-/obj/item/modular_computer/proc/imprint_id(name = null, job_name = null)
+/// job_role supplies the canonical job title when job_name is only a display label.
+/obj/item/modular_computer/proc/imprint_id(name = null, job_name = null, job_role = null)
 	saved_identification = name || stored_id?.registered_name || saved_identification
 	saved_job = job_name || stored_id?.assignment || saved_job
+	if(job_role || stored_id || job_name)
+		var/datum/job/imprinted_role = SSjob.get_job(job_role || stored_id?.get_trim_assignment() || job_name)
+		saved_job_role = imprinted_role?.title
 	SEND_SIGNAL(src, COMSIG_MODULAR_PDA_IMPRINT_UPDATED, saved_identification, saved_job)
 	UpdateDisplay()
 
@@ -816,6 +822,7 @@
 /obj/item/modular_computer/proc/reset_imprint()
 	saved_identification = null
 	saved_job = null
+	saved_job_role = null
 	SEND_SIGNAL(src, COMSIG_MODULAR_PDA_IMPRINT_RESET)
 	UpdateDisplay()
 

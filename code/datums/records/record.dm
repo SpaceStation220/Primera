@@ -47,7 +47,7 @@
 	src.dna_string = dna_string
 	src.fingerprint = fingerprint
 	src.gender = gender
-	src.initial_rank = rank
+	src.initial_rank = initial_rank
 	src.name = name
 	src.rank = rank
 	src.species = species

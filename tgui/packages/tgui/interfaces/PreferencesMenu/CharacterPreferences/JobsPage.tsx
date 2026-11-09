@@ -2,7 +2,14 @@ import { sortBy } from 'es-toolkit';
 import type { CSSProperties, ReactNode } from 'react';
 import { useBackend } from 'tgui/backend';
 import { Color } from 'tgui-core/color';
-import { Box, Button, Section, Stack, Tooltip } from 'tgui-core/components';
+import {
+  Box,
+  Button,
+  Dropdown,
+  Section,
+  Stack,
+  Tooltip,
+} from 'tgui-core/components';
 import { classes } from 'tgui-core/react';
 
 import { JOBS_RU } from '../../../bandastation/ru_jobs'; // BANDASTATION EDIT
@@ -161,8 +168,10 @@ type JobRowProps = {
 };
 
 function JobRow(props: JobRowProps) {
-  const { data } = useBackend<PreferencesMenuData>();
+  const { act, data } = useBackend<PreferencesMenuData>();
   const { className, job, name } = props;
+  const chosenTitle = data.alt_job_titles?.[name];
+  const standardTitle = `Стандартное (${JOBS_RU[name] || name})`;
 
   const jobPreference = data.job_preferences.find((pref) => pref.job === name);
   const priority = jobPreference?.priority ?? null;
@@ -196,12 +205,38 @@ function JobRow(props: JobRowProps) {
   } else {
     rightSide = (
       <>
+        {!!job.alt_titles?.length && (
+          <Tooltip
+            content={`Название для активного персонажа: ${chosenTitle || standardTitle}`}
+          >
+            <div>
+              <Dropdown
+                noChevron
+                iconOnly
+                icon="id-badge"
+                width="auto"
+                menuWidth="auto"
+                selected={chosenTitle || standardTitle}
+                options={[
+                  { value: name, displayText: standardTitle },
+                  ...job.alt_titles.map((title) => ({
+                    value: title,
+                    displayText: title,
+                  })),
+                ]}
+                onSelected={(title) =>
+                  act('set_alt_job_title', { job: name, title })
+                }
+              />
+            </div>
+          </Tooltip>
+        )}
+        <JobSlotDropdown name={name} />
         <PriorityButtons
           createSetPriority={createSetPriority}
           isOverflow={isOverflow}
           priority={priority}
         />
-        <JobSlotDropdown name={name} />
       </>
     );
   }
@@ -212,6 +247,11 @@ function JobRow(props: JobRowProps) {
         <Tooltip content={job.description} position="bottom-start">
           <Stack.Item grow className="job-name">
             {JOBS_RU[name] || name}
+            {chosenTitle && (
+              <Box fontSize="0.85em" opacity={0.8}>
+                {chosenTitle}
+              </Box>
+            )}
           </Stack.Item>
         </Tooltip>
         <Stack.Item className="options">{rightSide}</Stack.Item>

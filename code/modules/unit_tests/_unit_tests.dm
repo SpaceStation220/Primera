@@ -135,6 +135,7 @@
 #include "ablative_hud.dm"
 #include "achievements.dm"
 #include "alerts.dm"
+#include "alt_job_titles.dm"
 #include "anchored_mobs.dm"
 #include "anonymous_themes.dm"
 #include "antag_conversion.dm"
