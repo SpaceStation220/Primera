@@ -42,6 +42,24 @@
 	SSdynamic.queued_rulesets += coin_ruleset
 	return TRUE
 
+/// Validate the reserved scenario without exposing its request state to Dynamic.
+/datum/antag_coin_manager/proc/validate_scenario_candidates(list/candidates)
+	if(!coin_ruleset)
+		return TRUE
+	var/client/coin_owner = approved_request.get_client()
+	var/error = scenario_error(coin_ruleset, coin_owner?.mob, candidates)
+	if(error)
+		failure_reason = error
+		return FALSE
+	return TRUE
+
+/// Record the reserved scenario's failure and tell Dynamic to abort preparation.
+/datum/antag_coin_manager/proc/record_preparation_failure(datum/dynamic_ruleset/roundstart/ruleset)
+	if(ruleset != coin_ruleset)
+		return FALSE
+	failure_reason = ruleset.log_data
+	return TRUE
+
 /// Final validation happens after real job assignment and before creating characters.
 /datum/antag_coin_manager/proc/validate_prepared()
 	if(!approved_request)
