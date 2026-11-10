@@ -6,7 +6,7 @@
 		if(chassis.has_head)
 			TEST_ASSERT("ipc_head" in states, "IPC head [chassis_name] has no head icon.")
 		if(chassis.has_body)
-			for(var/part in list("chest", "l_arm", "r_arm", "l_hand", "r_hand", "l_leg", "r_leg"))
+			for(var/part in list("chest", "l_arm", "r_arm", "l_hand", "r_hand", "l_leg", "r_leg", "l_leg_base", "r_leg_base"))
 				TEST_ASSERT("ipc_[part]" in states, "IPC chassis [chassis_name] has no [part] icon.")
 		if(chassis.has_head)
 			var/default_display = get_default_ipc_display(chassis_name)

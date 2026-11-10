@@ -373,6 +373,8 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/datum/preferences/preferences
 	/// Whether we show current job clothes or nude/loadout only
 	var/show_job_clothes = TRUE
+	/// Show hands and feet without outfit, loadout or socks in the editor.
+	var/show_cosmetic_extremities = FALSE
 
 /atom/movable/screen/map_view/char_preview/Initialize(mapload, datum/hud/hud_owner, datum/preferences/preferences)
 	. = ..()
@@ -391,7 +393,8 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	else
 		body.wipe_state()
 
-	appearance = preferences.render_new_preview_appearance(body, show_job_clothes)
+	var/show_extremities = show_cosmetic_extremities && preferences.can_customize_cosmetic_extremities()
+	appearance = preferences.render_new_preview_appearance(body, show_job_clothes, show_extremities)
 
 /atom/movable/screen/map_view/char_preview/proc/create_body()
 	QDEL_NULL(body)

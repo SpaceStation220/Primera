@@ -3,6 +3,7 @@
 		"apply_body_modification" = PROC_REF(apply_body_modification),
 		"remove_body_modification" = PROC_REF(remove_body_modification),
 		"set_body_modification_manufacturer" = PROC_REF(set_body_modification_manufacturer),
+		"set_cosmetic_extremity_preview" = PROC_REF(set_cosmetic_extremity_preview),
 	)
 
 /datum/preference_middleware/body_modifications/get_ui_data(mob/user)
@@ -11,7 +12,23 @@
 	data["incompatible_body_modifications"] = get_incompatible_body_modifications(user)
 	data["manufacturers"] = get_prosthesis_manufacturers()
 	data["selected_manufacturer"] = get_selected_manufacturers(user)
+	data["show_cosmetic_extremities"] = preferences.character_preview_view?.show_cosmetic_extremities
 	return data
+
+/// Changes the mannequin view for editing cosmetic hands and feet.
+/datum/preference_middleware/body_modifications/proc/set_cosmetic_extremity_preview(list/params, mob/user)
+	PRIVATE_PROC(TRUE)
+	var/atom/movable/screen/map_view/char_preview/preview = preferences.character_preview_view
+	var/enabled = params["enabled"]
+	if(isnull(preview) || preferences.current_window != PREFERENCE_TAB_CHARACTER_PREFERENCES || !isnum(enabled) || !(enabled in list(FALSE, TRUE)))
+		return FALSE
+	if(enabled && !preferences.can_customize_cosmetic_extremities())
+		return FALSE
+	if(preview.show_cosmetic_extremities == enabled)
+		return FALSE
+	preview.show_cosmetic_extremities = enabled
+	preview.update_body()
+	return TRUE
 
 /datum/preference_middleware/body_modifications/get_constant_data(mob/user)
 	var/list/data = list()

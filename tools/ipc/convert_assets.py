@@ -111,6 +111,12 @@ for typepath, definition in limbs.items():
             for direction in range(4):
                 frames[direction] = Image.alpha_composite(frames[direction], pixels[direction])
         states["ipc_" + target_part] = frames
+        if target_part in ("l_leg", "r_leg") and "chest" in parts:
+            # Interchangeable cosmetic feet meet every chassis at the same ankle.
+            bases = [frame.copy() for frame in frames]
+            for frame in bases:
+                frame.paste((0, 0, 0, 0), (0, 29, 32, 32))
+            states[f"ipc_{target_part}_base"] = bases
     key = typepath.removeprefix("/datum/robolimb/").replace("/", "_")
     output_path = f"modular_bandastation/species/icons/ipc/{key}.dmi"
     write_dmi(TARGET / output_path, states)
@@ -227,6 +233,7 @@ https://github.com/ss220club/Paradise-SS220/blob/{REVISION}/README.md#licenses
 Changes: limb states renamed for TG's ipc_* layout; torso and groin combined
 into chest; each leg combined with its foot; original hands retained as separate
 auxiliary overlays. Alternate models inherit missing pieces from the base model.
+Body chassis also retain leg bases cut at the shared cosmetic ankle.
 Screens, antennae and optics are unmodified copies with original DMI animation.
 
 Original files (history and individual contributions are available at each URL):

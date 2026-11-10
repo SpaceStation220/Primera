@@ -161,7 +161,10 @@ export function CharacterPreferenceWindow(props) {
               icon="suitcase"
               currentPage={currentPage}
               page={Page.Loadout}
-              setPage={setCurrentPage}
+              setPage={(page) => {
+                act('set_cosmetic_extremity_preview', { enabled: 0 });
+                setCurrentPage(page);
+              }}
             >
               Снаряжение
             </PageButton>

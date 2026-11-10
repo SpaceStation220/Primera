@@ -27,3 +27,4 @@
 
 #include "code/preferences/body_modification_preference_middleware.dm"
 #include "code/preferences/body_modification_preference.dm"
+#include "code/preferences/cosmetic_extremity.dm"
