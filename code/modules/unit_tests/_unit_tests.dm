@@ -492,6 +492,9 @@
 #include "../../../modular_bandastation/telephones/code/telephone_tests.dm"
 #include "../../../modular_bandastation/telephones/code/telephone_speech_tests.dm"
 
+#include "../../../modular_bandastation/antag_coin/code/defines.dm"
+#include "../../../modular_bandastation/antag_coin/tests/antag_coin_tests.dm"
+
 #undef TEST_ASSERT
 #undef TEST_ASSERT_EQUAL
 #undef TEST_ASSERT_NOTEQUAL

@@ -1,0 +1,78 @@
+{
+	"config": {
+		"interface": {
+			"name": "AntagCoin"
+		},
+		"title": "Antagonists",
+		"window": {
+			"size": [500, 650]
+		}
+	},
+	"data": {
+		"options": [
+			{
+				"id": "traitor",
+				"name": "Traitors",
+				"reason": null
+			},
+			{
+				"id": "malf_ai",
+				"name": "Malfunctioning AI",
+				"reason": null
+			},
+			{
+				"id": "blood_brother",
+				"name": "Blood Brothers",
+				"reason": null
+			},
+			{
+				"id": "changeling",
+				"name": "Changelings",
+				"reason": null
+			},
+			{
+				"id": "blood_worm",
+				"name": "Blood Worms",
+				"reason": null
+			},
+			{
+				"id": "heretic",
+				"name": "Heretics",
+				"reason": null
+			},
+			{
+				"id": "wizard",
+				"name": "Wizard",
+				"reason": null
+			},
+			{
+				"id": "blood_cult",
+				"name": "Blood Cult",
+				"reason": null
+			},
+			{
+				"id": "nukies",
+				"name": "Nuclear Operatives",
+				"reason": null
+			},
+			{
+				"id": "clownops",
+				"name": "Clown Operatives",
+				"reason": null
+			},
+			{
+				"id": "revolution",
+				"name": "Revolution",
+				"reason": null
+			},
+			{
+				"id": "vampire",
+				"name": "Vampires",
+				"reason": null
+			}
+		],
+		"blocked": false
+	},
+	"static_data": {},
+	"shared": {}
+}

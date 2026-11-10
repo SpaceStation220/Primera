@@ -214,14 +214,29 @@ SUBSYSTEM_DEF(central)
 	player.donator_level = get_max_donation_tier_from_response_data(data)
 
 /datum/controller/subsystem/central/proc/update_player_donate_tier_blocking(client/player)
+	if(!player)
+		return FALSE
 	var/endpoint = "[CONFIG_GET(string/ss_central_url)]/donates?ckey=[player.ckey]&active_only=true&page=1&page_size=50"
 	var/datum/http_response/response = SShttp.make_sync_request(RUSTG_HTTP_METHOD_GET, endpoint, "", list())
 	if(response.errored || response.status_code != 200)
 		stack_trace("Failed to get player donate tier: HTTP status code [response.status_code] - [response.error] - [response.body]")
-		return
+		return FALSE
 
-	var/list/data = json_decode(response.body)
+	if(!player)
+		return FALSE
+	var/list/data
+	try
+		data = json_decode(response.body)
+	catch(var/exception/error)
+		log_runtime("Invalid donation JSON: [error.name]")
+		return FALSE
+	if(!islist(data) || !islist(data["items"]))
+		return FALSE
+	for(var/list/item in data["items"])
+		if(!isnum(item["tier"]) || item["tier"] < BASIC_DONATOR_LEVEL)
+			return FALSE
 	player.donator_level = get_max_donation_tier_from_response_data(data)
+	return TRUE
 
 /datum/controller/subsystem/central/proc/get_max_donation_tier_from_response_data(list/data)
 	if(!length(data["items"]))

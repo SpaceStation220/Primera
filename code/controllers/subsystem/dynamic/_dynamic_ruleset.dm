@@ -23,6 +23,8 @@
 	var/preview_antag_datum
 	/// List of all minds selected for this ruleset
 	VAR_FINAL/list/datum/mind/selected_minds = list()
+	/// An approved antag coin reserves one native slot before the remaining lottery.
+	var/datum/mind/coin_reserved_mind
 
 	/**
 	 * The chance the ruleset is picked when selecting from the pool of rulesets.
@@ -104,6 +106,7 @@
 		NAMEOF_STATIC(src, ruleset_flags),
 		NAMEOF_STATIC(src, ruleset_lazy_templates),
 		NAMEOF_STATIC(src, selected_minds),
+		NAMEOF_STATIC(src, coin_reserved_mind),
 		NAMEOF_STATIC(src, vars),
 	)
 
@@ -180,7 +183,7 @@
 		return 0
 	if(!can_be_selected())
 		return 0
-	var/final_minpop = islist(min_pop) ? get_tier_specific_value(min_pop, tier) : min_pop
+	var/final_minpop = get_minimum_population(tier)
 	if(final_minpop > population_size)
 		return 0
 
@@ -197,6 +200,10 @@
 		final_weight -= repeatable_weight_decrease
 
 	return max(final_weight, 0)
+
+/// Hard population requirement, independent of the random selection weight.
+/datum/dynamic_ruleset/proc/get_minimum_population(tier = DYNAMIC_TIER_LOW)
+	return islist(min_pop) ? get_tier_specific_value(min_pop, tier) : min_pop
 
 /// Returns what the antag cap with the given population is.
 /datum/dynamic_ruleset/proc/get_antag_cap(population_size, antag_cap)
@@ -228,7 +235,20 @@
 	var/max_candidates = get_antag_cap(population_size, max_antag_cap || min_antag_cap)
 	var/min_candidates = get_antag_cap(population_size, min_antag_cap)
 
-	var/list/selected_candidates = select_candidates(antag_candidates, max_candidates)
+	var/list/selected_candidates
+	if(coin_reserved_mind)
+		var/mob/reserved_candidate
+		for(var/mob/candidate as anything in trim_candidates(antag_candidates))
+			if(candidate.mind == coin_reserved_mind)
+				reserved_candidate = candidate
+				break
+		if(!reserved_candidate || max_candidates < 1)
+			log_data = "Reason: Antag coin owner is no longer eligible."
+			return FALSE
+		selected_candidates = list(reserved_candidate)
+		selected_candidates += select_candidates(antag_candidates - reserved_candidate, max_candidates - 1)
+	else
+		selected_candidates = select_candidates(antag_candidates, max_candidates)
 	if(length(selected_candidates) < min_candidates)
 		log_data = "Reason: Not enough eligible candidates. Have: [length(selected_candidates)], Need: [min_candidates]"
 		return FALSE

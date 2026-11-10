@@ -2,17 +2,25 @@ Any time you make a change to the schema files, remember to increment the databa
 
 Make sure to also update `DB_MAJOR_VERSION_220` and `DB_MINOR_VERSION_220`, which can be found in `code/modular_bandastation/_defines220/code/defines/subsystems.dm`.
 
-The latest database version is 1.3; The query to update the schema revision table is:
+The latest database version is 1.4; The query to update the schema revision table is:
 
 ```sql
-INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 3);
+INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 4);
 ```
 
 or
 
 ```sql
-INSERT INTO `SS13_schema_revision_220` (`major`, `minor`) VALUES (1, 3);
+INSERT INTO `SS13_schema_revision_220` (`major`, `minor`) VALUES (1, 4);
 ```
+
+---
+
+Version 1.4, 10 November 2026
+
+Added `antag_coin_accounts` for the account-wide 168-hour cooldown, pending
+approval recovery and idempotent refunds. Apply `antag_coin.sql` to existing
+installations; prefix both table names in that migration if required.
 
 ---
 

@@ -10,6 +10,9 @@
 		return FALSE
 	// Checks that any other roundstart ruleset hasn't already picked this guy
 	for(var/datum/dynamic_ruleset/roundstart/ruleset as anything in SSdynamic.queued_rulesets)
+		// The coin's post-job validation must be able to recheck its own selected players.
+		if(ruleset == src && coin_reserved_mind)
+			continue
 		if(candidate.mind in ruleset.selected_minds)
 			return FALSE
 	return ..()

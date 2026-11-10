@@ -164,10 +164,17 @@ SUBSYSTEM_DEF(ticker)
 		if(GAME_STATE_SETTING_UP)
 			if(!setup())
 				//setup failed
-				current_state = GAME_STATE_STARTUP
-				timeLeft = null
+				if(GLOB.antag_coins.restart_requested)
+					GLOB.antag_coins.restart_requested = FALSE
+					restart_coin_countdown()
+					to_chat(world, span_notice("Запуск раунда отменён. Начат новый отсчёт лобби."))
+				else
+					current_state = GAME_STATE_STARTUP
+					timeLeft = null
 				Master.SetRunLevel(RUNLEVEL_LOBBY)
 				SEND_SIGNAL(src, COMSIG_TICKER_ERROR_SETTING_UP)
+				if(current_state == GAME_STATE_PREGAME)
+					SEND_SIGNAL(src, COMSIG_TICKER_ENTER_PREGAME)
 
 		if(GAME_STATE_PLAYING)
 			check_queue()
@@ -210,6 +217,12 @@ SUBSYSTEM_DEF(ticker)
 		player_states[player.ckey] = player.ready
 	return player_states
 
+/// An unsuccessful coin start gets a full new lobby attempt, even after Force Start.
+/datum/controller/subsystem/ticker/proc/restart_coin_countdown()
+	current_state = GAME_STATE_PREGAME
+	start_immediately = FALSE
+	timeLeft = CONFIG_GET(number/lobby_countdown) * (1 SECONDS)
+
 /datum/controller/subsystem/ticker/proc/setup()
 	to_chat(world, span_boldannounce("Игра начинается..."))
 	var/init_start = world.timeofday
@@ -220,11 +233,17 @@ SUBSYSTEM_DEF(ticker)
 	CHECK_TICK
 	//Configure mode and assign player to antagonists
 	var/can_continue = FALSE
-	can_continue = SSdynamic.select_roundstart_antagonists() //Choose antagonists
+	if(GLOB.antag_coins.approved_request)
+		can_continue = GLOB.antag_coins.prepare_roundstart()
+	else
+		can_continue = SSdynamic.select_roundstart_antagonists() //Choose antagonists
+		CHECK_TICK
+		SEND_GLOBAL_SIGNAL(COMSIG_GLOB_PRE_JOBS_ASSIGNED, src)
+		can_continue = can_continue && SSjob.divide_occupations() //Distribute jobs
 	CHECK_TICK
-	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_PRE_JOBS_ASSIGNED, src)
-	can_continue = can_continue && SSjob.divide_occupations() //Distribute jobs
-	CHECK_TICK
+	if(GLOB.antag_coins.approved_request && !can_continue)
+		GLOB.antag_coins.abort_start(GLOB.antag_coins.failure_reason || "Job assignment failed.")
+		return FALSE
 
 	if(!GLOB.debugging_enabled)
 		if(!can_continue)
@@ -292,6 +311,7 @@ SUBSYSTEM_DEF(ticker)
 		ruleset.execute()
 		SSdynamic.unqueue_ruleset(ruleset)
 		SSdynamic.executed_rulesets += ruleset
+	GLOB.antag_coins.round_started()
 	// BANDASTATION EDIT: consider shared operations once, after all roundstart assignments.
 	SEND_SIGNAL(src, COMSIG_TICKER_ROUNDSTART_ROLES_ASSIGNED, GLOB.antagonists.Copy())
 	// Queue roundstart intercept report

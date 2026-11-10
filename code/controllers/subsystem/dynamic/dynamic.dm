@@ -107,6 +107,8 @@ SUBSYSTEM_DEF(dynamic)
 /datum/controller/subsystem/dynamic/proc/select_roundstart_antagonists()
 	load_config()
 	SEND_SIGNAL(src, COMSIG_DYNAMIC_PRE_ROUNDSTART, dynamic_config)
+	if(GLOB.antag_coins.approved_request && !GLOB.antag_coins.begin_start())
+		return FALSE
 	// we start by doing a dry run of the job selection process to detect antag rollers
 	SSjob.divide_occupations(pure = TRUE, allow_all = TRUE)
 
@@ -137,6 +139,12 @@ SUBSYSTEM_DEF(dynamic)
 	// this also calculates the number of rulesets to spawn
 	if(!current_tier)
 		pick_tier(num_real_players)
+	if(GLOB.antag_coins.coin_ruleset)
+		var/client/coin_owner = GLOB.antag_coins.approved_request.get_client()
+		var/error = GLOB.antag_coins.scenario_error(GLOB.antag_coins.coin_ruleset, coin_owner?.mob, antag_candidates)
+		if(error)
+			GLOB.antag_coins.failure_reason = error
+			return FALSE
 	// put rulesets in the queue (if admins didn't)
 	// this will even handle the case in which the tier wants 0 roundstart rulesets
 	if(!length(queued_rulesets))
@@ -151,6 +159,9 @@ SUBSYSTEM_DEF(dynamic)
 		// NOTE: !! THIS CAN SLEEP !!
 		if(!ruleset.prepare_execution( num_real_players, antag_candidates ))
 			log_dynamic("Roundstart: Selected ruleset [ruleset.config_tag], but preparation failed! [ruleset.log_data]")
+			if(ruleset == GLOB.antag_coins.coin_ruleset)
+				GLOB.antag_coins.failure_reason = ruleset.log_data
+				return FALSE
 			unqueue_ruleset(ruleset)
 			qdel(ruleset)
 			continue

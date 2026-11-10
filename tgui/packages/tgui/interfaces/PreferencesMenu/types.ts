@@ -1,5 +1,13 @@
 import type { BooleanLike } from 'tgui-core/react';
 
+export type AntagCoinStatus = {
+  tier_five: BooleanLike;
+  remaining: number;
+  pending: BooleanLike;
+  approved: BooleanLike;
+  lobby: BooleanLike;
+};
+
 import type { sendAct } from '../../events/act';
 import type {
   LoadoutCategory,
@@ -175,6 +183,7 @@ export type CharacterPreferencesData = {
 };
 
 export type PreferencesMenuData = {
+  antag_coin?: AntagCoinStatus;
   sierra_antagonist?: AntagonistBackground; // BANDASTATION ADDITION - Private background
   sierra_background: BackgroundPreference[]; // BANDASTATION ADDITION - Sierra background
   character_preview_view: string;

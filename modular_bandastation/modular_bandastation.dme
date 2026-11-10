@@ -107,6 +107,7 @@
 #include "vampire/_vampire.dme"
 #include "weapon/_weapon.dme"
 #include "world_topics/_world_topics.dme"
+#include "antag_coin/_antag_coin.dme"
 // --- MODULES END --- //
 
 // --- PRIME --- //

@@ -6,6 +6,7 @@ import { classes } from 'tgui-core/react';
 
 import { type Antagonist, Category } from '../antagonists/base';
 import type { PreferencesMenuData } from '../types';
+import { AntagCoinCard } from './AntagCoinCard';
 
 const requireAntag = require.context(
   '../antagonists/antagonists',
@@ -41,6 +42,7 @@ for (const antagKey of requireAntag.keys()) {
 type AntagSelectionProps = {
   antagonists: Antagonist[];
   name: string;
+  coin?: boolean;
 };
 
 function AntagSelection(props: AntagSelectionProps) {
@@ -171,6 +173,7 @@ function AntagSelection(props: AntagSelectionProps) {
             </Tooltip>
           );
         })}
+        {props.coin && <AntagCoinCard />}
       </Stack>
     </Section>
   );
@@ -182,6 +185,7 @@ export function AntagsPage() {
       <AntagSelection
         name="Начало раунда"
         antagonists={antagsByCategory.get(Category.Roundstart)!}
+        coin
       />
 
       <AntagSelection
