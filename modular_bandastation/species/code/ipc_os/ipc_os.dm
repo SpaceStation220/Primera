@@ -68,7 +68,7 @@
 
 /// All UI commands must pass this check, independently of disabled frontend buttons.
 /datum/ipc_os/proc/can_use(mob/user)
-	return user == host && is_operational() && !IS_UNCONSCIOUS_OR_CRIT(host) && !host.incapacitated && host.client
+	return user == host && is_operational() && !IS_UNCONSCIOUS_OR_CRIT(host) && !host.incapacitated && GET_CLIENT(host)
 
 /// Installed space is derived from trusted catalog sizes; running state never affects it.
 /datum/ipc_os/proc/used_storage()
@@ -104,7 +104,7 @@
 		error_message = "Установка невозможна: проверьте доступ и свободное место."
 		return FALSE
 	program.installed = TRUE
-	if(program.passive && is_operational() && host.client)
+	if(program.passive && is_operational() && GET_CLIENT(host))
 		program.start()
 	return TRUE
 
@@ -128,7 +128,7 @@
 
 /// Passive applications resume after a valid boot; toggles require manual reactivation.
 /datum/ipc_os/proc/resume_passives()
-	if(!is_operational() || !host.client)
+	if(!is_operational() || !GET_CLIENT(host))
 		return
 	for(var/id in programs)
 		var/datum/ipc_os_program/program = programs[id]
@@ -137,7 +137,7 @@
 
 /datum/ipc_os/proc/on_life(mob/source, seconds_per_tick)
 	SIGNAL_HANDLER
-	if(!is_operational() || !host.client)
+	if(!is_operational() || !GET_CLIENT(host))
 		stop_all()
 		return
 	resume_passives()

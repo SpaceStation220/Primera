@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, Icon, NoticeBox, NumberInput, ProgressBar, Section, Stack, Tabs } from 'tgui-core/components';
+import { Box, Button, Icon, Input, NoticeBox, NumberInput, ProgressBar, Section, Stack, Tabs } from 'tgui-core/components';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
@@ -27,6 +27,10 @@ type Data = {
   code: number;
   minFrequency: number;
   maxFrequency: number;
+  temperature?: number;
+  spoof_name?: string;
+  spoof_job?: string;
+  stunned?: boolean;
 };
 
 export const IpcOS = () => {
@@ -47,6 +51,7 @@ export const IpcOS = () => {
             </Stack.Item>
             <Stack.Item>Заряд: {data.charge}%</Stack.Item>
           </Stack>
+          {data.temperature !== undefined && <Box mt={1}>Температура тела: {data.temperature} °C</Box>}
         </Section>
         <Tabs>
           <Tabs.Tab selected={tab === 'desktop'} icon="desktop" onClick={() => setTab('desktop')}>
@@ -96,6 +101,19 @@ export const IpcOS = () => {
                       </Button>
                     )}
                     {program.passive && <Box color="label">Работает автоматически при включённой ОС.</Box>}
+                    {program.id === 'neural_crack' && (
+                      <Box mt={1}>
+                        <Button icon="bolt" disabled={!data.stunned} onClick={() => act('neural_crack')}>Снять stun</Button>
+                        <Box color="label">Во время стана используйте отдельную кнопку NeuralCrack в HUD.</Box>
+                      </Box>
+                    )}
+                    {program.id === 'id_spoof' && (
+                      <Section title="Отображаемая личность">
+                        <Box mb={1}>Имя <Input value={data.spoof_name ?? ''} onBlur={(value) => act('spoof_text', { field: 'name', value })} /></Box>
+                        <Box>Должность <Input value={data.spoof_job ?? ''} onBlur={(value) => act('spoof_text', { field: 'job', value })} /></Box>
+                        <Box mt={1} color="label">Только отображаемый текст. Реальные ID, доступы и должность не меняются.</Box>
+                      </Section>
+                    )}
                     {program.running && program.id === 'pda' && (
                       <Button icon="tablet" onClick={() => act('pda_open')}>Открыть КПК</Button>
                     )}
