@@ -15,6 +15,12 @@
 	can_smoothen_out = FALSE
 	/// Powers the existing brainmob while the core is outside a chassis; never creates a second personality.
 	var/obj/item/brain_processor/ipc_core/personal_processor
+	/// Installed software follows this existing personality core between compatible chassis.
+	var/datum/ipc_os/operating_system
+
+/obj/item/organ/brain/ipc/Initialize(mapload)
+	. = ..()
+	operating_system = new(src)
 
 /obj/item/organ/brain/ipc/can_insert_into(mob/living/carbon/receiver, special, movement_flags)
 	if(!ishuman(receiver))
@@ -29,8 +35,11 @@
 	return receiver.has_robotic_internal_organs(ORGAN_SLOT_BRAIN)
 
 /obj/item/organ/brain/ipc/Destroy()
+	// The organ parent's Destroy still calls on_mob_remove; keep the OS alive until then.
+	operating_system?.unbind()
 	release_processor()
-	return ..()
+	. = ..()
+	QDEL_NULL(operating_system)
 
 /// Ordinary and deep-rooted organic traumas do not apply to a positronic core; higher resilience retains its rules.
 /obj/item/organ/brain/ipc/can_gain_trauma(datum/brain_trauma/trauma, resilience, natural_gain = FALSE)
@@ -49,6 +58,11 @@
 	release_processor()
 	// Species changes can transfer existing traumas without consulting can_gain_trauma().
 	cure_all_traumas(TRAUMA_RESILIENCE_LOBOTOMY)
+	. = ..()
+	operating_system.bind(brain_owner)
+
+/obj/item/organ/brain/ipc/on_mob_remove(mob/living/carbon/brain_owner, special, movement_flags)
+	operating_system?.unbind()
 	return ..()
 
 /// Neural debugging can also repair ordinary deep-rooted errors left on older positronic cores.
