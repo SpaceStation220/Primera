@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, NoticeBox, ProgressBar, Section, Stack, Tabs } from 'tgui-core/components';
+import { Box, Button, Icon, NoticeBox, NumberInput, ProgressBar, Section, Stack, Tabs } from 'tgui-core/components';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
@@ -14,6 +14,7 @@ type Program = {
   installed: boolean;
   running: boolean;
   passive: boolean;
+  ready: boolean;
 };
 
 type Data = {
@@ -22,7 +23,10 @@ type Data = {
   capacity: number;
   charge: number;
   error?: string;
-  ready: boolean;
+  frequency: number;
+  code: number;
+  minFrequency: number;
+  maxFrequency: number;
 };
 
 export const IpcOS = () => {
@@ -32,8 +36,8 @@ export const IpcOS = () => {
   const installed = data.programs.filter((program) => program.installed);
   const program = installed.find((entry) => entry.id === selected);
   return (
-    <Window width={720} height={580}>
-      <Window.Content scrollable>
+    <Window width={720} height={580} theme="generic">
+      <Window.Content scrollable style={{ backgroundImage: 'none' }}>
         <Section title="Positronic OS">
           <Stack align="center">
             <Stack.Item grow>
@@ -60,11 +64,17 @@ export const IpcOS = () => {
               {installed.map((entry) => (
                 <Button
                   key={entry.id}
-                  icon={entry.icon}
+                  width="128px"
+                  height="82px"
+                  textAlign="center"
+                  verticalAlign="top"
+                  mr={1}
+                  mb={1}
                   selected={selected === entry.id}
                   onClick={() => setSelected(entry.id)}
                 >
-                  {entry.name}
+                  <Box mt={1} mb={0.5}><Icon name={entry.icon} size={2} /></Box>
+                  <Box>{entry.name}</Box>
                 </Button>
               ))}
             </Section>
@@ -75,7 +85,39 @@ export const IpcOS = () => {
               >
                 <Box mb={1}>{program.description}</Box>
                 <Box color="label">Занимает {program.size} GB.</Box>
-                {!data.ready && <NoticeBox>Исполнение программ пока недоступно.</NoticeBox>}
+                {program.ready ? (
+                  <>
+                    <Box my={1} color={program.running ? 'good' : 'label'}>
+                      {program.running ? 'Работает' : 'Остановлена'}
+                    </Box>
+                    {!program.passive && (
+                      <Button icon={program.running ? 'stop' : 'play'} onClick={() => act('toggle', { id: program.id })}>
+                        {program.running ? 'Остановить' : 'Запустить'}
+                      </Button>
+                    )}
+                    {program.passive && <Box color="label">Работает автоматически при включённой ОС.</Box>}
+                    {program.running && program.id === 'pda' && (
+                      <Button icon="tablet" onClick={() => act('pda_open')}>Открыть КПК</Button>
+                    )}
+                    {program.running && program.id === 'signal_boost' && (
+                      <Section title="Передатчик">
+                        <Stack align="center">
+                          <Stack.Item>Частота</Stack.Item>
+                          <Stack.Item>
+                            <NumberInput value={data.frequency} minValue={data.minFrequency} maxValue={data.maxFrequency} step={2} onChange={(value) => act('signal_freq', { value })} />
+                          </Stack.Item>
+                          <Stack.Item>Код</Stack.Item>
+                          <Stack.Item>
+                            <NumberInput value={data.code} minValue={1} maxValue={100} step={1} onChange={(value) => act('signal_code', { value })} />
+                          </Stack.Item>
+                          <Stack.Item>
+                            <Button icon="satellite-dish" onClick={() => act('signal_send')}>Передать</Button>
+                          </Stack.Item>
+                        </Stack>
+                      </Section>
+                    )}
+                  </>
+                ) : <NoticeBox>Программа пока недоступна.</NoticeBox>}
               </Section>
             )}
           </>

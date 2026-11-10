@@ -21,8 +21,9 @@
 		var/datum/ipc_os_program/program = programs[id]
 		if(!program.available())
 			continue
-		catalog += list(list("id" = id, "name" = program.name, "description" = program.description, "icon" = program.icon, "size" = program.size, "illegal" = program.illegal, "installed" = program.installed, "running" = program.running, "passive" = program.passive))
-	return list("programs" = catalog, "used" = used_storage(), "capacity" = capacity(), "charge" = round(100 * host.nutrition / NUTRITION_LEVEL_FULL, 0.1), "error" = error_message, "ready" = FALSE)
+		catalog += list(list("id" = id, "name" = program.name, "description" = program.description, "icon" = program.icon, "size" = program.size, "illegal" = program.illegal, "installed" = program.installed, "running" = program.running, "passive" = program.passive, "ready" = program.ready))
+	var/datum/ipc_os_program/signal_boost/signaler = programs["signal_boost"]
+	return list("programs" = catalog, "used" = used_storage(), "capacity" = capacity(), "charge" = round(100 * host.nutrition / NUTRITION_LEVEL_FULL, 0.1), "error" = error_message, "frequency" = signaler.frequency, "code" = signaler.code, "minFrequency" = MIN_FREE_FREQ, "maxFrequency" = MAX_FREE_FREQ)
 
 /datum/ipc_os/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()
@@ -36,4 +37,21 @@
 			install(params["id"])
 		if("uninstall")
 			uninstall(params["id"])
+		if("toggle")
+			if(!istext(params["id"]))
+				return FALSE
+			var/datum/ipc_os_program/program = programs[params["id"]]
+			if(!program?.installed || program.passive || !program.ready)
+				return FALSE
+			if(program.running)
+				program.stop()
+			else if(!program.start())
+				error_message = "Программа не может быть запущена."
+		if("signal_freq", "signal_code", "signal_send")
+			var/datum/ipc_os_program/signal_boost/signaler = programs["signal_boost"]
+			signaler.command(action, params)
+		if("pda_open")
+			var/datum/ipc_os_program/pda/pda = programs["pda"]
+			if(pda.running)
+				pda.device.ui_interact(ui.user)
 	return TRUE

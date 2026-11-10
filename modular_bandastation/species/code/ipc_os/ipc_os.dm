@@ -57,11 +57,18 @@
 
 /// Physical validity is separate from player presence so fixtures can verify the same boundary.
 /datum/ipc_os/proc/is_operational()
-	return !QDELETED(core) && !QDELETED(host) && core.owner == host && is_species(host, /datum/species/ipc) && host.stat != DEAD && !(core.organ_flags & (ORGAN_FAILING|ORGAN_EMP))
+	return !QDELETED(core) && !QDELETED(host) && core.owner == host && is_species(host, /datum/species/ipc) && host.stat != DEAD && !(core.organ_flags & (ORGAN_FAILING|ORGAN_EMP)) && working_battery()
+
+/// Reuse the one nutrition-backed microbattery, including its existing failure semantics.
+/datum/ipc_os/proc/working_battery()
+	var/obj/item/organ/heart/ipc/battery = host?.get_organ_slot(ORGAN_SLOT_HEART)
+	if(!istype(battery) || (battery.organ_flags & (ORGAN_FAILING|ORGAN_EMP)) || host.nutrition <= 0)
+		return null
+	return battery
 
 /// All UI commands must pass this check, independently of disabled frontend buttons.
 /datum/ipc_os/proc/can_use(mob/user)
-	return user == host && is_operational() && !IS_UNCONSCIOUS_OR_CRIT(host) && host.client
+	return user == host && is_operational() && !IS_UNCONSCIOUS_OR_CRIT(host) && !host.incapacitated && host.client
 
 /// Installed space is derived from trusted catalog sizes; running state never affects it.
 /datum/ipc_os/proc/used_storage()
@@ -109,6 +116,7 @@
 	if(!program?.installed)
 		return FALSE
 	program.stop()
+	program.on_uninstall()
 	program.installed = FALSE
 	return TRUE
 
@@ -132,6 +140,7 @@
 	if(!is_operational() || !host.client)
 		stop_all()
 		return
+	resume_passives()
 	for(var/id in programs)
 		var/datum/ipc_os_program/program = programs[id]
 		if(program.running)
@@ -193,6 +202,8 @@
 	var/limited = FALSE
 	/// Installed passives activate on boot.
 	var/passive = FALSE
+	/// Incremental implementations cannot advertise nonfunctional controls.
+	var/ready = FALSE
 	/// Storage and execution are distinct states.
 	var/installed = FALSE
 	/// Whether effects are currently applied.
@@ -215,7 +226,7 @@
 
 /// All activation paths recheck installation and physical validity.
 /datum/ipc_os_program/proc/start()
-	if(running || !installed || !available() || !os.is_operational())
+	if(running || !installed || !ready || !available() || !os.is_operational())
 		return FALSE
 	running = TRUE
 	return TRUE
@@ -223,6 +234,10 @@
 /// Subtypes remove only effects they own.
 /datum/ipc_os_program/proc/stop()
 	running = FALSE
+
+/// Some applications retain local data while stopped, but release it on removal.
+/datum/ipc_os_program/proc/on_uninstall()
+	return
 
 /// Life intervals are elapsed seconds, not an assumed subsystem tick frequency.
 /datum/ipc_os_program/proc/tick(seconds_per_tick)
@@ -235,6 +250,7 @@
 	icon = "battery-half"
 	size = 9
 	passive = TRUE
+	ready = TRUE
 
 /datum/ipc_os_program/signal_boost
 	id = "signal_boost"
@@ -242,6 +258,7 @@
 	description = "Встроенный сигналлер: отправка по частоте и коду."
 	icon = "satellite-dish"
 	size = 5
+	ready = TRUE
 
 /datum/ipc_os_program/defrag
 	id = "defrag"
@@ -249,6 +266,7 @@
 	description = "Восстанавливает 2 brute каждые 15 секунд; базовый расход питания +20%."
 	icon = "screwdriver-wrench"
 	size = 10
+	ready = TRUE
 
 /datum/ipc_os_program/firewall
 	id = "firewall"
@@ -257,6 +275,7 @@
 	icon = "shield-halved"
 	size = 6
 	passive = TRUE
+	ready = TRUE
 
 /datum/ipc_os_program/pda
 	id = "pda"
@@ -264,6 +283,7 @@
 	description = "Встроенный КПК: сообщения, заметки и манифест."
 	icon = "tablet"
 	size = 7
+	ready = TRUE
 
 /datum/ipc_os_program/virus_kit
 	id = "virus_kit"

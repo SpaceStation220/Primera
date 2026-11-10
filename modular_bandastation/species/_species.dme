@@ -9,6 +9,8 @@
 #include "code/human/species_type/ipc.dm"
 #include "code/ipc_os/ipc_os.dm"
 #include "code/ipc_os/ipc_os_ui.dm"
+#include "code/ipc_os/ipc_os_programs.dm"
+#include "code/ipc_os/ipc_os_pda.dm"
 #include "code/human/species_type/skrell.dm"
 #include "code/human/species_type/tajaran.dm"
 #include "code/human/species_type/vulpkanin.dm"

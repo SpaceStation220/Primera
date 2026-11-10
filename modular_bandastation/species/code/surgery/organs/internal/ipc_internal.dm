@@ -189,7 +189,9 @@
 	// Paradise does not punish disconnected players for running out of power.
 	if(!owner.client)
 		return
-	adjust_charge(-HUNGER_FACTOR * seconds_per_tick)
+	var/obj/item/organ/brain/ipc/core = owner.get_organ_slot(ORGAN_SLOT_BRAIN)
+	var/power_multiplier = istype(core) ? core.operating_system.power_multiplier() : 1
+	adjust_charge(-HUNGER_FACTOR * seconds_per_tick * power_multiplier)
 	if(owner.nutrition >= IPC_CRITICAL_CHARGE)
 		return
 	if(SPT_PROB(3, seconds_per_tick))
