@@ -40,6 +40,10 @@
 	min_pop = 3
 	max_antag_cap = list("denominator" = 24)
 
+/// Fills roundstart traitor slots using the shared subscription priority.
+/datum/dynamic_ruleset/roundstart/traitor/get_priority_candidates(list/mob/weighted_candidates)
+	return get_subscription_priority_candidates(weighted_candidates)
+
 /datum/dynamic_ruleset/roundstart/traitor/assign_role(datum/mind/candidate)
 	candidate.add_antag_datum(/datum/antagonist/traitor)
 
@@ -94,6 +98,10 @@
 	weight = 3
 	min_pop = 15
 	max_antag_cap = list("denominator" = 29)
+
+/// Prioritizes tiers 5 and 4; tiers 0 through 3 share the ordinary draw pool.
+/datum/dynamic_ruleset/roundstart/changeling/get_priority_candidates(list/mob/weighted_candidates)
+	return get_subscription_priority_candidates(weighted_candidates, minimum_tier = DONATOR_TIER_4)
 
 /datum/dynamic_ruleset/roundstart/changeling/assign_role(datum/mind/candidate)
 	candidate.add_antag_datum(/datum/antagonist/changeling)

@@ -307,8 +307,17 @@
 		return list()
 
 	if(!CONFIG_GET(flag/antag_weighted_selection))
-		// Fallback to old random selection
-		var/list/resulting_candidates = shuffle(valid_candidates)
+		var/list/mob/resulting_candidates = shuffle(valid_candidates)
+		var/list/mob/priority_candidates = get_priority_candidates(resulting_candidates)
+		if(!isnull(priority_candidates))
+			var/list/mob/remaining_candidates = resulting_candidates
+			resulting_candidates = list()
+			// Preserve the native shuffled order within each subscription group.
+			while(length(resulting_candidates) < num_candidates && length(priority_candidates))
+				var/mob/picked = priority_candidates[1]
+				resulting_candidates += picked
+				remaining_candidates -= picked
+				priority_candidates = get_priority_candidates(remaining_candidates)
 		if(length(resulting_candidates) <= num_candidates)
 			return resulting_candidates
 		resulting_candidates.Cut(num_candidates + 1)
@@ -331,12 +340,54 @@
 	for(var/i in 1 to min(num_candidates, length(weighted_candidates)))
 		if(!length(weighted_candidates))
 			break
-		var/mob/picked = pick_weight(weighted_candidates)
+		var/list/mob/priority_candidates = get_priority_candidates(weighted_candidates)
+		if(isnull(priority_candidates))
+			priority_candidates = weighted_candidates
+		if(!length(priority_candidates))
+			break
+		var/mob/picked = pick_weight(priority_candidates)
 		resulting_candidates += picked
 		weighted_candidates -= picked
 
 	return resulting_candidates
 	// BANDASTATION EDIT END
+
+/**
+ * Returns a restricted candidate pool, or null to keep native selection.
+ * Overrides preserve candidate order and weights so the same pool works with either selection mode.
+ */
+/datum/dynamic_ruleset/proc/get_priority_candidates(list/mob/weighted_candidates)
+	PROTECTED_PROC(TRUE)
+	return null
+
+/**
+ * Returns the highest available subscription tier at or above minimum_tier, otherwise the ordinary pool.
+ * Preserves positive selection weights and uses SS Central data rather than host or localhost perks.
+ * A group with no positive weights uses equal weights so history cannot block its priority.
+ */
+/datum/dynamic_ruleset/proc/get_subscription_priority_candidates(list/mob/weighted_candidates, minimum_tier = DONATOR_TIER_3)
+	PROTECTED_PROC(TRUE)
+	var/list/mob/priority_candidates = list()
+	var/highest_tier = BASIC_DONATOR_LEVEL
+	for(var/mob/candidate as anything in weighted_candidates)
+		var/client/candidate_client = GET_CLIENT(candidate)
+		if(!candidate_client)
+			continue
+		var/donation_tier = min(candidate_client.donator_level, DONATOR_TIER_5)
+		if(donation_tier < minimum_tier)
+			donation_tier = BASIC_DONATOR_LEVEL
+		if(donation_tier > highest_tier)
+			priority_candidates.Cut()
+			highest_tier = donation_tier
+		if(donation_tier == highest_tier)
+			priority_candidates[candidate] = weighted_candidates[candidate]
+	var/total_weight = 0
+	for(var/mob/candidate as anything in priority_candidates)
+		total_weight += priority_candidates[candidate]
+	if(!total_weight)
+		for(var/mob/candidate as anything in priority_candidates)
+			priority_candidates[candidate] = 1
+	return priority_candidates
 
 /// Handles loading map templates that this ruleset requires
 /datum/dynamic_ruleset/proc/load_templates()

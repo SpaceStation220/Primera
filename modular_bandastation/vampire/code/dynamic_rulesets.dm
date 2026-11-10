@@ -8,6 +8,10 @@
 	max_antag_cap = list("denominator" = 24)
 	blacklisted_roles = list(JOB_CHAPLAIN, JOB_HEAD_OF_PERSONNEL)
 
+/// Reserves the first draws for tier 5; tiers 0 through 4 share the ordinary pool.
+/datum/dynamic_ruleset/roundstart/vampire/get_priority_candidates(list/mob/weighted_candidates)
+	return get_subscription_priority_candidates(weighted_candidates, minimum_tier = DONATOR_TIER_5)
+
 // Only "normal" blood species are allowed to be vampires
 /datum/dynamic_ruleset/roundstart/vampire/is_valid_candidate(mob/candidate, client/candidate_client)
 	. = ..()

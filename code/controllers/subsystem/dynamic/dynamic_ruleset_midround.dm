@@ -714,6 +714,10 @@
 	max_antag_cap = 1
 	signup_atom_appearance = /obj/effect/meteor/meaty/changeling
 
+/// Applies the tier-4 threshold to willing ghost candidates, including the inherited mass event.
+/datum/dynamic_ruleset/midround/from_ghosts/space_changeling/get_priority_candidates(list/mob/weighted_candidates)
+	return get_subscription_priority_candidates(weighted_candidates, minimum_tier = DONATOR_TIER_4)
+
 /datum/dynamic_ruleset/midround/from_ghosts/space_changeling/create_ruleset_body()
 	return // handled by generate_changeling_meteor() entirely
 
@@ -1159,6 +1163,10 @@
 	blacklisted_roles = list(
 		JOB_HEAD_OF_PERSONNEL,
 	)
+
+/// Applies the same subscription priority to sleeper agents and the inherited mass-traitor event.
+/datum/dynamic_ruleset/midround/from_living/traitor/get_priority_candidates(list/mob/weighted_candidates)
+	return get_subscription_priority_candidates(weighted_candidates)
 
 /datum/dynamic_ruleset/midround/from_living/traitor/assign_role(datum/mind/candidate)
 	candidate.add_antag_datum(/datum/antagonist/traitor)
