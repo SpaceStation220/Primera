@@ -385,6 +385,7 @@ export function JobsPage() {
                 <Department department="Security" />
                 <Department department="Justice" />
                 <Department department="Medical" />
+                <Department department="Expeditionary Corps" />
               </Stack>
             </Stack.Item>
           </Stack>

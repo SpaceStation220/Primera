@@ -1,0 +1,71 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_15.dmm
+"a" = (
+/turf/template_noop,
+/area/template_noop)
+"b" = (
+/obj/effect/spawner/random/expedition_arid/shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"G" = (
+/obj/effect/spawner/random/expedition_arid/cactus,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"Q" = (
+/obj/effect/spawner/random/expedition_arid/fauna,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"U" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"V" = (
+/turf/open/water/expedition_arid,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+a
+a
+U
+a
+"}
+(2,1,1) = {"
+a
+U
+G
+a
+"}
+(3,1,1) = {"
+b
+V
+U
+Q
+"}
+(4,1,1) = {"
+a
+V
+V
+b
+"}
+(5,1,1) = {"
+b
+V
+U
+U
+"}
+(6,1,1) = {"
+Q
+U
+V
+b
+"}
+(7,1,1) = {"
+a
+G
+V
+U
+"}
+(8,1,1) = {"
+a
+V
+b
+a
+"}

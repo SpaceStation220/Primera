@@ -1,0 +1,51 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_5.dmm
+"a" = (
+/turf/template_noop,
+/area/template_noop)
+"i" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"o" = (
+/obj/effect/spawner/random/expedition_arid/shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"s" = (
+/turf/open/water/expedition_arid,
+/area/expedition_planet/barren)
+"M" = (
+/obj/effect/spawner/random/expedition_arid/cactus,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"Q" = (
+/obj/effect/spawner/random/expedition_arid/fauna,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+a
+a
+i
+a
+a
+"}
+(2,1,1) = {"
+a
+o
+Q
+i
+i
+"}
+(3,1,1) = {"
+i
+o
+s
+M
+a
+"}
+(4,1,1) = {"
+a
+i
+o
+o
+a
+"}

@@ -311,6 +311,21 @@
 #include "organs.dm"
 #include "orphaned_genturf.dm"
 #include "outfit_sanity.dm"
+#include "overmap_docking.dm"
+#include "overmap_generator.dm"
+#include "overmap_standard_dock.dm"
+#include "overmap_propulsion.dm"
+#include "overmap_plasma.dm"
+#include "overmap_planet_help.dm"
+#include "overmap_surface_dock.dm"
+#include "overmap_ship_core.dm"
+#include "overmap_carrier.dm"
+#include "overmap_carrier_multideck.dm"
+#include "overmap_passage.dm"
+#include "overmap_planet.dm"
+#include "overmap_power.dm"
+#include "overmap_ship_docking.dm"
+#include "trade_hub.dm"
 #include "oxyloss_suffocation.dm"
 #include "paintings.dm"
 #include "pills.dm"
@@ -499,6 +514,8 @@
 #include "../../../modular_bandastation/terror_spiders/tests/terror_spiders.dm"
 
 #include "../../../modular_bandastation/dynamic/code/antag_tokens_tests.dm"
+
+#include "../../../modular_bandastation/explorers/code/tests.dm"
 
 #undef TEST_ASSERT
 #undef TEST_ASSERT_EQUAL

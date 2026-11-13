@@ -1,0 +1,219 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_10.dmm
+"c" = (
+/obj/structure/frame/machine,
+/obj/machinery/light/small/broken/directional/north,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"d" = (
+/obj/item/stack/ore/iron{
+	amount = 5
+	},
+/obj/effect/decal/cleanable/blood/oil,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"e" = (
+/obj/structure/frame/machine,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"f" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"h" = (
+/obj/effect/decal/cleanable/plasma,
+/obj/effect/decal/cleanable/blood/gibs/robot_debris/up,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"l" = (
+/turf/closed/wall/rust,
+/area/expedition_planet/barren)
+"m" = (
+/obj/structure/closet/crate/miningcar,
+/obj/item/stack/ore/iron{
+	amount = 35
+	},
+/obj/item/stack/ore/gold{
+	amount = 12
+	},
+/obj/item/stack/ore/glass{
+	amount = 20
+	},
+/obj/item/stack/ore/silver{
+	amount = 10
+	},
+/obj/item/stack/ore/diamond{
+	amount = 5
+	},
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"p" = (
+/obj/item/storage/bag/ore,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"q" = (
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"r" = (
+/obj/effect/decal/cleanable/glass,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"s" = (
+/obj/structure/girder,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"t" = (
+/turf/template_noop,
+/area/template_noop)
+"v" = (
+/obj/effect/decal/cleanable/plasma,
+/obj/effect/decal/cleanable/ash/large,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"y" = (
+/obj/item/stack/ore/iron{
+	amount = 5
+	},
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"z" = (
+/obj/item/stack/ore/iron{
+	amount = 5
+	},
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"A" = (
+/obj/item/stack/ore/iron{
+	amount = 5
+	},
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"C" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"F" = (
+/obj/structure/frame/computer,
+/obj/effect/decal/cleanable/glass,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"J" = (
+/obj/machinery/conveyor{
+	dir = 4
+	},
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"K" = (
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"L" = (
+/obj/effect/decal/cleanable/glass,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"M" = (
+/obj/effect/decal/cleanable/plasma,
+/obj/effect/decal/cleanable/ash/large,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"S" = (
+/obj/effect/decal/cleanable/plasma,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/obj/effect/decal/cleanable/dirt/dust,
+/mob/living/basic/mining/wolf,
+/turf/open/floor/plating/rust,
+/area/expedition_planet/barren)
+"U" = (
+/obj/structure/girder,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"X" = (
+/obj/structure/closet/crate/wooden,
+/obj/item/pickaxe,
+/obj/item/pickaxe,
+/obj/item/pickaxe,
+/obj/item/clothing/glasses/meson,
+/obj/effect/decal/cleanable/dirt/dust,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+C
+C
+s
+l
+l
+C
+C
+"}
+(2,1,1) = {"
+C
+l
+m
+h
+A
+X
+C
+"}
+(3,1,1) = {"
+C
+l
+c
+K
+p
+M
+t
+"}
+(4,1,1) = {"
+t
+y
+J
+d
+S
+K
+t
+"}
+(5,1,1) = {"
+C
+U
+e
+F
+r
+q
+t
+"}
+(6,1,1) = {"
+t
+l
+z
+L
+f
+v
+C
+"}
+(7,1,1) = {"
+C
+l
+l
+s
+l
+C
+C
+"}
+(8,1,1) = {"
+C
+C
+t
+C
+C
+C
+t
+"}
