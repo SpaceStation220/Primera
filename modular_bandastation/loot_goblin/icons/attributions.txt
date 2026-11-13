@@ -1,0 +1,22 @@
+bodyparts.dmi, goblin_ears.dmi, goblin_nose.dmi
+Source: Monkestation2.0, icons/mob/human/species/goblin/
+https://github.com/Monkestation/Monkestation2.0/tree/688ed2b4579a7fb48863e38d6190c987aa7b23b1/icons/mob/human/species/goblin
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/)
+Changes: recolored in code to dark green.
+
+cauldron.dmi, lair.dmi, ritual.dmi, ledger.dmi, trap.dmi, icons/mob/effects/loot_goblin_aura.dmi
+Author: SabrioBiblio, created with the AI image generator PixelLab (https://www.pixellab.ai)
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/)
+Changes: packed into DMI, padded to 32x32.
+
+../sound/goblin_laugh.ogg
+Source: "SmallCreature2_15" by Little Robot Sound Factory (www.littlerobotsoundfactory.com)
+https://freesound.org/people/LittleRobotSoundFactory/sounds/316532/
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+Changes: renamed.
+
+../sound/goblin_stinger.ogg
+Source: "evil laugh 8" by nanakisan
+https://freesound.org/people/nanakisan/sounds/253532/
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+Changes: renamed.
