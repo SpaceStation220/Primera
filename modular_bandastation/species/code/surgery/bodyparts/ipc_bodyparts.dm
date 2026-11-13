@@ -116,7 +116,7 @@
 
 /obj/item/bodypart/chest/robot/ipc/generate_icon_key()
 	. = ..()
-	. += species_color
+	. += list(species_color, icon_static)
 
 /obj/item/bodypart/chest/robot/ipc/get_limb_icon(dropped)
 	. = ..()
@@ -142,7 +142,7 @@
 
 /obj/item/bodypart/arm/left/robot/ipc/generate_icon_key()
 	. = ..()
-	. += species_color
+	. += list(species_color, icon_static)
 
 /obj/item/bodypart/arm/left/robot/ipc/get_limb_icon(dropped)
 	. = ..()
@@ -168,7 +168,7 @@
 
 /obj/item/bodypart/arm/right/robot/ipc/generate_icon_key()
 	. = ..()
-	. += species_color
+	. += list(species_color, icon_static)
 
 /obj/item/bodypart/arm/right/robot/ipc/get_limb_icon(dropped)
 	. = ..()
@@ -194,7 +194,7 @@
 
 /obj/item/bodypart/leg/left/robot/ipc/generate_icon_key()
 	. = ..()
-	. += species_color
+	. += list(species_color, icon_static)
 
 /obj/item/bodypart/leg/left/robot/ipc/get_limb_icon(dropped)
 	. = ..()
@@ -220,7 +220,7 @@
 
 /obj/item/bodypart/leg/right/robot/ipc/generate_icon_key()
 	. = ..()
-	. += species_color
+	. += list(species_color, icon_static)
 
 /obj/item/bodypart/leg/right/robot/ipc/get_limb_icon(dropped)
 	. = ..()

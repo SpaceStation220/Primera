@@ -1,0 +1,33 @@
+cosmetic_extremities.dmi
+
+Hand and foot sprites for Bishop Cybernetics, Hephaestus Industries, Morpheus,
+Xion, Ward-Takahashi, Zeng-Hu, Shellguard, Etamin Industry, and Cybersun
+Industries are from ParadiseSS13/Paradise and ss220club/Paradise-SS220 contributors.
+Source revision: 0fffca1f1f29a63aff49d9b56524813eedf82c6d.
+License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0).
+https://creativecommons.org/licenses/by-sa/3.0/
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/README.md#licenses
+
+Original files (history and individual contributions at each URL):
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/icons/mob/human_races/cyberlimbs/bishop/bishop_main.dmi
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/icons/mob/human_races/cyberlimbs/hephaestus/hephaestus_main.dmi
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/icons/mob/human_races/cyberlimbs/morpheus/morpheus_main.dmi
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/icons/mob/human_races/cyberlimbs/xion/xion_main.dmi
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/icons/mob/human_races/cyberlimbs/wardtakahashi/wardtakahashi_main.dmi
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/icons/mob/human_races/cyberlimbs/zenghu/zenghu_main.dmi
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/icons/mob/human_races/cyberlimbs/shellguard/shellguard_main.dmi
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/modular_ss220/robolimbs/icons/etaminindustry_main.dmi
+https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813eedf82c6d/modular_ss220/robolimbs/icons/cybersun_main.dmi
+
+Changes: selected the independent hand and foot states and fitted them to the
+PrimeDream human silhouette in all four directions. Where a side view omits the
+far hand, it uses a mirrored frame from the same hand. Narrow donor frames were
+fitted using only colors from the source sprites. The leg bases derive from
+icons/mob/human/bodyparts_greyscale.dmi in this repository, with the foot pixels
+removed so each prosthetic foot can be drawn separately.
+
+ipc_cosmetic_extremities.dmi uses the same nine original Paradise files listed
+above. Original hand frames are retained in all four directions. Feet retain
+their native horizontal profiles and palette, with their heights fitted to
+rows 29-31 for the common IPC ankle. The top ankle row is bridged with the
+original edge colors where needed to join all supported chassis.

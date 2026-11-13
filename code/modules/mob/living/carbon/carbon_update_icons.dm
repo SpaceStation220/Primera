@@ -446,6 +446,8 @@
 		. += limb_gender
 	. += limb_id
 	. += body_zone
+	if(cosmetic_extremity_style)
+		. += cosmetic_extremity_style
 	if(should_draw_greyscale && draw_color)
 		. += draw_color
 	if(is_invisible)
