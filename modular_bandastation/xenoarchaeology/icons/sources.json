@@ -1,0 +1,338 @@
+[
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/base/ore_visuals.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/ore_visuals.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "a9754f4bac312ef78c38765b436e2966fa3822da",
+    "sha256": "83b8491392e59161618ab22f1623aa7669c8979cc30fa6bf9e31e878605bdcff",
+    "bytes": 445
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/base/xenoarch_items.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/xenoarch_items.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "99d8b2bf76b1abd3bf10f02d8eba93038ebb5f2a",
+    "sha256": "5bcbb4766090ff177557b7056593ca2d7d354b99649ffbca8d2df3dbe85c4935",
+    "bytes": 11058
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/base/xenoarch_machines.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/xenoarch_machines.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "f3183bec26eea97a95b138c22ae4e917223a76a6",
+    "sha256": "17c69de6dd95bf13a0669ebd900f5ebbc317278288ccab5383d23098fbbf3684",
+    "bytes": 1040
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/artifacts.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/artifacts.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "0d2bd2eb4294a635aeae78d0cd6ae0e2b9f63773",
+    "sha256": "732f4d1cf40b9e11b79aac6b92f5d30adf85aa4b9f6d4dd5e0ae1517be8e43cf",
+    "bytes": 39270
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/artifacts_64x32.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/artifacts_64x32.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "ebc694e87aa6325d6ae1e9fdb3a14c5663b5d5f2",
+    "sha256": "f26f2654c39165a9643f299795ea240a62d193eea2c98f90379b43c6596bc379",
+    "bytes": 19428
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/coop_mech.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/coop_mech.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "14a8fac9fd77b64ba4e2f68b3726bb5c373f690e",
+    "sha256": "2b18e519ae8bdb33f19f0018b4f07e790bcbe2ab736ba3e386f1df2d37eac2a1",
+    "bytes": 9887
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/machinery.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/machinery.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "a93aa7adc46c55c61b839a8b9b40ade231f002ce",
+    "sha256": "311f4aaa6fe0b4c33c70d30503527e563bbb9b9fc7d8366ff1b6cfdb5b3396e7",
+    "bytes": 24455
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/mecha.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/mecha.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "47695fe67a22980904dc30d53c2b229dc8d1e62c",
+    "sha256": "ef6f8484b1e6eee6c1f4ce959c304ba113c885db6535d9fb8ab4fc961bd5e144",
+    "bytes": 5054
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/mining.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/mining.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "3c71f023d56407ac66d6858fc0e23edc608f157f",
+    "sha256": "f0697dcb4df9f3b39e74c1308034d3364410460cdafccc1e0bf51f81e0ddd93f",
+    "bytes": 981
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/tools.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/tools.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "9c1a39eea983ab29eeb428f2ccad384691990156",
+    "sha256": "718f7dd31d1f7761af9b5c4adff778865aa568e2eb2650beaa22a2ebe33f0c13",
+    "bytes": 5742
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/artifacts/worn.dmi",
+    "source": "modular_nova/modules/xenoarchartifacts/icons/worn.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "c3640cf66115807a550d9b1aa5730399d9042353",
+    "sha256": "8e1b63a2784a3e7d27e1a1a4cc9e46c069eb774ae666f9b4b18a2d0ec9c4a80c",
+    "bytes": 1656
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/plants/growing.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/growing.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "4bab24c4fc374afb3073a7430c73b1e6f6cd51d7",
+    "sha256": "353ed58562ce899c1d655ce097baaa2707bb933719f52a91d4ca7a21b2a85326",
+    "bytes": 16266
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/plants/harvest.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/harvest.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "1bdf1e3ea825bf25027116de0df8260a45e0f8da",
+    "sha256": "b90082c9487129da0c53ede00fb057f1689ea0955f9b37326d2520e8ca4ec8b7",
+    "bytes": 4749
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/plants/seeds.dmi",
+    "source": "modular_nova/modules/xenoarch/icons/seeds.dmi",
+    "revision": "3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9",
+    "git_blob": "e1aa7739f73608000d84915f420cd672af3356ae",
+    "sha256": "809b69e70e45f3fb32ca5c879c1b042a143422a19ffef44721d544bcd35ed76b",
+    "bytes": 2600
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/anomaly_cage.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "source": "icons/obj/machines/research/anomaly_cage.dmi",
+    "revision": "4fec779a418a9ffdb57bf6f98107be053f085113",
+    "git_blob": "4268ec6f40064f502926369516b7d69ebe019922",
+    "sha256": "7bc5ab6abe77b3196d1acf68d8c6a1b0ba9f5286121d4185d0dad74fb37e6d33",
+    "bytes": 1671
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/xenoarchaeology_finds.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "source": "icons/obj/xenoarchaeology_finds.dmi",
+    "revision": "4fec779a418a9ffdb57bf6f98107be053f085113",
+    "git_blob": "03c2d3a6f4329b806b3c8b287867e7852f05ceaa",
+    "sha256": "8c7ef65830b23a0d4079acbee81705f16375548b1adf4bbe77abc9a6a2225596",
+    "bytes": 69953
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/clothing/heads.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "4fec779a418a9ffdb57bf6f98107be053f085113",
+    "transformation": "Extracted listed DMI states; unchanged pixels, directions, animation frames and state metadata.",
+    "sources": [
+      {
+        "source": "icons/obj/clothing/obj_head.dmi",
+        "states": [
+          "rig0-excavation",
+          "bio_anom_hood"
+        ],
+        "git_blob": "218655ee901668bb51543554a412ad03f656f190",
+        "sha256": "0db3a30e2f439e4d3b16bcec6a2709350099971613eb27c3dfe18f6616a0c998"
+      }
+    ],
+    "sha256": "a3e5ef47866a6bf43cc1dd001685b172f8b3cfd73bfa8de1f5aa8e5ae03d2a62",
+    "bytes": 868
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/clothing/suits.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "4fec779a418a9ffdb57bf6f98107be053f085113",
+    "transformation": "Extracted listed DMI states; unchanged pixels, directions, animation frames and state metadata.",
+    "sources": [
+      {
+        "source": "icons/obj/clothing/obj_suit.dmi",
+        "states": [
+          "rig-excavation",
+          "bio_anom"
+        ],
+        "git_blob": "403d586035f435642c52ece408da0c52b66a4973",
+        "sha256": "515d6de6fcb3f8041c580bf10ae5d69e69cd8175e00aa96692b441f6267fd960"
+      }
+    ],
+    "sha256": "19b365cd1c1ba7805d749bf43e2b476159cdfd75121e6132c991e4c8b9f99bf2",
+    "bytes": 1238
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/clothing/heads_worn.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "4fec779a418a9ffdb57bf6f98107be053f085113",
+    "transformation": "Extracted listed DMI states; unchanged pixels, directions, animation frames and state metadata.",
+    "sources": [
+      {
+        "source": "icons/mob/onmob/onmob_head.dmi",
+        "states": [
+          "excavation-helm",
+          "bio_anom_hood"
+        ],
+        "git_blob": "d6cc9ad8121b6ce7b72fa378d8e1e9fcadba3732",
+        "sha256": "7da48b495ba2499284c6a8f58e8d277f8fb1a452c3a35f5282800ea38d32fb8f"
+      }
+    ],
+    "sha256": "09526d2275703a9bf94bfa3b8bd451c45082a8cb40cd65ce00197cc47b13452c",
+    "bytes": 1512
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/clothing/suits_worn.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "4fec779a418a9ffdb57bf6f98107be053f085113",
+    "transformation": "Extracted listed DMI states; unchanged pixels, directions, animation frames and state metadata.",
+    "sources": [
+      {
+        "source": "icons/mob/onmob/onmob_suit.dmi",
+        "states": [
+          "rig-excavation",
+          "bio_anom"
+        ],
+        "git_blob": "90a722f9cd924bb9daf41eeb80d1b9f536ed7b01",
+        "sha256": "f90cd6b0b6912ce23763c21a7ac97e78c0edecf38711ea01c068b7c6495eade9"
+      }
+    ],
+    "sha256": "266cbfd1ecbc7ee4300b83c5b06897a7907222adf197820a29d6dd1f67148527",
+    "bytes": 3071
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/clothing/lefthand.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "4fec779a418a9ffdb57bf6f98107be053f085113",
+    "transformation": "Extracted listed DMI states; unchanged pixels, directions, animation frames and state metadata.",
+    "sources": [
+      {
+        "source": "icons/mob/onmob/items/lefthand.dmi",
+        "states": [
+          "bio_anom"
+        ],
+        "git_blob": "2a4f5bab4a56af51a74977ea341be440a38e0a2d",
+        "sha256": "34ab9c89eef38f6d91013d6ec3a59d4cc34c2d7592f2c4205795feffe4c522b9"
+      },
+      {
+        "source": "icons/mob/onmob/items/lefthand_spacesuits.dmi",
+        "states": [
+          "excavation_voidsuit"
+        ],
+        "git_blob": "2411f534473f9fc7416fbac156d97f8bd109ee26",
+        "sha256": "ec4975f5989959ce27412c487d6b53feb664140cad07fb525a9058628f7bdecb"
+      },
+      {
+        "source": "icons/mob/onmob/items/lefthand_hats.dmi",
+        "states": [
+          "excavation_helm",
+          "bio_anom_hood"
+        ],
+        "git_blob": "d8241d623ba78c1d880c39f81d8f35622a40d089",
+        "sha256": "961bce7a82861faa054dd26cab75227674533f75c249694cc56434708894a71e"
+      }
+    ],
+    "sha256": "23192abc86baa9f19d8b17ceeff8efae6d2573e52f2f850bf0fa64730e31d5be",
+    "bytes": 1716
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/clothing/righthand.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "4fec779a418a9ffdb57bf6f98107be053f085113",
+    "transformation": "Extracted listed DMI states; unchanged pixels, directions, animation frames and state metadata.",
+    "sources": [
+      {
+        "source": "icons/mob/onmob/items/righthand.dmi",
+        "states": [
+          "bio_anom"
+        ],
+        "git_blob": "aa0bda8ee18fabea40f65f161431b802e6e145b8",
+        "sha256": "7641d73ce6ecebbb7eb2ece4a47fcaceb7430ebeb8e510ccbbf252a6e4af7e91"
+      },
+      {
+        "source": "icons/mob/onmob/items/righthand_spacesuits.dmi",
+        "states": [
+          "excavation_voidsuit"
+        ],
+        "git_blob": "9640ec709b3df09ce9c4d1a598b8854e1995fb68",
+        "sha256": "88bbf4162c41838bb1ff59e4a9b90b62f8a55ddbad2a1497f894b5bd03a1106f"
+      },
+      {
+        "source": "icons/mob/onmob/items/righthand_hats.dmi",
+        "states": [
+          "excavation_helm",
+          "bio_anom_hood"
+        ],
+        "git_blob": "32861462a98569e243f6b421a6b210810658f421",
+        "sha256": "ceb346525f9d95699ba202f2600bcde9095600d7c4116d91ca7a0a34a886da6c"
+      }
+    ],
+    "sha256": "6443bde183412835a6ca754769c4b601dcea3f782276d64a487787f1494975d9",
+    "bytes": 1682
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/landing_pad.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "6933413001fd189ae5f5230a60964c40c57daa23",
+    "source": "icons/obj/machines/landing_pad.dmi",
+    "git_blob": "0e949b8bf0990c85ab99dae55d83eaaf344dffcd",
+    "sha256": "7f30f3d9a06ccb34f084b24a13afa8b8e505d3af7574f3714514d4cf7b644d1a",
+    "bytes": 1485,
+    "transformation": "None; original DMI including all states and animation timings."
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/drone_control.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "6933413001fd189ae5f5230a60964c40c57daa23",
+    "source": "icons/obj/tools/drone_control.dmi",
+    "git_blob": "771a4418a0e84cec9e3e773a7cccbddc1309af3d",
+    "sha256": "84758e6be7e8606d1c8e5c00388dc9cf170b7f6f3e8c5347f6de9adefa994709",
+    "bytes": 739,
+    "transformation": "None; original DMI including all states and animation timings."
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/gigadrill.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "6933413001fd189ae5f5230a60964c40c57daa23",
+    "source": "icons/obj/gigadrill.dmi",
+    "git_blob": "c26ceae0d0de6ab7c8020122769728e989d29e69",
+    "sha256": "b9908f5a4200691d90189aefcbd7d8e69d6fafbea0f1cacded71ec5381063c31",
+    "bytes": 2340,
+    "transformation": "None; original DMI including all directions, states and animation timings."
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/syndicate_beacon.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "6933413001fd189ae5f5230a60964c40c57daa23",
+    "source": "icons/obj/structures/syndicate_beacon.dmi",
+    "git_blob": "92bd1520cfbd82efb8e3b0619388c5c5b8adb392",
+    "sha256": "2c0f4ec2027c0e9684b3933b7f43fbd4ead79b856002e84b448626363e9f6d26",
+    "bytes": 592,
+    "transformation": "None; original DMI including all directions, states and animation timings."
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/pylon.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "6933413001fd189ae5f5230a60964c40c57daa23",
+    "source": "icons/obj/structures/pylon.dmi",
+    "git_blob": "3fa40f4feb8bb0ed4b74f706abe2e54e47eacf7f",
+    "sha256": "c3ef06bf59375bd0e0ae3cea2622b38db4b7ab83120f8aed8798820c90519a3a",
+    "bytes": 2530,
+    "transformation": "None; original DMI including all directions, states and animation timings."
+  },
+  {
+    "local": "modular_bandastation/xenoarchaeology/icons/sierra/virology.dmi",
+    "repository": "SierraBay/SierraBay12",
+    "revision": "6933413001fd189ae5f5230a60964c40c57daa23",
+    "source": "icons/obj/machines/research/virology.dmi",
+    "git_blob": "5f8ff6cc466589a3d79cdc7baf8e88e599045fce",
+    "sha256": "7e66b9057c7bff9b2cf8c8ea4e27161bcb7111cb6718c4a2a6f67f8c469a12e0",
+    "bytes": 6657,
+    "transformation": "None; original DMI including analyser/analyser_processing states and all animation timings."
+  }
+]

@@ -1,0 +1,111 @@
+Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0).
+https://creativecommons.org/licenses/by-sa/3.0/
+
+Source project: NovaSector / Skyrat / upstream SS13 contributors.
+Source revision: 3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9
+Asset licensing statement:
+https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/README.md#license
+
+The xenoarch module credits Jake Park:
+https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/readme.md#credits
+The xenoarchartifacts directory and DMI metadata do not identify individual
+sprite artists. Attribution is retained at project/contributor level; Jake Park
+is credited for the module, not asserted to be the sole artist of these files.
+
+Changes for BandaStation: copied complete DMI files into this module and changed
+DM resource paths. File bytes, pixels, directions, frame timing and metadata are
+identical to the pinned source; no sprite was redrawn or recolored.
+The source paths, Git blob IDs and SHA-256 digests are recorded in sources.json.
+
+base/ore_visuals.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/ore_visuals.dmi
+base/xenoarch_items.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/xenoarch_items.dmi
+base/xenoarch_machines.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/xenoarch_machines.dmi
+artifacts/artifacts.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/artifacts.dmi
+artifacts/artifacts_64x32.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/artifacts_64x32.dmi
+artifacts/coop_mech.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/coop_mech.dmi
+artifacts/machinery.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/machinery.dmi
+artifacts/mecha.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/mecha.dmi
+artifacts/mining.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/mining.dmi
+artifacts/tools.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/tools.dmi
+artifacts/worn.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarchartifacts/icons/worn.dmi
+
+plants/growing.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/growing.dmi
+
+plants/harvest.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/harvest.dmi
+
+plants/seeds.dmi:
+  Source: https://github.com/NovaSector/NovaSector/blob/3b84ce0ba3e02ed031d714d642d84ddaa6f7e9b9/modular_nova/modules/xenoarch/icons/seeds.dmi
+
+SierraBay12 / Baystation12 contributors — container and fossil sprites.
+License: CC BY-SA 3.0, per SierraBay12 README (unless noted otherwise upstream).
+Revision: 4fec779a418a9ffdb57bf6f98107be053f085113
+modular_bandastation/xenoarchaeology/icons/sierra/anomaly_cage.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/4fec779a418a9ffdb57bf6f98107be053f085113/icons/obj/machines/research/anomaly_cage.dmi
+modular_bandastation/xenoarchaeology/icons/sierra/xenoarchaeology_finds.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/4fec779a418a9ffdb57bf6f98107be053f085113/icons/obj/xenoarchaeology_finds.dmi
+
+SierraBay12 / Baystation12 contributors — excavation and anomaly clothing.
+License: CC BY-SA 3.0, per SierraBay12 README (unless noted otherwise upstream).
+Revision: 4fec779a418a9ffdb57bf6f98107be053f085113
+Adaptation: only the listed DMI states were extracted into clothing/*.dmi.
+Pixels, directions, frame order, timing and state names are unchanged.
+The source states, Git blob IDs and source/output SHA-256 digests are recorded
+in sources.json. Unrelated clothing from the shared source sheets is omitted.
+clothing/heads.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/4fec779a418a9ffdb57bf6f98107be053f085113/icons/obj/clothing/obj_head.dmi
+clothing/suits.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/4fec779a418a9ffdb57bf6f98107be053f085113/icons/obj/clothing/obj_suit.dmi
+clothing/heads_worn.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/4fec779a418a9ffdb57bf6f98107be053f085113/icons/mob/onmob/onmob_head.dmi
+clothing/suits_worn.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/4fec779a418a9ffdb57bf6f98107be053f085113/icons/mob/onmob/onmob_suit.dmi
+clothing/lefthand.dmi:
+  Sources: icons/mob/onmob/items/lefthand.dmi, lefthand_spacesuits.dmi, lefthand_hats.dmi
+clothing/righthand.dmi:
+  Sources: icons/mob/onmob/items/righthand.dmi, righthand_spacesuits.dmi, righthand_hats.dmi
+  Repository: https://github.com/SierraBay/SierraBay12/tree/4fec779a418a9ffdb57bf6f98107be053f085113/icons/mob/onmob/items
+
+SierraBay12 / Baystation12 contributors — transport drone pad and designator.
+License: CC BY-SA 3.0, per SierraBay12 README (unless noted otherwise upstream).
+Revision: 6933413001fd189ae5f5230a60964c40c57daa23
+Original DMI bytes, states, directions, frames and timings are unchanged.
+landing_pad.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/6933413001fd189ae5f5230a60964c40c57daa23/icons/obj/machines/landing_pad.dmi
+  Includes the pad_drone transport drone used for pickup and delivery.
+drone_control.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/6933413001fd189ae5f5230a60964c40c57daa23/icons/obj/tools/drone_control.dmi
+Inhand and belt states reuse existing BandaStation electronic device sprites.
+Source Git blobs, SHA-256 and output byte counts are recorded in sources.json.
+
+SierraBay12 / Baystation12 contributors — giant drill, recruitment beacon and cult pylon.
+License: CC BY-SA 3.0, per SierraBay12 README (unless noted otherwise upstream).
+Revision: 6933413001fd189ae5f5230a60964c40c57daa23
+Original DMI bytes, directions, states, frames and timings are unchanged.
+gigadrill.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/6933413001fd189ae5f5230a60964c40c57daa23/icons/obj/gigadrill.dmi
+syndicate_beacon.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/6933413001fd189ae5f5230a60964c40c57daa23/icons/obj/structures/syndicate_beacon.dmi
+pylon.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/6933413001fd189ae5f5230a60964c40c57daa23/icons/obj/structures/pylon.dmi
+Source Git blobs, SHA-256 and byte counts are recorded in sources.json.
+
+SierraBay12 / Baystation12 contributors — controlled artifact spectrometer.
+License: CC BY-SA 3.0, per SierraBay12 README (unless noted otherwise upstream).
+Revision: 6933413001fd189ae5f5230a60964c40c57daa23
+virology.dmi:
+  Source: https://github.com/SierraBay/SierraBay12/blob/6933413001fd189ae5f5230a60964c40c57daa23/icons/obj/machines/research/virology.dmi
+  Uses analyser and analyser_processing; original DMI bytes, frames and timings unchanged.
+The core spectrometer retains the NovaSector spectrometer/spectrometer_processing states.
