@@ -9,11 +9,12 @@
 /datum/ipc_os_program/pda/start()
 	if(!..())
 		return FALSE
+	os.capture_pda_job(os.host.mind?.assigned_role)
 	if(!device)
 		device = new(os.core, os)
 	device.forceMove(os.host)
 	device.enabled = TRUE
-	device.imprint_id(os.host.real_name, os.host.mind?.assigned_role?.title || "КПБ")
+	device.imprint_id(os.host.real_name, os.pda_job_title || "КПБ")
 	return TRUE
 
 /datum/ipc_os_program/pda/stop()
@@ -41,8 +42,9 @@
 	inserted_item = null
 	internal_cell = null
 	has_pda_programs = FALSE
+	max_capacity = 64
 	looping_sound = FALSE
-	starting_programs = list(/datum/computer_file/program/messenger, /datum/computer_file/program/notepad, /datum/computer_file/program/crew_manifest)
+	starting_programs = list(/datum/computer_file/program/messenger, /datum/computer_file/program/notepad, /datum/computer_file/program/crew_manifest, /datum/computer_file/program/ntnetdownload/ipc_os, /datum/computer_file/program/filemanager)
 	/// Owning core's OS, never derived from the person trying to interact.
 	var/datum/ipc_os/os
 
@@ -56,6 +58,56 @@
 
 /obj/item/modular_computer/pda/ipc_os/add_shell_component(capacity)
 	return
+
+/obj/item/modular_computer/pda/ipc_os/GetAccess()
+	return os?.pda_job_access.Copy() || list()
+
+/// Apply the exclusion policy at storage too, so forged downloads and file copies cannot bypass it.
+/obj/item/modular_computer/pda/ipc_os/can_store_file(datum/computer_file/file)
+	if(istype(file, /datum/computer_file/program))
+		var/datum/computer_file/program/program = file
+		if(!allowed_program(program) || !program.can_run(access = GetAccess(), downloading = TRUE))
+			return FALSE
+	return ..()
+
+/obj/item/modular_computer/pda/ipc_os/proc/allowed_program(datum/computer_file/program/program)
+	var/static/list/blocked = typecacheof(list(
+		/datum/computer_file/program/faxbond,
+		/datum/computer_file/program/nt_pay,
+		/datum/computer_file/program/raptordex,
+		/datum/computer_file/program/card_mod,
+		/datum/computer_file/program/signal_commander,
+		/datum/computer_file/program/betting,
+		/datum/computer_file/program/secureye,
+		/datum/computer_file/program/power_monitor,
+		/datum/computer_file/program/bounty_board,
+		/datum/computer_file/program/coupon,
+		/datum/computer_file/program/shipping,
+		/datum/computer_file/program/ai_restorer,
+	))
+	return program && !is_type_in_typecache(program, blocked) && program.is_supported_by_hardware(hardware_flag = hardware_flag, loud = FALSE)
+
+/// Same native downloader UI and network transfer, scoped to this device's software policy.
+/datum/computer_file/program/ntnetdownload/ipc_os
+
+/datum/computer_file/program/ntnetdownload/ipc_os/check_compatibility(datum/computer_file/program/program_to_check)
+	var/obj/item/modular_computer/pda/ipc_os/device = computer
+	return istype(device) && device.allowed_program(program_to_check) && ..()
+
+/datum/computer_file/program/ntnetdownload/ipc_os/begin_file_download(filename, mob/user)
+	var/datum/computer_file/program/program = SSmodular_computers.find_ntnet_file_by_name(filename)
+	if(!program || !(program in SSmodular_computers.available_station_software) || !check_compatibility(program) || !program.can_run(user, downloading = TRUE, access = computer.GetAccess()))
+		return FALSE
+	return ..()
+
+/datum/computer_file/program/ntnetdownload/ipc_os/ui_data(mob/user)
+	. = ..()
+	var/list/visible_programs = list()
+	for(var/list/row as anything in .["programs"])
+		var/datum/computer_file/program/program = SSmodular_computers.find_ntnet_file_by_name(row["filename"])
+		if((program in SSmodular_computers.available_station_software) && check_compatibility(program))
+			visible_programs += list(row)
+	.["programs"] = visible_programs
 
 /obj/item/modular_computer/pda/ipc_os/check_power_override(amount)
 	var/datum/ipc_os_program/program = os?.programs["pda"]

@@ -1,11 +1,13 @@
 #define IPC_OS_OVERCLOCK_HEAT_PER_SECOND 12
-#define IPC_OS_GHOST_DRAIN_PER_SECOND (NUTRITION_LEVEL_FULL * 0.04 / 10)
+#define IPC_OS_NEURAL_BRAIN_DAMAGE 30
+#define IPC_OS_NEURAL_TORSO_BURN 15
+#define IPC_OS_NEURAL_COOLDOWN (30 SECONDS)
 
 /// Return software only for a compatible chassis with its actual existing core.
 /mob/living/carbon/human/proc/get_ipc_os()
 	if(!is_species(src, /datum/species/ipc))
 		return null
-	var/obj/item/organ/brain/ipc/core = get_organ_slot(ORGAN_SLOT_BRAIN)
+	var/obj/item/organ/brain/core = get_organ_slot(ORGAN_SLOT_BRAIN)
 	return istype(core) ? core.operating_system : null
 
 /mob/living/carbon/human/emag_act(mob/user, obj/item/card/emag/emag_card)
@@ -56,19 +58,27 @@
 	var/spoof_job = "КПБ"
 	/// Editing text does not renew the approved fifteen-minute activation.
 	var/expires_at = 0
+	/// Only the worn card's rendered examine label is overridden; its actual data is never edited.
+	var/obj/item/display_card
 
 /datum/ipc_os_program/id_spoof/start()
 	if(!..())
 		return FALSE
 	expires_at = world.time + 15 MINUTES
 	RegisterSignal(os.host, COMSIG_HUMAN_GET_VISIBLE_NAME, PROC_REF(on_visible_name))
+	RegisterSignal(os.host, COMSIG_HUMAN_GET_ID_EXAMINE, PROC_REF(on_id_examine))
+	RegisterSignals(os.host, list(COMSIG_MOB_EQUIPPED_ITEM, COMSIG_MOB_UNEQUIPPED_ITEM), PROC_REF(on_equipment_changed))
+	sync_card()
 	os.host.update_visible_name()
 	return TRUE
 
 /datum/ipc_os_program/id_spoof/stop()
 	if(running && os.host)
 		UnregisterSignal(os.host, COMSIG_HUMAN_GET_VISIBLE_NAME)
+		UnregisterSignal(os.host, COMSIG_HUMAN_GET_ID_EXAMINE)
+		UnregisterSignal(os.host, list(COMSIG_MOB_EQUIPPED_ITEM, COMSIG_MOB_UNEQUIPPED_ITEM))
 		os.host.update_visible_name()
+	clear_card()
 	expires_at = 0
 	return ..()
 
@@ -78,8 +88,49 @@
 
 /datum/ipc_os_program/id_spoof/proc/on_visible_name(datum/source, list/identity)
 	SIGNAL_HANDLER
-	identity[VISIBLE_NAME_FACE] = "[spoof_name][length(spoof_job) ? " ([spoof_job])" : ""]"
+	identity[VISIBLE_NAME_FACE] = spoof_name
+	identity[VISIBLE_NAME_ID] = spoof_name
 	identity[VISIBLE_NAME_FORCED] = TRUE
+
+/datum/ipc_os_program/id_spoof/proc/on_id_examine(datum/source, obj/item/card/id/card, list/identity)
+	SIGNAL_HANDLER
+	if(!running || card != os.host?.wear_id?.GetID())
+		return
+	identity["name"] = spoof_name
+	identity["job"] = spoof_job
+	identity["holder"] = spoof_name
+
+/datum/ipc_os_program/id_spoof/proc/on_equipment_changed()
+	SIGNAL_HANDLER
+	sync_card()
+
+/datum/ipc_os_program/id_spoof/proc/clear_card()
+	if(display_card)
+		UnregisterSignal(display_card, list(COMSIG_ATOM_GET_EXAMINE_NAME, COMSIG_QDELETING))
+	display_card = null
+
+/datum/ipc_os_program/id_spoof/proc/sync_card()
+	var/obj/item/current = os.host?.wear_id
+	if(current == display_card)
+		return
+	clear_card()
+	if(QDELETED(current) || (!current.GetID() && !istype(current, /obj/item/modular_computer)))
+		return
+	display_card = current
+	RegisterSignal(current, COMSIG_ATOM_GET_EXAMINE_NAME, PROC_REF(on_card_name))
+	RegisterSignal(current, COMSIG_QDELETING, PROC_REF(on_card_deleted))
+
+/datum/ipc_os_program/id_spoof/proc/on_card_deleted()
+	SIGNAL_HANDLER
+	clear_card()
+
+/datum/ipc_os_program/id_spoof/proc/on_card_name(obj/item/source, mob/user, list/override)
+	SIGNAL_HANDLER
+	if(!running || source != os.host?.wear_id)
+		return
+	var/card_name = istype(source, /obj/item/card/id) ? "ID-карта" : istype(source, /obj/item/modular_computer) ? "КПК" : source.get_visible_name()
+	override[EXAMINE_POSITION_ARTICLE] = ""
+	override[EXAMINE_POSITION_NAME] = "<em>[card_name] «[spoof_name]»[length(spoof_job) ? " ([spoof_job])" : ""]</em>"
 
 /datum/ipc_os_program/ghost_mode
 	ready = TRUE
@@ -94,14 +145,6 @@
 	if(running && os.host)
 		os.host.RemoveElement(/datum/element/digitalcamo, REF(src))
 	return ..()
-
-/datum/ipc_os_program/ghost_mode/tick(seconds_per_tick)
-	var/obj/item/organ/heart/ipc/battery = os.working_battery()
-	var/cost = IPC_OS_GHOST_DRAIN_PER_SECOND * seconds_per_tick
-	if(!battery || os.host.nutrition < cost)
-		stop()
-		return
-	battery.adjust_charge(-cost)
 
 /// The modifier returns a raw delay adjustment because Primera scales ordinary TG modifiers.
 /datum/movespeed_modifier/ipc_os_overclock
@@ -166,27 +209,56 @@
 	QDEL_NULL(crack_action)
 	return ..()
 
-/// Charge brain damage only for a valid stun removal; no other crowd-control state is changed.
-/datum/ipc_os/proc/neural_crack()
+/// The three approved incapacitating effects; knockdown, sleep and unconsciousness are separate.
+/datum/ipc_os/proc/has_crackable_stun()
+	return host && (host.IsStun() || host.IsParalyzed() || host.has_status_effect(/datum/status_effect/incapacitating/stamcrit))
+
+/datum/ipc_os/proc/can_neural_crack(require_effect = TRUE)
 	var/datum/ipc_os_program/program = programs["neural_crack"]
-	if(!is_operational() || IS_UNCONSCIOUS_OR_CRIT(host) || !program.installed || !host.IsStun() || core.damage + 15 > core.maxHealth)
+	return is_operational() && !control_session && !IS_UNCONSCIOUS_OR_CRIT(host) && !host.IsSleeping() && program.installed && program.running && COOLDOWN_FINISHED(src, neural_crack_cooldown) && core.damage + IPC_OS_NEURAL_BRAIN_DAMAGE <= core.maxHealth && host.get_bodypart(BODY_ZONE_CHEST) && (!require_effect || has_crackable_stun())
+
+/// Charge once for removing an actual eligible effect; never wake a sleeping or unconscious owner.
+/datum/ipc_os/proc/neural_crack()
+	if(!can_neural_crack())
 		return FALSE
+	var/obj/item/bodypart/chest = host.get_bodypart(BODY_ZONE_CHEST)
+	COOLDOWN_START(src, neural_crack_cooldown, IPC_OS_NEURAL_COOLDOWN)
+	neural_crack_timer = addtimer(CALLBACK(src, PROC_REF(refresh_neural_crack)), IPC_OS_NEURAL_COOLDOWN, TIMER_STOPPABLE)
 	host.remove_status_effect(/datum/status_effect/incapacitating/stun)
-	core.apply_organ_damage(15)
+	host.remove_status_effect(/datum/status_effect/incapacitating/paralyzed)
+	if(host.has_status_effect(/datum/status_effect/incapacitating/stamcrit))
+		host.set_stamina_loss(0)
+		host.remove_status_effect(/datum/status_effect/incapacitating/stamcrit)
+	chest.receive_damage(burn = IPC_OS_NEURAL_TORSO_BURN, wound_bonus = CANT_WOUND)
+	core.apply_organ_damage(IPC_OS_NEURAL_BRAIN_DAMAGE)
+	refresh_neural_crack_button()
 	return TRUE
+
+/// The cooldown is authoritative on the core even while its program is stopped or uninstalled.
+/datum/ipc_os/proc/refresh_neural_crack()
+	neural_crack_timer = null
+	refresh_neural_crack_button()
+
+/datum/ipc_os/proc/refresh_neural_crack_button()
+	var/datum/ipc_os_program/neural_crack/program = programs["neural_crack"]
+	program.crack_action?.build_all_button_icons(UPDATE_BUTTON_STATUS)
 
 /datum/action/innate/ipc_os/neural_crack
 	name = "NeuralCrack"
-	desc = "Снять только stun за 15 урона позитронному мозгу."
+	desc = "Снять Stun, паралич и stamina-крит за 30 урона мозгу и 15 ожогов торсу. Откат 30 секунд. Сон не снимается."
 	button_icon = 'icons/mob/actions/actions_spells.dmi'
 	button_icon_state = "emp"
 
 /datum/action/innate/ipc_os/neural_crack/IsAvailable(feedback = FALSE)
-	return !action_disabled && owner == os?.host && os?.is_operational() && !IS_UNCONSCIOUS_OR_CRIT(owner) && os.host.IsStun()
+	// Keep the conscious HUD action ready before stun arrives; no effect means no cost.
+	return !action_disabled && owner == os?.host && os?.can_neural_crack(require_effect = FALSE)
 
 /datum/action/innate/ipc_os/neural_crack/Activate()
 	if(IsAvailable())
-		os.neural_crack()
+		if(!os.neural_crack())
+			owner.balloon_alert(owner, "нет подходящего оглушения!")
 
 #undef IPC_OS_OVERCLOCK_HEAT_PER_SECOND
-#undef IPC_OS_GHOST_DRAIN_PER_SECOND
+#undef IPC_OS_NEURAL_BRAIN_DAMAGE
+#undef IPC_OS_NEURAL_TORSO_BURN
+#undef IPC_OS_NEURAL_COOLDOWN

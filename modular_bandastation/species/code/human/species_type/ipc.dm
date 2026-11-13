@@ -67,9 +67,8 @@
 		organ.reagents?.clear_reagents()
 	display_action = new
 	display_action.Grant(human)
-	var/obj/item/organ/brain/ipc/core = human.get_organ_slot(ORGAN_SLOT_BRAIN)
-	if(istype(core))
-		core.operating_system.bind(human)
+	var/obj/item/organ/brain/core = human.get_organ_slot(ORGAN_SLOT_BRAIN)
+	core?.enable_ipc_os()
 	setup_emote_verbs(human)
 	RegisterSignal(human, COMSIG_MOB_PRE_EMOTED, PROC_REF(on_pre_emote))
 	RegisterSignal(human, COMSIG_LIVING_ELECTROCUTE_ACT, PROC_REF(on_electrocute))

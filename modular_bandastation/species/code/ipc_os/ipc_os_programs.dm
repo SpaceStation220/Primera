@@ -1,12 +1,54 @@
-#define IPC_OS_DEFRAG_INTERVAL_SECONDS 15
+#define IPC_OS_DEFRAG_INTERVAL_SECONDS 25
+#define IPC_OS_DEFRAG_DRAIN_PER_SECOND (NUTRITION_LEVEL_FULL * 0.03 / 20)
 
-/// Apply efficiency only to ordinary microbattery drain, never to separately priced abilities.
+/// Raw delay adjustment avoids Primera's additional scaling of ordinary TG movement modifiers.
+/datum/movespeed_modifier/ipc_os_power_save
+	variable = TRUE
+
+/datum/movespeed_modifier/ipc_os_power_save/get_rp_speed()
+	return multiplicative_slowdown
+
+/datum/ipc_os_program/power_save
+	/// Updating our own modifier emits the same movement signal.
+	var/syncing_speed = FALSE
+
+/datum/ipc_os_program/power_save/start()
+	if(!..())
+		return FALSE
+	RegisterSignal(os.host, COMSIG_MOB_MOVESPEED_UPDATED, PROC_REF(sync_speed))
+	os.host.add_movespeed_modifier(/datum/movespeed_modifier/ipc_os_power_save)
+	return TRUE
+
+/datum/ipc_os_program/power_save/stop()
+	if(running && os.host)
+		UnregisterSignal(os.host, COMSIG_MOB_MOVESPEED_UPDATED)
+		os.host.remove_movespeed_modifier(/datum/movespeed_modifier/ipc_os_power_save)
+	return ..()
+
+/datum/ipc_os_program/power_save/proc/sync_speed()
+	SIGNAL_HANDLER
+	if(syncing_speed || !running)
+		return
+	var/datum/movespeed_modifier/ipc_os_power_save/modifier = os.host.has_movespeed_modifier(/datum/movespeed_modifier/ipc_os_power_save)
+	if(!modifier)
+		return
+	syncing_speed = TRUE
+	var/base_delay = os.host.cached_multiplicative_slowdown - modifier.get_rp_speed()
+	// OverClock applies its percentage after this penalty; exclude it to prevent feedback between both modifiers.
+	var/datum/movespeed_modifier/ipc_os_overclock/overclock = os.host.has_movespeed_modifier(/datum/movespeed_modifier/ipc_os_overclock)
+	if(overclock && !(os.host.movement_type & (FLYING|FLOATING)))
+		base_delay -= overclock.get_rp_speed()
+	os.host.add_or_update_variable_movespeed_modifier(/datum/movespeed_modifier/ipc_os_power_save, multiplicative_slowdown = max(base_delay, 0) * (1 / 0.85 - 1))
+	syncing_speed = FALSE
+
+/// Calculate ordinary microbattery drain independently from each program's additional charge costs.
 /datum/ipc_os/proc/power_multiplier()
 	if(!is_operational())
 		return 1
 	var/datum/ipc_os_program/power_save = programs["power_save"]
 	var/datum/ipc_os_program/defrag = programs["defrag"]
-	return (power_save.running ? 0.7 : 1) * (defrag.running ? 1.2 : 1)
+	var/datum/ipc_os_program/ghost_mode = programs["ghost_mode"]
+	return (power_save.running ? 0.7 : 1) * (defrag.running ? 1.35 : 1) * (ghost_mode.running ? 1.3 : 1)
 
 /// An incoming valid new infection makes exactly one roll, after its transmission finishes.
 /datum/ipc_os/proc/blocks_virus()
@@ -22,7 +64,13 @@
 	heal_elapsed = 0
 
 /datum/ipc_os_program/defrag/tick(seconds_per_tick)
-	if(!os.working_battery())
+	var/obj/item/organ/heart/ipc/battery = os.working_battery()
+	if(!battery)
+		stop()
+		return
+	var/datum/ipc_os_program/power_save = os.programs["power_save"]
+	battery.adjust_charge(-IPC_OS_DEFRAG_DRAIN_PER_SECOND * seconds_per_tick * (power_save.running ? (1 / 3) : 1))
+	if(os.host.nutrition <= 0)
 		stop()
 		return
 	heal_elapsed += seconds_per_tick
@@ -48,6 +96,7 @@
 	return TRUE
 
 #undef IPC_OS_DEFRAG_INTERVAL_SECONDS
+#undef IPC_OS_DEFRAG_DRAIN_PER_SECOND
 
 /datum/ipc_os_program/signal_boost/stop()
 	QDEL_NULL(signaler)

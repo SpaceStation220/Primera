@@ -33,30 +33,44 @@
 	TEST_ASSERT(ghost.start(), "GhostMode refused to start.")
 	var/datum/element/digitalcamo/camo = SSdcs.GetElement(list(/datum/element/digitalcamo), FALSE)
 	ghost.tick(10)
-	TEST_ASSERT_EQUAL(ipc.nutrition, NUTRITION_LEVEL_FULL * 0.96, "GhostMode did not spend 4% full battery in 10 seconds.")
+	TEST_ASSERT_EQUAL(ipc.nutrition, NUTRITION_LEVEL_FULL, "GhostMode retained a separate percentage-of-capacity charge.")
+	TEST_ASSERT_EQUAL(os.power_multiplier(), 1.3, "GhostMode did not increase ordinary battery consumption by 30%.")
+	os.install("power_save")
+	var/datum/ipc_os_program/power_save = os.programs["power_save"]
+	power_save.start()
+	TEST_ASSERT_EQUAL(os.power_multiplier(), 0.7 * 1.3, "GhostMode did not compose with the ordinary PowerSave multiplier.")
 	ghost.stop()
+	TEST_ASSERT_EQUAL(os.power_multiplier(), 0.7, "Stopping GhostMode retained its power penalty.")
 	TEST_ASSERT(ipc in camo.attached_mobs, "Stopping GhostMode removed another camouflage source.")
 	ipc.RemoveElement(/datum/element/digitalcamo)
 	TEST_ASSERT(!(ipc in camo.attached_mobs), "Final camouflage source left an image.")
 	TEST_ASSERT(!(ipc in camo.sources_by_mob), "Camouflage retained a source reference.")
 
-/// NeuralCrack clears stun only and charges the existing core once.
+/// NeuralCrack clears only approved incapacitation and charges the existing core once.
 /datum/unit_test/ipc_os_neural_crack/Run()
 	var/mob/living/carbon/human/ipc = allocate(/mob/living/carbon/human/consistent)
 	ipc.set_species(/datum/species/ipc)
+	ipc.mock_client = new /datum/client_interface()
 	var/datum/ipc_os/os = ipc.get_ipc_os()
 	os.unlock(TRUE)
 	os.install("neural_crack")
 	var/obj/item/organ/brain/ipc/core = os.core
 	var/brain_before = core.damage
+	var/obj/item/bodypart/chest = ipc.get_bodypart(BODY_ZONE_CHEST)
+	var/burn_before = chest.burn_dam
 	ipc.Stun(10 SECONDS, ignore_canstun = TRUE)
 	ipc.Knockdown(10 SECONDS, ignore_canstun = TRUE)
-	TEST_ASSERT(os.neural_crack(), "NeuralCrack failed to remove stun.")
+	var/datum/ipc_os_program/neural_crack/crack = os.programs["neural_crack"]
+	TEST_ASSERT(crack.crack_action.IsAvailable(), "HUD action was not available during stun.")
+	TEST_ASSERT(crack.crack_action.Trigger(ipc), "HUD action refused the stunned owner.")
 	TEST_ASSERT(!ipc.IsStun(), "NeuralCrack retained stun.")
 	TEST_ASSERT(ipc.IsKnockdown(), "NeuralCrack also removed knockdown.")
-	TEST_ASSERT_EQUAL(core.damage, brain_before + 15, "NeuralCrack did not inflict exactly 15 brain damage.")
+	TEST_ASSERT_EQUAL(core.damage, brain_before + 30, "NeuralCrack did not inflict exactly 30 brain damage.")
+	TEST_ASSERT_EQUAL(chest.burn_dam, burn_before + 15, "NeuralCrack did not inflict exactly 15 torso burns.")
+	TEST_ASSERT_EQUAL(ipc.get_fire_loss(), chest.burn_dam, "NeuralCrack burned a bodypart outside the torso.")
 	TEST_ASSERT(!os.neural_crack(), "NeuralCrack charged an unstunned IPC.")
-	TEST_ASSERT_EQUAL(core.damage, brain_before + 15, "Repeated NeuralCrack charged twice.")
+	TEST_ASSERT_EQUAL(core.damage, brain_before + 30, "Repeated NeuralCrack charged twice.")
+	TEST_ASSERT_EQUAL(chest.burn_dam, burn_before + 15, "Rejected NeuralCrack charged torso burns.")
 
 /// Running speed changes by exactly 25%; walking and final cleanup retain the original delays.
 /datum/unit_test/ipc_os_overclock_speed_heat/Run()
@@ -98,22 +112,45 @@
 	var/real_name = ipc.real_name
 	var/obj/item/card/id/advanced/id = allocate(/obj/item/card/id/advanced)
 	id.registered_name = real_name
+	id.update_label()
 	id.access = list(ACCESS_MEDICAL)
 	ipc.equip_to_slot_or_del(id, ITEM_SLOT_ID)
 	spoof.spoof_name = "Тестовый псевдоним"
 	spoof.spoof_job = "Инженер"
 	TEST_ASSERT(spoof.start(), "ID_Spoof failed to start.")
-	TEST_ASSERT_EQUAL(ipc.get_visible_name(), "Тестовый псевдоним (Инженер)", "Visible alias did not apply.")
+	TEST_ASSERT_EQUAL(ipc.get_visible_name(), "Тестовый псевдоним", "Visible alias included the cosmetic job.")
+	TEST_ASSERT_EQUAL(ipc.get_message_voice(), "[real_name] (as Тестовый псевдоним)", "Speech did not use the software alias.")
+	TEST_ASSERT(findtext(id.get_examine_name(ipc), "(Инженер)"), "Spoof job was absent from the worn ID examine label.")
+	TEST_ASSERT(findtext(id.get_examine_name(ipc), "«Тестовый псевдоним»"), "The worn ID label exposed the real registered name.")
+	var/list/identity = ipc.get_id_examine_identity(id)
+	TEST_ASSERT_EQUAL(identity["name"], spoof.spoof_name, "Detailed ID examination exposed the registered name.")
+	TEST_ASSERT_EQUAL(identity["job"], spoof.spoof_job, "Detailed ID examination exposed the original assignment.")
+	TEST_ASSERT_EQUAL(identity["holder"], spoof.spoof_name, "Detailed ID header exposed the real character name.")
+	var/clothing = jointext(ipc.get_clothing_examine_info(ipc), "\n")
+	TEST_ASSERT(!findtext(clothing, real_name), "The worn-equipment line or its link exposed the original ID name.")
+	TEST_ASSERT(id.assignment != "Инженер", "Spoof modified the real ID assignment.")
 	TEST_ASSERT_EQUAL(ipc.real_name, real_name, "Spoof changed real identity.")
 	TEST_ASSERT_EQUAL(id.registered_name, real_name, "Spoof rewrote an ID.")
 	TEST_ASSERT_EQUAL(length(id.access), 1, "Spoof changed ID permissions.")
 	TEST_ASSERT(ACCESS_MEDICAL in id.GetAccess(), "Spoof removed the original ID access.")
+	ipc.temporarilyRemoveItemFromInventory(id, force = TRUE)
+	TEST_ASSERT_EQUAL(ipc.get_message_voice(), "[real_name] (as Тестовый псевдоним)", "Removing the ID removed the software speech alias.")
+	var/obj/item/modular_computer/pda/device = allocate(/obj/item/modular_computer/pda)
+	TEST_ASSERT(device.insert_id(id), "Could not insert the spoof fixture's real card into a PDA.")
+	ipc.equip_to_slot_or_del(device, ITEM_SLOT_ID)
+	TEST_ASSERT(findtext(device.get_examine_name(ipc), "КПК «Тестовый псевдоним» (Инженер)"), "The worn PDA did not display both spoof fields.")
+	identity = ipc.get_id_examine_identity(device.GetID())
+	TEST_ASSERT_EQUAL(identity["name"], spoof.spoof_name, "Detailed PDA ID examination exposed the real name.")
+	TEST_ASSERT_EQUAL(identity["job"], spoof.spoof_job, "Detailed PDA ID examination exposed the real job.")
+	TEST_ASSERT(!findtext(jointext(ipc.get_clothing_examine_info(ipc), "\n"), real_name), "The worn PDA line exposed the real card name.")
 	spoof.expires_at = world.time - 1
 	spoof.tick(1)
 	TEST_ASSERT(!spoof.running, "Expired spoof remained active.")
 	TEST_ASSERT_EQUAL(ipc.get_visible_name(), real_name, "Expired spoof retained visible identity.")
+	identity = ipc.get_id_examine_identity(id)
+	TEST_ASSERT_EQUAL(identity["name"], real_name, "Stopping spoof did not restore the real detailed ID name.")
 
-/// A real held toolkit cable must retain the five-second channel and native door outcome.
+/// A real held toolkit cable must retain the thirteen-second channel and native door outcome.
 /datum/unit_test/ipc_os_wall_breaker/Run()
 	var/mob/living/carbon/human/ipc = allocate(/mob/living/carbon/human/consistent)
 	ipc.set_species(/datum/species/ipc)
@@ -133,11 +170,11 @@
 	var/started_at = world.time
 	TEST_ASSERT_EQUAL(cord.interact_with_atom(door, ipc), ITEM_INTERACT_SUCCESS, "Held cable refused WallBreaker.")
 	TEST_ASSERT_EQUAL(cord.interact_with_atom(door, ipc), ITEM_INTERACT_BLOCKING, "Parallel WallBreaker was accepted.")
-	var/deadline = world.time + 8 SECONDS
+	var/deadline = world.time + 16 SECONDS
 	while(!(door.obj_flags & EMAGGED) && world.time < deadline)
 		sleep(1)
 	TEST_ASSERT(door.obj_flags & EMAGGED, "Native airlock EMAG did not finish.")
-	TEST_ASSERT(world.time >= started_at + 5 SECONDS, "WallBreaker bypassed its five-second channel.")
+	TEST_ASSERT(world.time >= started_at + 13 SECONDS, "WallBreaker bypassed its thirteen-second channel.")
 	TEST_ASSERT(!cord.drawing_power, "WallBreaker left the cable reserved.")
 	os.uninstall("wall_breaker")
 	TEST_ASSERT(!cord.can_use_software(ipc, door, "wall_breaker"), "Uninstalled WallBreaker still controls its cable.")
