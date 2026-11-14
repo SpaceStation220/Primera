@@ -7,3 +7,4 @@
 
 /datum/antagonist/nukeop/reinforcement/cyborg
 	name = "Киборг поддержки ядерных оперативников"
+	mental_conditioning = FALSE

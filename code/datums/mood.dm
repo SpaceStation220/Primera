@@ -2,6 +2,7 @@
 #define MAJOR_INSANITY_PEN 10
 #define MOOD_CATEGORY_NUTRITION "nutrition"
 #define MOOD_CATEGORY_AREA_BEAUTY "area_beauty"
+#define MOOD_CATEGORY_MENTAL_CONDITIONING "mental_conditioning"
 
 /**
  * Mood datum
@@ -58,6 +59,11 @@
 	RegisterSignal(mob_to_make_moody, COMSIG_LIVING_REVIVE, PROC_REF(on_revive))
 	RegisterSignal(mob_to_make_moody, COMSIG_MOB_STATCHANGE, PROC_REF(handle_mob_death))
 	RegisterSignal(mob_to_make_moody, COMSIG_QDELETING, PROC_REF(clear_parent_ref))
+	RegisterSignal(mob_to_make_moody, SIGNAL_ADDTRAIT(TRAIT_MENTALLY_CONDITIONED), PROC_REF(on_mental_conditioning_gained))
+	RegisterSignal(mob_to_make_moody, SIGNAL_REMOVETRAIT(TRAIT_MENTALLY_CONDITIONED), PROC_REF(on_mental_conditioning_lost))
+
+	if(HAS_TRAIT(mob_to_make_moody, TRAIT_MENTALLY_CONDITIONED))
+		on_mental_conditioning_gained()
 
 	var/area/our_area = get_area(mob_to_make_moody)
 	if(our_area)
@@ -74,7 +80,16 @@
 
 	unmodify_hud()
 	mob_parent.lose_area_sensitivity(MOOD_DATUM_TRAIT)
-	UnregisterSignal(mob_parent, list(COMSIG_MOB_HUD_CREATED, COMSIG_ENTER_AREA, COMSIG_EXIT_AREA, COMSIG_LIVING_REVIVE, COMSIG_MOB_STATCHANGE, COMSIG_QDELETING))
+	UnregisterSignal(mob_parent, list(
+		COMSIG_MOB_HUD_CREATED,
+		COMSIG_ENTER_AREA,
+		COMSIG_EXIT_AREA,
+		COMSIG_LIVING_REVIVE,
+		COMSIG_MOB_STATCHANGE,
+		COMSIG_QDELETING,
+		SIGNAL_ADDTRAIT(TRAIT_MENTALLY_CONDITIONED),
+		SIGNAL_REMOVETRAIT(TRAIT_MENTALLY_CONDITIONED),
+	))
 	var/area/our_area = get_area(mob_parent)
 	if(our_area)
 		UnregisterSignal(our_area, COMSIG_AREA_BEAUTY_UPDATED)
@@ -110,9 +125,27 @@
 	if(current_area)
 		UnregisterSignal(current_area, COMSIG_AREA_BEAUTY_UPDATED)
 		check_area_mood(mob_parent, current_area)
+	if(HAS_TRAIT(mob_parent, TRAIT_MENTALLY_CONDITIONED))
+		add_mood_event(MOOD_CATEGORY_MENTAL_CONDITIONING, /datum/mood_event/mental_conditioning)
 	if(mob_parent.hud_used)
 		modify_hud()
 // BANDASTATION ADDITION END
+
+/// Applies negative mood resistance and the passive conditioning moodlet when [TRAIT_MENTALLY_CONDITIONED] is gained.
+/datum/mood/proc/on_mental_conditioning_gained()
+	SIGNAL_HANDLER
+
+	negative_mood_modifier -= 0.75
+	add_mood_event(MOOD_CATEGORY_MENTAL_CONDITIONING, /datum/mood_event/mental_conditioning)
+	update_mood()
+
+/// Reverts negative mood resistance and removes the conditioning moodlet when [TRAIT_MENTALLY_CONDITIONED] is lost.
+/datum/mood/proc/on_mental_conditioning_lost()
+	SIGNAL_HANDLER
+
+	negative_mood_modifier += 0.75
+	clear_mood_event(MOOD_CATEGORY_MENTAL_CONDITIONING)
+	update_mood()
 
 /datum/mood/process(seconds_per_tick)
 	switch(mood_level)
@@ -739,3 +772,4 @@
 #undef MAJOR_INSANITY_PEN
 #undef MOOD_CATEGORY_NUTRITION
 #undef MOOD_CATEGORY_AREA_BEAUTY
+#undef MOOD_CATEGORY_MENTAL_CONDITIONING
