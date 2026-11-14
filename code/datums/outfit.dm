@@ -130,6 +130,9 @@
 	///Should we preload some of this job's items?
 	var/preload = FALSE
 
+	/// Whether this outfit grants [TRAIT_MENTALLY_CONDITIONED] upon non-visual equip.
+	var/mental_conditioning = FALSE
+
 	/// Any undershirt. While on humans it is a string, here we use paths to stay consistent with the rest of the equips.
 	var/datum/sprite_accessory/clothing/undershirt = null
 	var/datum/sprite_accessory/clothing/underwear = null
@@ -284,6 +287,8 @@
 
 	if(!visuals_only)
 		apply_fingerprints(user)
+		if(mental_conditioning)
+			ADD_TRAIT(user, TRAIT_MENTALLY_CONDITIONED, INNATE_TRAIT)
 		if(internals_slot)
 			if(internals_slot & ITEM_SLOT_HANDS)
 				var/obj/item/tank/internals/internals = user.is_holding_item_of_type(/obj/item/tank/internals)
@@ -463,6 +468,7 @@
 	.["box"] = box
 	.["implants"] = implants
 	.["accessory"] = accessory
+	.["mental_conditioning"] = mental_conditioning
 
 /// Copy most vars from another outfit to this one
 /datum/outfit/proc/copy_from(datum/outfit/target)
@@ -496,6 +502,7 @@
 	box = target.box
 	implants = target.implants
 	accessory = target.accessory
+	mental_conditioning = target.mental_conditioning
 
 /// Prompt the passed in mob client to download this outfit as a json blob
 /datum/outfit/proc/save_to_file(mob/admin)
@@ -557,6 +564,8 @@
 		if(imptype)
 			implants += imptype
 	accessory = text2path(outfit_data["accessory"])
+	if("mental_conditioning" in outfit_data)
+		mental_conditioning = !!outfit_data["mental_conditioning"]
 	return TRUE
 
 /datum/outfit/vv_get_dropdown()

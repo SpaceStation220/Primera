@@ -8,7 +8,8 @@
 	can_elimination_hijack = ELIMINATION_PREVENT
 	show_in_antagpanel = FALSE
 	show_to_ghosts = TRUE
-	antag_moodlet = /datum/mood_event/focused
+	antag_moodlet = null
+	mental_conditioning = TRUE
 	antagpanel_category = ANTAG_GROUP_ERT
 	suicide_cry = "FOR NANOTRASEN!!"
 	// Not 'true' antags, this disables certain interactions that assume the owner is a baddie
@@ -50,6 +51,8 @@
 /datum/antagonist/ert/official
 	name = "Представитель Центрального Командования"
 	show_name_in_check_antagonists = TRUE
+	antag_moodlet = /datum/mood_event/focused
+	mental_conditioning = FALSE
 	var/datum/objective/mission
 	role = "Инспектор"
 	random_names = FALSE
@@ -110,6 +113,8 @@
 	role = "Уборщик"
 	outfit = /datum/outfit/centcom/ert/janitor
 	ert_job_path = /datum/job/ert/janitor
+	antag_moodlet = /datum/mood_event/focused
+	mental_conditioning = FALSE
 
 /datum/antagonist/ert/janitor/heavy
 	role = "Уборщик-специалист"
@@ -173,6 +178,8 @@
 	role = "Стажёр ЦК"
 	suicide_cry = "FOR MY INTERNSHIP!!"
 	ert_job_path = /datum/job/ert/intern
+	antag_moodlet = /datum/mood_event/focused
+	mental_conditioning = FALSE
 
 /datum/antagonist/ert/intern/leader
 	name = "Главный стажёр ЦК"
@@ -193,6 +200,8 @@
 	outfit = /datum/outfit/centcom/ert/clown
 	plasmaman_outfit = /datum/outfit/plasmaman/party_comedian
 	ert_job_path = /datum/job/ert/clown
+	antag_moodlet = /datum/mood_event/focused
+	mental_conditioning = FALSE
 
 /datum/antagonist/ert/clown/New()
 	. = ..()
@@ -207,11 +216,15 @@
 	role = "Вышибала праздника"
 	outfit = /datum/outfit/centcom/ert/security/party
 	plasmaman_outfit = /datum/outfit/plasmaman/party_bouncer
+	antag_moodlet = /datum/mood_event/focused
+	mental_conditioning = FALSE
 
 /datum/antagonist/ert/engineer/party
 	role = "Праздничный строитель"
 	outfit = /datum/outfit/centcom/ert/engineer/party
 	plasmaman_outfit = /datum/outfit/plasmaman/party_constructor
+	antag_moodlet = /datum/mood_event/focused
+	mental_conditioning = FALSE
 
 /datum/antagonist/ert/clown/party
 	role = "Праздничный комик"
@@ -220,6 +233,8 @@
 /datum/antagonist/ert/commander/party
 	role = "Координатор праздника"
 	outfit = /datum/outfit/centcom/ert/commander/party
+	antag_moodlet = /datum/mood_event/focused
+	mental_conditioning = FALSE
 
 /datum/antagonist/ert/create_team(datum/team/ert/new_team)
 	if(istype(new_team))
