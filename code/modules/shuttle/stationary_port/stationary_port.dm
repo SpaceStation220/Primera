@@ -45,8 +45,9 @@
 	highlight("#f00")
 #endif
 
+/** Forced template cleanup also handles ports that were never registered. */
 /obj/docking_port/stationary/Destroy(force)
-	if(force)
+	if(force && registered)
 		unregister()
 	return ..()
 
@@ -88,6 +89,8 @@
 
 /obj/docking_port/stationary/proc/load_roundstart()
 	if(json_key)
+		if(json_key == "cargo" && !SSmapping.current_map.cargo_shuttle_enabled())
+			return
 		var/sid = SSmapping.current_map.shuttles[json_key]
 		shuttle_template_id = SSmapping.shuttle_templates[sid]
 		if(!shuttle_template_id)

@@ -1,0 +1,126 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/jungle/greeble_junglecave_1.dmm
+"c" = (
+/obj/structure/flora/rock/pile,
+/turf/open/water/jungle,
+/area/expedition_planet/barren)
+"f" = (
+/obj/structure/flora/ash/stem_shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"i" = (
+/obj/structure/flora/ash/glowgrowth,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"O" = (
+/turf/open/water/jungle,
+/area/expedition_planet/barren)
+"P" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"Q" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"T" = (
+/turf/template_noop,
+/area/template_noop)
+"W" = (
+/obj/structure/flora/rock,
+/turf/open/water/jungle,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+T
+T
+T
+Q
+P
+O
+O
+P
+Q
+T
+"}
+(2,1,1) = {"
+T
+T
+Q
+f
+O
+c
+O
+O
+f
+T
+"}
+(3,1,1) = {"
+T
+T
+T
+O
+O
+O
+O
+O
+i
+Q
+"}
+(4,1,1) = {"
+T
+Q
+P
+c
+O
+W
+c
+P
+Q
+T
+"}
+(5,1,1) = {"
+Q
+i
+O
+O
+O
+O
+O
+T
+T
+T
+"}
+(6,1,1) = {"
+T
+P
+O
+W
+O
+O
+f
+Q
+T
+T
+"}
+(7,1,1) = {"
+T
+T
+O
+c
+O
+O
+T
+T
+T
+T
+"}
+(8,1,1) = {"
+T
+Q
+f
+O
+O
+i
+Q
+T
+T
+T
+"}

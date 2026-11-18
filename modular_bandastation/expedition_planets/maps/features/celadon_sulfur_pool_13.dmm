@@ -1,0 +1,239 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_13.dmm
+"a" = (
+/turf/template_noop,
+/area/template_noop)
+"h" = (
+/turf/open/water/expedition_arid,
+/area/expedition_planet/barren)
+"C" = (
+/obj/effect/spawner/random/expedition_arid/shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"P" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"Q" = (
+/obj/effect/spawner/random/expedition_arid/shroom,
+/obj/effect/spawner/random/expedition_arid/fauna,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"R" = (
+/obj/effect/spawner/random/expedition_arid/fauna,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"V" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"X" = (
+/obj/effect/spawner/random/expedition_arid/cactus,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"Z" = (
+/obj/effect/spawner/random/expedition_arid/rock,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+a
+a
+a
+a
+a
+V
+a
+P
+a
+a
+"}
+(2,1,1) = {"
+a
+a
+a
+V
+V
+P
+C
+h
+V
+a
+"}
+(3,1,1) = {"
+a
+a
+a
+h
+h
+R
+X
+h
+a
+a
+"}
+(4,1,1) = {"
+a
+a
+a
+V
+P
+h
+h
+P
+V
+a
+"}
+(5,1,1) = {"
+a
+a
+V
+V
+Z
+h
+P
+V
+V
+a
+"}
+(6,1,1) = {"
+a
+V
+V
+V
+C
+h
+h
+h
+V
+a
+"}
+(7,1,1) = {"
+V
+V
+P
+h
+h
+h
+h
+h
+V
+a
+"}
+(8,1,1) = {"
+V
+P
+P
+h
+h
+C
+h
+h
+V
+V
+"}
+(9,1,1) = {"
+a
+C
+h
+h
+h
+C
+h
+P
+P
+V
+"}
+(10,1,1) = {"
+a
+X
+C
+h
+h
+h
+h
+P
+P
+a
+"}
+(11,1,1) = {"
+a
+V
+Z
+P
+h
+h
+h
+C
+R
+V
+"}
+(12,1,1) = {"
+a
+V
+V
+P
+P
+h
+X
+P
+Z
+V
+"}
+(13,1,1) = {"
+a
+a
+V
+P
+C
+h
+h
+C
+P
+V
+"}
+(14,1,1) = {"
+a
+a
+V
+Q
+h
+V
+V
+h
+h
+P
+"}
+(15,1,1) = {"
+a
+a
+a
+C
+h
+P
+P
+P
+V
+h
+"}
+(16,1,1) = {"
+a
+a
+a
+V
+h
+C
+X
+V
+a
+h
+"}
+(17,1,1) = {"
+a
+a
+a
+h
+a
+a
+V
+V
+a
+a
+"}

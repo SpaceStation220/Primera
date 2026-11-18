@@ -1,0 +1,101 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: SierraBay/SierraBay12 contributors; CC BY-SA 3.0; adapted machinery, inhabitants and loot use local TG types. | https://github.com/SierraBay/SierraBay12/blob/8623b35f6943130998002e94cf001a9c6ccb3f4c/maps/random_ruins/exoplanet_ruins/radshrine/radshrine.dmm
+"c" = (
+/turf/closed/wall,
+/area/expedition_planet/barren)
+"f" = (
+/obj/effect/decal/remains/xeno,
+/turf/open/floor/iron,
+/area/expedition_planet/barren)
+"g" = (
+/obj/item/paper{
+	name = "полевой журнал: Погребальная площадка";
+	 default_raw_text = "Объект: Погребальная площадка. Отмечены следы длительного отсутствия обслуживания. Сохранность груза и оборудования не подтверждена. Перед вскрытием отсеков проверить атмосферу; найденные материалы и носители сохранить вместе с местом обнаружения."
+	},
+/turf/open/floor/iron,
+/area/expedition_planet/barren)
+"j" = (
+/turf/open/floor/iron,
+/area/expedition_planet/barren)
+"s" = (
+/obj/effect/anomaly/grav/stationtrauma_icarus,
+/turf/open/floor/iron,
+/area/expedition_planet/barren)
+"A" = (
+/turf/closed/wall/r_wall,
+/area/expedition_planet/barren)
+"F" = (
+/turf/open/water,
+/area/expedition_planet/barren)
+"L" = (
+/obj/structure/mineral_door/uranium,
+/turf/open/floor/iron,
+/area/expedition_planet/barren)
+"Q" = (
+/obj/effect/decal/cleanable/cobweb,
+/obj/effect/decal/remains/xeno,
+/turf/open/floor/iron,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+c
+A
+A
+L
+A
+A
+c
+"}
+(2,1,1) = {"
+A
+Q
+j
+j
+g
+j
+A
+"}
+(3,1,1) = {"
+A
+j
+F
+F
+F
+j
+A
+"}
+(4,1,1) = {"
+L
+j
+F
+s
+F
+j
+L
+"}
+(5,1,1) = {"
+A
+j
+F
+F
+F
+j
+A
+"}
+(6,1,1) = {"
+A
+j
+j
+j
+f
+j
+A
+"}
+(7,1,1) = {"
+c
+A
+A
+L
+A
+A
+c
+"}
