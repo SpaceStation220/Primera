@@ -24,6 +24,9 @@
 	if(playing || !islist(document) || document["version"] != 1)
 		return FALSE
 	var/list/notes = document["notes"]
+	var/compact_notes = document["note_format"] == "tuple-v1"
+	if(!isnull(document["note_format"]) && !compact_notes)
+		return FALSE
 	var/list/tempos = document["tempos"]
 	var/list/tracks = document["tracks"]
 	if(!islist(notes) || length(notes) > MUSIC_SEQUENCE_MAX_NOTES || !islist(tempos) || length(tempos) > 1024 || !islist(tracks) || length(tracks) > 128)
@@ -53,12 +56,14 @@
 	for(var/list/note as anything in notes)
 		if(!islist(note))
 			return FALSE
-		var/start = note["time"]
-		var/duration = note["duration"]
-		var/key = note["key"]
-		var/velocity = note["velocity"]
-		var/channel = note["channel"]
-		var/track = note["track"]
+		if(compact_notes && length(note) != 6)
+			return FALSE
+		var/start = compact_notes ? note[1] : note["time"]
+		var/duration = compact_notes ? note[2] : note["duration"]
+		var/key = compact_notes ? note[3] : note["key"]
+		var/velocity = compact_notes ? note[4] : note["velocity"]
+		var/channel = compact_notes ? note[5] : note["channel"]
+		var/track = compact_notes ? note[6] : note["track"]
 		if(!isnum(start) || !isnum(duration) || !isnum(key) || !isnum(velocity) || !isnum(channel) || !isnum(track))
 			return FALSE
 		if(start < previous_time || start < 0 || duration <= 0 || start + duration > MUSIC_SEQUENCE_MAX_SECONDS || key < 0 || key > 127 || velocity < 1 || velocity > 127 || channel < 0 || channel > 15 || track < 0 || track > 127)

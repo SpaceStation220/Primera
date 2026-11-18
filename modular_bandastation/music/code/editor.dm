@@ -24,6 +24,7 @@
 	data["advanced_music_access"] = can_use_advanced_music(user)
 	data["using_instrument_id"] = using_instrument?.id
 	data["music_upload"] = null
+	data["music_upload_interval"] = get_music_upload_delay() * 100
 	if(music_document_upload)
 		data["music_upload"] = list("id" = music_document_upload["id"], "next" = music_document_upload["next"], "state" = music_document_upload["state"], "error" = music_document_upload["error"])
 	data["midi_shared"] = !!sequence_master
@@ -168,7 +169,17 @@
 			return TRUE
 	return FALSE
 
-/// Acknowledged, bounded transfers avoid raising TGUI's global payload limit.
+/// Reserve three quarters of the configured Topic budget for normal interaction.
+/datum/song/proc/get_music_upload_delay()
+	. = 1 SECONDS
+	var/second_limit = CONFIG_GET(number/second_topic_limit)
+	var/minute_limit = CONFIG_GET(number/minute_topic_limit)
+	if(second_limit > 0)
+		. = max(., (4 SECONDS) / second_limit)
+	if(minute_limit > 0)
+		. = max(., (4 MINUTES) / minute_limit)
+
+/// All chunks still pass the normal Topic limiter and instrument UI validation.
 /datum/song/proc/receive_music_document(list/params, mob/user)
 	var/id = params["id"]
 	var/index = params["index"]
@@ -176,16 +187,17 @@
 	var/part = params["part"]
 	var/kind = params["kind"]
 	var/play_action = params["play_action"]
-	if(!istext(id) || length(id) > 80 || !isnum(index) || !isnum(count) || index != round(index) || count != round(count) || count < 1 || count > 1024 || index < 0 || index >= count || !istext(part) || length(part) > 8192 || !(kind in list("sequence", "cues")))
+	if(!istext(id) || length(id) > 80 || !isnum(index) || !isnum(count) || index != round(index) || count != round(count) || count < 1 || count > 4096 || index < 0 || index >= count || !istext(part) || length(part) > 8192 || !(kind in list("sequence", "cues", "notes")))
 		return TRUE
-	if(!isnull(play_action) && play_action != "play_music")
+	if((!isnull(play_action) && play_action != "play_music") || (kind == "notes" && !isnull(play_action)))
 		return TRUE
+	var/idle_timeout = max(20 SECONDS, get_music_upload_delay() * 3)
 	if(index == 0 && music_document_upload?["id"] != id)
 		if(music_document_upload?["state"] == "receiving" && music_document_upload["expires"] > world.time)
 			to_chat(user, span_warning("Another music upload is still in progress."))
 			return TRUE
-		music_document_upload = list("id" = id, "user" = WEAKREF(user), "kind" = kind, "count" = count, "next" = 0, "parts" = list(), "size" = 0, "state" = "receiving", "expires" = world.time + 20 SECONDS, "play_action" = play_action)
-		addtimer(CALLBACK(src, PROC_REF(expire_music_upload), id), 20 SECONDS)
+		music_document_upload = list("id" = id, "user" = WEAKREF(user), "kind" = kind, "count" = count, "next" = 0, "parts" = list(), "size" = 0, "state" = "receiving", "expires" = world.time + idle_timeout, "play_action" = play_action)
+		addtimer(CALLBACK(src, PROC_REF(expire_music_upload), id), idle_timeout)
 	var/list/upload = music_document_upload
 	if(!upload || upload["id"] != id || upload["user"] != WEAKREF(user) || upload["state"] != "receiving")
 		return TRUE
@@ -198,12 +210,12 @@
 	parts += part
 	upload["size"] += length(part)
 	upload["next"]++
-	upload["expires"] = world.time + 20 SECONDS
+	upload["expires"] = world.time + idle_timeout
 	if(upload["next"] < count)
 		return TRUE
 	var/raw = parts.Join()
 	upload["parts"] = null
-	var/success = apply_music_document(kind == "sequence" ? "set_sequence_document" : "set_song_cues", raw, user, play_action)
+	var/success = apply_music_document(kind == "notes" ? "import_notes_document" : (kind == "sequence" ? "set_sequence_document" : "set_song_cues"), raw, user, play_action)
 	upload["state"] = success ? "complete" : "error"
 	if(!success)
 		upload["error"] = "Music document rejected; playback was not started. Check the project and retry."
@@ -221,7 +233,7 @@
 	upload["parts"] = null
 
 /datum/song/proc/apply_music_document(action, raw, mob/user, play_action)
-	if(!can_use_advanced_music(user))
+	if(action != "import_notes_document" && !can_use_advanced_music(user))
 		return FALSE
 	if(playing || midi_start_timer)
 		return FALSE
@@ -235,6 +247,20 @@
 	catch
 		to_chat(user, span_warning("Invalid music document."))
 		return FALSE
+	if(action == "import_notes_document")
+		if(!islist(document) || document["version"] != 1 || !istext(document["text"]) || length_char(document["text"]) > MUSIC_NOTES_MAX_CHARS || !isnull(play_action))
+			return FALSE
+		var/text = html_encode(replacetext(document["text"], ascii2text(13), ""))
+		var/list/import_lines = splittext(text, "\n")
+		if(length(import_lines) > SSinstruments.musician_maxlines)
+			return FALSE
+		for(var/line in import_lines)
+			if(length_char(line) > SSinstruments.musician_maxlinechars)
+				return FALSE
+		ParseSong(user, text)
+		set_playback_mode("midi")
+		update_static_data_for_all_viewers()
+		return TRUE
 	var/success = action == "set_sequence_document" ? load_sequence(document) : load_song_cues(document)
 	if(!success)
 		to_chat(user, span_warning("Music document rejected. Check its limits, timing and audio fingerprint."))

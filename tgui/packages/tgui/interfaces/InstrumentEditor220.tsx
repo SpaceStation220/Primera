@@ -11,6 +11,7 @@ import {
   Section,
   Stack,
   Tabs,
+  TextArea,
 } from 'tgui-core/components';
 import type { BooleanLike } from 'tgui-core/react';
 import { useBackend } from '../backend';
@@ -41,6 +42,7 @@ export type Data = {
   multi_tracks: { target_id: string | null; delay_beats: number }[];
   advanced_music_access: BooleanLike;
   music_upload?: MusicUploadStatus | null;
+  music_upload_interval?: number;
   sequence_document: MusicDocument;
   cue_document: CueDocument;
   midi_channels: number[];
@@ -101,7 +103,11 @@ export function InstrumentEditor220() {
   const [showHelp, setShowHelp] = useState(false);
   const applyMidi = useRef<((action?: PlayAction) => boolean) | null>(null);
   const applyOgg = useRef<((action?: PlayAction) => boolean) | null>(null);
-  const transfer = useMusicUpload(act, data.music_upload);
+  const transfer = useMusicUpload(
+    act,
+    data.music_upload,
+    data.music_upload_interval,
+  );
   const [tab, setTab] = useState<'main' | 'midi' | 'library'>(() =>
     data.advanced_music_access && data.playback_mode === 'file'
       ? 'library'
@@ -190,7 +196,12 @@ export function InstrumentEditor220() {
         {tab === 'main' && (
           <>
             <MainPanel />
-            <MusicEditor />
+            <MusicEditor
+              uploading={transfer.busy}
+              upload={(text, done) =>
+                transfer.upload('notes', { version: 1, text }, undefined, done)
+              }
+            />
           </>
         )}
         {tab === 'midi' && !!data.advanced_music_access && (
@@ -783,9 +794,27 @@ const RightKnobs = () => {
   );
 };
 
-const MusicEditor = () => {
+export const MusicEditor = ({
+  uploading,
+  upload,
+}: {
+  uploading: boolean;
+  upload: (text: string, done: () => void) => void;
+}) => {
   const { act, data } = useBackend<Data>();
   const { bpm, lines } = data;
+  const [showImport, setShowImport] = useState(false);
+  const [notesText, setNotesText] = useState('');
+  const characterCount = [...notesText].length;
+  const importLines = notesText.replace(/\r/g, '').split('\n');
+  const importError =
+    characterCount > 40000
+      ? 'Maximum 40000 characters.'
+      : importLines.length > data.max_lines
+        ? `Maximum ${data.max_lines} lines.`
+        : importLines.some((line) => [...line].length > data.max_line_chars)
+          ? `Maximum ${data.max_line_chars} characters per line.`
+          : '';
 
   return (
     <Collapsible open title="Music Editor" icon="pencil">
@@ -797,7 +826,13 @@ const MusicEditor = () => {
             </Button>
           </Stack.Item>
           <Stack.Item ml={1}>
-            <Button onClick={() => act('import_song')}>Import a Song</Button>
+            <Button
+              disabled={uploading || !!data.playing}
+              selected={showImport}
+              onClick={() => setShowImport(!showImport)}
+            >
+              Import a Song
+            </Button>
           </Stack.Item>
           <Stack.Item grow />
           <Stack.Item>
@@ -841,6 +876,31 @@ const MusicEditor = () => {
             </Button>
           </Stack.Item>
         </Stack>
+
+        {showImport && (
+          <Box mt={1}>
+            <TextArea
+              aria-label="Notes import"
+              fluid
+              height="14em"
+              value={notesText}
+              disabled={uploading}
+              onChange={setNotesText}
+            />
+            <Box color={importError ? 'bad' : 'label'}>
+              {importError || `${characterCount}/40000`}
+            </Box>
+            <Button
+              icon="upload"
+              disabled={
+                uploading || !!data.playing || !notesText || !!importError
+              }
+              onClick={() => upload(notesText, () => setShowImport(false))}
+            >
+              Import notes
+            </Button>
+          </Box>
+        )}
 
         <Box mt={1}>
           {lines.map((line, index) => (

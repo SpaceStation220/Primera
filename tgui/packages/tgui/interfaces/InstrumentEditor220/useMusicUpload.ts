@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  type MusicUploadKind,
   type MusicUploadStatus,
   type PlayAction,
   splitMusicDocument,
@@ -7,7 +8,7 @@ import {
 
 type Transfer = {
   id: string;
-  kind: 'sequence' | 'cues';
+  kind: MusicUploadKind;
   parts: string[];
   playAction?: PlayAction;
   onComplete?: () => void;
@@ -16,11 +17,13 @@ type Transfer = {
 export function useMusicUpload(
   act: (action: string, payload?: object) => void,
   status?: MusicUploadStatus | null,
+  interval = 1000,
 ) {
   const [transfer, setTransfer] = useState<Transfer | null>(null);
   const [error, setError] = useState('');
   const serial = useRef(0);
   const sent = useRef('');
+  const nextSend = useRef(0);
   const send = useRef(act);
   send.current = act;
   const next = status?.id === transfer?.id ? status?.next || 0 : 0;
@@ -36,7 +39,14 @@ export function useMusicUpload(
       return;
     }
     const key = `${transfer.id}:${next}`;
-    if (sent.current !== key && next < transfer.parts.length) {
+    let dispatch: ReturnType<typeof setTimeout>;
+    const sendPart = () => {
+      const remaining = nextSend.current - performance.now();
+      if (remaining > 0) {
+        dispatch = setTimeout(sendPart, remaining);
+        return;
+      }
+      if (sent.current === key || next >= transfer.parts.length) return;
       sent.current = key;
       send.current('upload_music_document', {
         id: transfer.id,
@@ -46,16 +56,27 @@ export function useMusicUpload(
         part: transfer.parts[next],
         play_action: transfer.playAction,
       });
-    }
-    const timeout = setTimeout(() => {
-      send.current('cancel_music_upload', { id: transfer.id });
-      setError(
-        'Music upload timed out. The previous composition was not started.',
-      );
-      setTransfer(null);
-    }, 15000);
-    return () => clearTimeout(timeout);
-  }, [transfer, next, state, serverError]);
+      nextSend.current = performance.now() + Math.max(1000, interval);
+    };
+    dispatch = setTimeout(
+      sendPart,
+      Math.max(0, nextSend.current - performance.now()),
+    );
+    const timeout = setTimeout(
+      () => {
+        send.current('cancel_music_upload', { id: transfer.id });
+        setError(
+          'Music upload timed out. The previous composition was not started.',
+        );
+        setTransfer(null);
+      },
+      Math.max(15000, interval * 3),
+    );
+    return () => {
+      clearTimeout(dispatch);
+      clearTimeout(timeout);
+    };
+  }, [transfer, next, state, serverError, interval]);
 
   const upload = (
     kind: Transfer['kind'],
@@ -64,7 +85,7 @@ export function useMusicUpload(
     onComplete?: () => void,
   ) => {
     if (transfer) return;
-    const parts = splitMusicDocument(document);
+    const parts = splitMusicDocument(document, kind);
     setError('');
     setTransfer({
       id: `${Date.now()}-${++serial.current}`,

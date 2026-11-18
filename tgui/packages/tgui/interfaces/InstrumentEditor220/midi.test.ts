@@ -88,9 +88,9 @@ describe('large MIDI projects', () => {
         play_action: 'play_music',
       };
       expect(encodeURIComponent(JSON.stringify(payload)).length).toBeLessThan(
-        10000,
+        1600,
       );
-      expect(part.length).toBeLessThanOrEqual(8192);
+      expect(part.length).toBeLessThanOrEqual(900);
     }
   });
 
@@ -105,13 +105,34 @@ describe('large MIDI projects', () => {
     expect(JSON.parse(parts.join(''))).toEqual(doc);
     for (const part of parts) {
       expect(encodeURIComponent(JSON.stringify({ part })).length).toBeLessThan(
-        9000,
+        1200,
       );
     }
   });
 
   it('rejects oversized projects before starting a transfer', () => {
     expect(() => splitMusicDocument({ text: 'x'.repeat(600000) })).toThrow();
+  });
+
+  it('packs MIDI note fields without losing timings or changing saved projects', () => {
+    const doc = readMidi(longMidi(), 'Long composition');
+    const before = JSON.stringify(doc);
+    const packed = JSON.parse(splitMusicDocument(doc, 'sequence').join(''));
+    expect(packed.note_format).toBe('tuple-v1');
+    expect(packed.notes).toEqual(
+      doc.notes.map((n) => [
+        n.time,
+        n.duration,
+        n.key,
+        n.velocity,
+        n.channel,
+        n.track,
+      ]),
+    );
+    expect(packed.tracks).toEqual(doc.tracks);
+    expect(packed.tempos).toEqual(doc.tempos);
+    expect(JSON.stringify(packed).length).toBeLessThan(before.length * 0.65);
+    expect(JSON.stringify(doc)).toBe(before);
   });
 });
 
