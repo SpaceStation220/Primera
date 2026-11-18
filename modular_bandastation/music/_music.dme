@@ -14,6 +14,7 @@
 #include "code/concert_player.dm"
 #include "code/concert_speakers.dm"
 #include "code/concert_circuits.dm"
+#include "code/boombox_disks.dm"
 
 #ifdef UNIT_TESTS
 #include "code/access_tests.dm"
