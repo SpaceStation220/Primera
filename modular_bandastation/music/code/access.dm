@@ -24,6 +24,8 @@
 
 /// UI actions remain guarded even if a client forges a disabled tab or upload.
 /datum/song/proc/authorize_music_action(action, list/params, mob/user)
+	if(action in list("begin_native_music_upload", "read_native_music_upload"))
+		return can_use_advanced_music(user)
 	var/advanced = (action in list("open_piano_roll", "upload_music_document", "set_sequence_document", "set_song_cues", "sequence_channel", "sequence_seek", "auto_sing", "singing_tts", "import_file_song", "clear_file_song", "select_loaded_file_track", "set_file_track_length", "remove_file_track"))
 	if(action == "upload_music_document" && params["kind"] == "notes")
 		advanced = FALSE

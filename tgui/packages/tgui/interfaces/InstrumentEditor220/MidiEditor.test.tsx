@@ -46,7 +46,7 @@ for (const state of ['complete', 'error'] as const) {
     fireEvent.click(screen.getByText('Piano roll'));
     await waitFor(() => expect(send).toHaveBeenCalledTimes(1));
     const [action, payload] = send.mock.calls[0];
-    expect(action).toBe('upload_music_document');
+    expect(action).toBe('begin_native_music_upload');
     expect(send.mock.calls.some(([name]) => name === 'open_piano_roll')).toBe(
       false,
     );
@@ -104,7 +104,7 @@ it('starts acknowledged MIDI without retransmission but uploads edits and retrie
   });
   fireEvent.click(screen.getByText('Test start'));
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1));
-  expect(send.mock.calls[0][0]).toBe('upload_music_document');
+  expect(send.mock.calls[0][0]).toBe('begin_native_music_upload');
   const rejected = send.mock.calls[0][1] as {
     id: string;
     count: number;
@@ -119,7 +119,7 @@ it('starts acknowledged MIDI without retransmission but uploads edits and retrie
   send.mockClear();
   fireEvent.click(screen.getByText('Test start'));
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1), { timeout: 3000 });
-  expect(send.mock.calls[0][0]).toBe('upload_music_document');
+  expect(send.mock.calls[0][0]).toBe('begin_native_music_upload');
   const accepted = send.mock.calls[0][1] as { id: string; count: number };
   view.rerender(
     <Editor

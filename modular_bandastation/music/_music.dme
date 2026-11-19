@@ -5,6 +5,7 @@
 #include "code/playback.dm"
 #include "code/sequence.dm"
 #include "code/editor.dm"
+#include "code/native_upload.dm"
 #include "code/file_playback.dm"
 #include "code/legacy_samples.dm"
 #include "code/access.dm"

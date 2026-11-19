@@ -29,9 +29,8 @@
 	var/list/sources = ..()
 	for(var/obj/item/circuit_component/concert_listener/receiver as anything in player.get_receivers())
 		var/turf/origin = get_turf(receiver.get_source())
-		// The local player and then the first receiver win ties at the same location.
-		if(origin && !sources[origin])
-			sources[origin] = receiver.gain.value / 100
+		if(origin)
+			sources[origin] = max(sources[origin] || 0, receiver.gain.value / 100)
 	return sources
 
 /datum/song/concert/get_file_output_volume(base_volume = volume)
@@ -39,17 +38,6 @@
 
 /datum/song/concert/get_sound_falloff_distance()
 	return min(CONCERT_STEREO_RADIUS, max(0, instrument_range - 1))
-
-/datum/song/concert/configure_file_sound(sound/track, turf/origin, turf/destination, distance, multiplier, gain = 1)
-	if(distance > CONCERT_STEREO_RADIUS)
-		return ..()
-	track.volume = max(0, get_file_output_volume() * gain * multiplier)
-	track.x = 0
-	track.y = 0
-	track.z = 0
-	track.pan = 0
-	track.environment = SOUND_ENVIRONMENT_NONE
-	return TRUE
 
 /datum/song/concert/get_listener_volume_multiplier(mob/listener)
 	return (listener?.client?.prefs.read_preference(/datum/preference/numeric/volume/sound_jukebox) || 0) / 100

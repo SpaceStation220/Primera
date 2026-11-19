@@ -9,7 +9,7 @@
 	var/file_track_finish_time = 0
 	/// OGG resources retained by this instrument.
 	var/list/loaded_file_tracks = list()
-	/// Listener -> whether its current file channel uses non-positional stereo mode.
+	/// Listener -> current mute status of its persistent non-positional file channel.
 	var/list/file_listeners = list()
 	var/list/music_uploads = list()
 	var/file_track_hash
@@ -137,54 +137,84 @@
 /datum/song/proc/update_file_listeners(list/sources)
 	if(!playing || playback_mode != "file" || !last_channel_played)
 		return
-	for(var/mob/listener as anything in file_listeners.Copy())
-		if(QDELETED(listener))
+	var/list/listeners = file_listeners | hearing_mobs
+	for(var/mob/listener as anything in listeners)
+		if(QDELETED(listener) || !listener.client)
 			file_listeners -= listener
 			continue
-		if(!(listener in hearing_mobs) || !listener.client)
-			terminate_sound_mob(listener)
-			file_listeners -= listener
-	for(var/mob/listener as anything in hearing_mobs)
 		var/turf/destination = get_turf(listener)
-		var/turf/nearest
-		var/distance = INFINITY
+		var/turf/loudest
+		var/loudest_distance
+		var/nearest_distance = INFINITY
+		var/strongest_gain = 0
 		for(var/turf/origin as anything in sources)
 			if(!destination || origin.z != destination.z)
 				continue
-			var/new_distance = get_dist_euclidean(destination, origin)
-			if(new_distance < distance)
-				distance = new_distance
-				nearest = origin
+			var/distance = get_dist_euclidean(destination, origin)
+			nearest_distance = min(nearest_distance, distance)
+			var/source_gain = get_file_source_gain(distance, sources[origin])
+			if(source_gain > strongest_gain)
+				strongest_gain = source_gain
+				loudest = origin
+				loudest_distance = distance
 		var/multiplier = get_listener_volume_multiplier(listener)
-		if(!nearest || distance > instrument_range || !multiplier || HAS_TRAIT(listener, TRAIT_DEAF))
+		if(nearest_distance > instrument_range + INSTRUMENT_FILE_RETENTION_MARGIN)
 			if(listener in file_listeners)
 				terminate_sound_mob(listener)
 				file_listeners -= listener
 			continue
-		var/sound/track = make_file_sound(listener, nearest, distance, multiplier, sources[nearest])
+		if(!(listener in hearing_mobs) || !loudest || !multiplier || HAS_TRAIT(listener, TRAIT_DEAF))
+			mute_file_listener(listener)
+			continue
+		var/sound/track = make_file_sound(listener, loudest, loudest_distance, multiplier, sources[loudest])
 		SEND_SOUND(listener, track)
 
-/** Prepare the actual sound packet; replace the channel at its current offset on 2D/3D changes. */
+/// Keep a nearby stream alive silently so crossing a range edge does not seek again.
+/datum/song/proc/mute_file_listener(mob/listener)
+	if(!(listener in file_listeners) || file_listeners[listener] == SOUND_MUTE)
+		return
+	var/sound/update = sound(channel = text2num(last_channel_played))
+	update.status = SOUND_UPDATE | SOUND_MUTE
+	SEND_SOUND(listener, update)
+	file_listeners[listener] = SOUND_MUTE
+
+/// Stop retained muted listeners too, before the shared channel is released or reused.
+/datum/song/terminate_all_sounds(clear_channels = TRUE)
+	for(var/mob/listener as anything in file_listeners)
+		if(!QDELETED(listener) && !(listener in hearing_mobs))
+			terminate_sound_mob(listener)
+	file_listeners.Cut()
+	return ..()
+
+/** One channel stays non-positional for its entire lifetime; updates also unmute it. */
 /datum/song/proc/make_file_sound(mob/listener, turf/origin, distance, multiplier, gain = 1)
 	var/sound/track = sound(file_track)
 	track.channel = text2num(last_channel_played)
-	var/stereo = configure_file_sound(track, origin, get_turf(listener), distance, multiplier, gain)
-	if((listener in file_listeners) && file_listeners[listener] == stereo)
+	configure_file_sound(track, origin, get_turf(listener), distance, multiplier, gain)
+	if(listener in file_listeners)
 		track.status = SOUND_UPDATE
 	else
-		// Re-select the client sound mode without losing the track's current position.
 		track.offset = max(0, (world.time - playback_started_at) / (1 SECONDS))
-	file_listeners[listener] = stereo
+	file_listeners[listener] = NONE
 	return track
 
-/** Default instrument policy is positional audio at every distance; return its playback mode. */
+/// Compare source gains after distance falloff, not merely their proximity.
+/datum/song/proc/get_file_source_gain(distance, gain = 1)
+	if(distance > instrument_range)
+		return 0
+	if(distance <= get_sound_falloff_distance())
+		return max(0, gain)
+	return max(0, gain * (1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)))
+
+/** OGG distance affects volume only; native channel mode never changes while walking. */
 /datum/song/proc/configure_file_sound(sound/track, turf/origin, turf/destination, distance, multiplier, gain = 1)
-	track.volume = max(0, get_file_output_volume() * gain * multiplier * (1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)))
-	track.x = origin.x - destination.x
-	track.z = origin.y - destination.y
+	track.volume = max(0, get_file_output_volume() * multiplier * get_file_source_gain(distance, gain))
+	track.x = 0
+	track.z = 0
 	track.y = 0
-	track.falloff = instrument_range
-	return FALSE
+	track.pan = 0
+	track.environment = SOUND_ENVIRONMENT_NONE
+	return TRUE
 
 /datum/song/proc/process_file_playing()
 	if(should_stop_playing(music_player) == STOP_PLAYING)

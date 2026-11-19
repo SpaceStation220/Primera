@@ -27,6 +27,8 @@
 	data["music_upload_interval"] = get_music_upload_delay() * 100
 	if(music_document_upload)
 		data["music_upload"] = list("id" = music_document_upload["id"], "next" = music_document_upload["next"], "state" = music_document_upload["state"], "error" = music_document_upload["error"])
+		if(music_document_upload["user"] == WEAKREF(user))
+			data["music_upload"]["native_controls"] = music_document_upload["native_controls"]
 	data["midi_shared"] = !!sequence_master
 	data["auto_sing"] = auto_sing
 	data["singing_tts"] = singing_tts
@@ -107,9 +109,13 @@
 			return TRUE
 		if("upload_music_document")
 			return receive_music_document(params, user)
+		if("begin_native_music_upload")
+			return begin_native_music_upload(params, user, ui)
+		if("read_native_music_upload")
+			return read_native_music_upload(params, user, ui)
 		if("cancel_music_upload")
 			if(music_document_upload && music_document_upload["id"] == params["id"] && music_document_upload["user"] == WEAKREF(user))
-				music_document_upload = null
+				cancel_music_document_upload()
 			return TRUE
 		if("select_music_mode")
 			select_performance_mode(params["mode"])
@@ -193,13 +199,14 @@
 		return TRUE
 	var/idle_timeout = max(20 SECONDS, get_music_upload_delay() * 3)
 	if(index == 0 && music_document_upload?["id"] != id)
-		if(music_document_upload?["state"] == "receiving" && music_document_upload["expires"] > world.time)
+		if(music_document_upload?["state"] in list("preparing", "receiving"))
 			to_chat(user, span_warning("Another music upload is still in progress."))
 			return TRUE
+		cancel_music_document_upload()
 		music_document_upload = list("id" = id, "user" = WEAKREF(user), "kind" = kind, "count" = count, "next" = 0, "parts" = list(), "size" = 0, "state" = "receiving", "expires" = world.time + idle_timeout, "play_action" = play_action)
 		addtimer(CALLBACK(src, PROC_REF(expire_music_upload), id), idle_timeout)
 	var/list/upload = music_document_upload
-	if(!upload || upload["id"] != id || upload["user"] != WEAKREF(user) || upload["state"] != "receiving")
+	if(!upload || upload["native_controls"] || upload["id"] != id || upload["user"] != WEAKREF(user) || upload["state"] != "receiving")
 		return TRUE
 	if(index != upload["next"] || count != upload["count"] || kind != upload["kind"] || play_action != upload["play_action"] || world.time > upload["expires"] || upload["size"] + length(part) > 600000)
 		upload["state"] = "error"
@@ -214,8 +221,14 @@
 	if(upload["next"] < count)
 		return TRUE
 	var/raw = parts.Join()
+	return complete_music_document_upload(upload, raw, user)
+
+/// Both transports commit through the same bounded document validation.
+/datum/song/proc/complete_music_document_upload(list/upload, raw, mob/user)
 	upload["parts"] = null
-	var/success = apply_music_document(kind == "notes" ? "import_notes_document" : (kind == "sequence" ? "set_sequence_document" : "set_song_cues"), raw, user, play_action)
+	clear_native_music_fields(upload)
+	var/kind = upload["kind"]
+	var/success = apply_music_document(kind == "notes" ? "import_notes_document" : (kind == "sequence" ? "set_sequence_document" : "set_song_cues"), raw, user, upload["play_action"])
 	upload["state"] = success ? "complete" : "error"
 	if(!success)
 		upload["error"] = "Music document rejected; playback was not started. Check the project and retry."
@@ -223,7 +236,7 @@
 
 /datum/song/proc/expire_music_upload(id)
 	var/list/upload = music_document_upload
-	if(!upload || upload["id"] != id || upload["state"] != "receiving")
+	if(!upload || upload["id"] != id || !(upload["state"] in list("preparing", "receiving")))
 		return
 	if(upload["expires"] > world.time)
 		addtimer(CALLBACK(src, PROC_REF(expire_music_upload), id), upload["expires"] - world.time)
@@ -231,6 +244,7 @@
 	upload["state"] = "error"
 	upload["error"] = "Music upload expired. Please retry."
 	upload["parts"] = null
+	clear_native_music_fields(upload)
 
 /datum/song/proc/apply_music_document(action, raw, mob/user, play_action)
 	if(action != "import_notes_document" && !can_use_advanced_music(user))
@@ -239,7 +253,7 @@
 		return FALSE
 	if(action == "set_sequence_document" && sequence_master)
 		return FALSE
-	if(!istext(raw) || length(raw) > 600000)
+	if(!istext(raw) || length(raw) > MUSIC_DOCUMENT_MAX_BYTES)
 		return FALSE
 	var/list/document
 	try

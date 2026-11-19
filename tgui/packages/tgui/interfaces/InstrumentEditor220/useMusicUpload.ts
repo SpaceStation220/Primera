@@ -3,6 +3,7 @@ import {
   type MusicUploadKind,
   type MusicUploadStatus,
   type PlayAction,
+  nativeMusicPages,
   splitMusicDocument,
 } from './upload';
 
@@ -10,6 +11,7 @@ type Transfer = {
   id: string;
   kind: MusicUploadKind;
   parts: string[];
+  native: boolean;
   playAction?: PlayAction;
   onComplete?: () => void;
 };
@@ -25,10 +27,24 @@ export function useMusicUpload(
   const sent = useRef('');
   const nextSend = useRef(0);
   const send = useRef(act);
+  const active = useRef(transfer);
+  active.current = transfer;
   send.current = act;
   const next = status?.id === transfer?.id ? status?.next || 0 : 0;
   const state = status?.id === transfer?.id ? status?.state : undefined;
   const serverError = status?.id === transfer?.id ? status?.error : undefined;
+  const controlsKey =
+    status?.id === transfer?.id
+      ? status?.native_controls?.join(';')
+      : undefined;
+
+  useEffect(
+    () => () => {
+      if (active.current)
+        send.current('cancel_music_upload', { id: active.current.id });
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!transfer) return;
@@ -38,7 +54,8 @@ export function useMusicUpload(
       if (state === 'complete') transfer.onComplete?.();
       return;
     }
-    const key = `${transfer.id}:${next}`;
+    const preparing = transfer.native && (!state || state === 'preparing');
+    const key = `${transfer.id}:${preparing ? 'prepare' : next}`;
     let dispatch: ReturnType<typeof setTimeout>;
     const sendPart = () => {
       const remaining = nextSend.current - performance.now();
@@ -46,16 +63,59 @@ export function useMusicUpload(
         dispatch = setTimeout(sendPart, remaining);
         return;
       }
-      if (sent.current === key || next >= transfer.parts.length) return;
+      if (
+        sent.current === key ||
+        next >= transfer.parts.length ||
+        (transfer.native && state === 'preparing')
+      )
+        return;
       sent.current = key;
-      send.current('upload_music_document', {
-        id: transfer.id,
-        kind: transfer.kind,
-        index: next,
-        count: transfer.parts.length,
-        part: transfer.parts[next],
-        play_action: transfer.playAction,
-      });
+      if (transfer.native) {
+        try {
+          if (preparing) {
+            send.current('begin_native_music_upload', {
+              id: transfer.id,
+              kind: transfer.kind,
+              count: transfer.parts.length,
+              size: transfer.parts.reduce(
+                (size, page) => size + page.length,
+                0,
+              ),
+              play_action: transfer.playAction,
+            });
+          } else {
+            const controls = controlsKey?.split(';');
+            if (controls?.length !== 32)
+              throw new Error('The native MIDI transfer bank is unavailable.');
+            const page = transfer.parts[next];
+            for (let offset = 0; offset < page.length; offset += 1024) {
+              Byond.winset(
+                controls[offset / 1024],
+                'text',
+                `${next}:${page.slice(offset, offset + 1024)}`,
+              );
+            }
+            send.current('read_native_music_upload', {
+              id: transfer.id,
+              index: next,
+            });
+          }
+        } catch (error) {
+          send.current('cancel_music_upload', { id: transfer.id });
+          setError(String(error));
+          setTransfer(null);
+          return;
+        }
+      } else {
+        send.current('upload_music_document', {
+          id: transfer.id,
+          kind: transfer.kind,
+          index: next,
+          count: transfer.parts.length,
+          part: transfer.parts[next],
+          play_action: transfer.playAction,
+        });
+      }
       nextSend.current = performance.now() + Math.max(1000, interval);
     };
     dispatch = setTimeout(
@@ -76,7 +136,7 @@ export function useMusicUpload(
       clearTimeout(dispatch);
       clearTimeout(timeout);
     };
-  }, [transfer, next, state, serverError, interval]);
+  }, [transfer, next, state, serverError, interval, controlsKey]);
 
   const upload = (
     kind: Transfer['kind'],
@@ -85,12 +145,16 @@ export function useMusicUpload(
     onComplete?: () => void,
   ) => {
     if (transfer) return;
-    const parts = splitMusicDocument(document, kind);
+    const native = kind === 'sequence' && Byond.IS_BYOND;
+    const parts = native
+      ? nativeMusicPages(document)
+      : splitMusicDocument(document, kind);
     setError('');
     setTransfer({
       id: `${Date.now()}-${++serial.current}`,
       kind,
       parts,
+      native,
       playAction,
       onComplete,
     });

@@ -41,6 +41,8 @@
 		Fail("Notes were locked for a normal profession.", __FILE__, __LINE__)
 	if(song.authorize_music_action("set_sequence_document", list(), player))
 		Fail("A forged MIDI action bypassed the profession check.", __FILE__, __LINE__)
+	if(song.authorize_music_action("begin_native_music_upload", list(), player) || song.authorize_music_action("read_native_music_upload", list(), player))
+		Fail("Native MIDI transport bypassed the profession check.", __FILE__, __LINE__)
 	player.mind.assigned_role = musician
 	if(!song.can_use_advanced_music(player))
 		Fail("Musician did not unlock advanced music.", __FILE__, __LINE__)

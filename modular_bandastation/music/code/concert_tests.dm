@@ -238,7 +238,7 @@
 	if(returned_module)
 		allocated += returned_module
 
-/** Five tiles inclusive stays non-positional; mode transitions retain channel and playback time. */
+/** Walking across the volume plateau updates the same non-positional channel. */
 /datum/unit_test/concert_stereo_radius/Run()
 	var/obj/machinery/concert_player/player = allocate(/obj/machinery/concert_player, run_loc_floor_bottom_left)
 	player.set_is_operational(TRUE)
@@ -269,20 +269,26 @@
 		return Fail("Steady non-positional playback unnecessarily replaced the sound channel.", __FILE__, __LINE__)
 	listener.forceMove(distant)
 	packet = song.make_file_sound(listener, origin, 6, 1)
-	if(packet.x != -6 || packet.y || packet.z || packet.volume <= 0 || packet.volume >= 80)
-		return Fail("Past five tiles the concert packet did not restore positional attenuation.", __FILE__, __LINE__)
-	if((packet.status & SOUND_UPDATE) || packet.offset != 3 || packet.channel != channel)
-		return Fail("Entering positional mode did not reuse the current channel at the current time.", __FILE__, __LINE__)
+	if(packet.x || packet.y || packet.z || packet.pan || packet.volume <= 0 || packet.volume >= 80)
+		return Fail("Past five tiles the concert packet did not retain flat volume-only attenuation.", __FILE__, __LINE__)
+	if(!(packet.status & SOUND_UPDATE) || packet.offset || packet.channel != channel)
+		return Fail("Crossing the volume boundary restarted or changed the channel.", __FILE__, __LINE__)
 	listener.forceMove(nearby)
 	packet = song.make_file_sound(listener, origin, 5, 0.5)
-	if(packet.x || packet.y || packet.z || packet.volume != 40 || packet.offset != 3 || packet.channel != channel || (packet.status & SOUND_UPDATE))
-		return Fail("Returning to non-positional mode lost listener volume, channel or track position.", __FILE__, __LINE__)
+	if(packet.x || packet.y || packet.z || packet.volume != 40 || packet.offset || packet.channel != channel || !(packet.status & SOUND_UPDATE))
+		return Fail("Returning to the volume plateau restarted the channel or lost listener volume.", __FILE__, __LINE__)
+	song.mute_file_listener(listener)
+	if(song.file_listeners[listener] != SOUND_MUTE)
+		return Fail("A nearby muted listener was dropped instead of retained.", __FILE__, __LINE__)
+	packet = song.make_file_sound(listener, origin, 5, 1)
+	if(packet.status != SOUND_UPDATE || packet.offset || song.file_listeners[listener] != NONE)
+		return Fail("Unmuting sought/restarted the stream instead of updating it.", __FILE__, __LINE__)
 	if(song.using_sound_channels != 1)
 		return Fail("Crossing the stereo boundary allocated additional sound channels.", __FILE__, __LINE__)
 	var/obj/item/instrument/guitar/instrument = allocate(/obj/item/instrument/guitar, run_loc_floor_bottom_left)
 	var/sound/instrument_packet = sound('sound/items/bikehorn.ogg')
-	if(instrument.song.configure_file_sound(instrument_packet, origin, nearby, 5, 1) || instrument_packet.x != -5)
-		return Fail("The concert-only stereo radius changed ordinary instrument spatial playback.", __FILE__, __LINE__)
+	if(!instrument.song.configure_file_sound(instrument_packet, origin, nearby, 5, 1) || instrument_packet.x || instrument_packet.z || instrument_packet.pan)
+		return Fail("Instrument OGG playback did not use the same non-positional policy.", __FILE__, __LINE__)
 	song.stop_playing()
 
 /** Public boombox playback borrows disk files and releases its channel on removal. */

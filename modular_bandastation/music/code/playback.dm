@@ -19,6 +19,7 @@
 	var/ignore_midi_start_delay = FALSE
 
 /datum/song/Destroy()
+	cancel_music_document_upload()
 	QDEL_NULL(piano_roll)
 	auto_unison_enabled = FALSE
 	. = ..()
@@ -36,11 +37,11 @@
 		for(var/mob/listener in get_hearers_in_view(instrument_range, origin))
 			hearing_mobs[listener] = get_dist(listener, origin)
 	var/list/exited = old - hearing_mobs
-	for(var/i in exited)
-		terminate_sound_mob(i)
 	if(playback_mode == "file")
 		update_file_listeners(sources)
 	else
+		for(var/i in exited)
+			terminate_sound_mob(i)
 		refresh_music_spatial()
 
 /// Dispatch playback engines; the base text-note start cannot initialize MIDI/OGG or exact deadlines.
