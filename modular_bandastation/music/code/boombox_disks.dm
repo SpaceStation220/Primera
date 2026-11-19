@@ -103,7 +103,7 @@
 		return FALSE
 	disk_track = track
 	RegisterSignal(track, COMSIG_QDELETING, PROC_REF(on_music_disk_removed))
-	disk_song.start_playing(src)
+	disk_song.start_playing(user)
 	if(!disk_song.playing && disk_track)
 		UnregisterSignal(disk_track, COMSIG_QDELETING)
 		disk_track = null
@@ -171,7 +171,7 @@
 	file_track = player.disk_track.song_path
 	file_track_name = player.disk_track.song_name
 	file_track_length = player.disk_track.song_length
-	start_file_playing(parent)
+	start_file_playing(parent, ismob(user) ? user : null)
 
 /datum/song/concert/boombox/should_stop_playing(atom/user)
 	var/obj/item/boombox/player = parent

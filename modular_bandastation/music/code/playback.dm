@@ -26,6 +26,7 @@
 	STOP_PROCESSING(SSinstruments, src)
 	cleanup_music_uploads()
 	loaded_file_tracks = null
+	file_transfer_data = null
 
 /// Refresh all configured music sources and their spatial sound state.
 /datum/song/do_hearcheck()
@@ -34,7 +35,9 @@
 	hearing_mobs.len = 0
 	var/list/sources = get_instrument_sources()
 	for(var/turf/origin as anything in sources)
-		for(var/mob/listener in get_hearers_in_view(instrument_range, origin))
+		for(var/mob/listener in get_hearers_in_view(instrument_range, origin, RECURSIVE_CONTENTS_CLIENT_MOBS))
+			if(!listener.client || !HAS_TRAIT(listener, TRAIT_HEARING_SENSITIVE))
+				continue
 			hearing_mobs[listener] = get_dist(listener, origin)
 	var/list/exited = old - hearing_mobs
 	if(playback_mode == "file")
@@ -109,6 +112,8 @@
 	. = ..()
 	if(!was_playing)
 		return
+	file_start_listener = null
+	file_start_deadline = 0
 	file_track_finish_time = 0
 	last_process_time = 0
 	next_chord_time = 0
@@ -191,6 +196,8 @@
 	if(playback_mode != "file")
 		process_sequence_voices()
 		process_decay(elapsed)
+		if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
+			do_hearcheck()
 	process_song(elapsed)
 
 /// Locate a musician who can currently play this instrument.

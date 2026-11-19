@@ -1279,6 +1279,7 @@ GLOBAL_LIST_INIT(unrecommended_builds, list(
 GAME_VERB_DESC(/client, stop_client_sounds, "Stop Sounds", "Stop Current Sounds", "OOC")
 	SEND_SOUND(usr, sound(null))
 	tgui_panel?.stop_music()
+	tgui_panel?.stop_instrument_music()
 	SSblackbox.record_feedback("nested tally", "preferences_verb", 1, list("Stop Self Sounds"))
 
 GAME_VERB(/client, toggle_fullscreen, "Toggle Fullscreen", "OOC")

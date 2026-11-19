@@ -15,6 +15,8 @@
 	var/list/voice_ends = list()
 	var/list/voice_levels = list()
 	var/list/listener_spatial = list()
+	/// Last dispatched base gain per channel; cleared when a channel is reused.
+	var/list/music_voice_levels_sent = list()
 	var/datum/song/sequence_master
 	var/list/sequence_followers = list()
 	var/channel_starvation = 0
@@ -150,7 +152,7 @@
 		stop_playing()
 		return
 	process_sequence_voices()
-	if(world.time >= last_hearcheck + 5)
+	if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		do_hearcheck()
 	if(!can_use_advanced_music(music_player))
 		stop_playing()
@@ -213,6 +215,8 @@
 	var/turf/origin = get_turf(parent)
 	var/output_volume = get_output_volume(volume * voice_levels[text_channel])
 	for(var/mob/listener as anything in hearing_mobs)
+		if(!listener.client)
+			continue
 		listener.playsound_local(origin, null, output_volume * get_listener_volume_multiplier(listener), frequency = frequency, sound_to_use = voice, channel = channel, pressure_affected = FALSE, max_distance = instrument_range, falloff_distance = get_sound_falloff_distance(), falloff_exponent = INSTRUMENT_FALLOFF_EXPONENT)
 
 /// Unison follows the leader's notes but keeps the follower's own timbre.
@@ -235,36 +239,51 @@
 		if(world.time < voice_ends[channel])
 			continue
 		for(var/mob/listener as anything in hearing_mobs)
-			listener.stop_sound_channel(text2num(channel))
+			if(listener.client)
+				listener.stop_sound_channel(text2num(channel))
 		channels_playing -= channel
 		channels_idle += channel
 		voice_ends -= channel
 		voice_levels -= channel
+		music_voice_levels_sent -= channel
 	trim_idle_channels()
 
 /datum/song/proc/refresh_music_spatial()
-	listener_spatial.Cut()
+	var/list/previous_spatial = listener_spatial
+	listener_spatial = list()
 	var/turf/source = get_turf(parent)
 	if(!source)
 		return
+	var/list/changed_listeners = list()
 	for(var/mob/listener as anything in hearing_mobs)
+		if(!listener.client)
+			continue
 		var/turf/destination = get_turf(listener)
 		if(!destination)
 			continue
 		var/distance = get_dist_euclidean(source, destination)
-		listener_spatial[listener] = list("x" = source.x - destination.x, "z" = source.y - destination.y, "ratio" = max(0, 1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)))
+		var/x = source.x - destination.x
+		var/z = source.y - destination.y
+		var/gain = max(0, 1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)) * get_listener_volume_multiplier(listener)
+		var/list/spatial = previous_spatial[listener]
+		if(!spatial || spatial["client"] != listener.client || spatial["x"] != x || spatial["z"] != z || spatial["gain"] != gain || spatial["range"] != instrument_range)
+			spatial = list("client" = listener.client, "x" = x, "z" = z, "gain" = gain, "range" = instrument_range)
+			changed_listeners += listener
+		listener_spatial[listener] = spatial
 	for(var/channel in channels_playing)
 		var/level = voice_levels[channel] ? get_output_volume(volume * voice_levels[channel]) : (channels_playing[channel] * 0.01 * get_output_volume(volume * using_instrument.volume_multiplier))
-		for(var/mob/listener as anything in hearing_mobs)
+		var/list/listeners = ((channel in music_voice_levels_sent) && music_voice_levels_sent[channel] == level) ? changed_listeners : listener_spatial
+		for(var/mob/listener as anything in listeners)
 			update_music_voice_listener(listener, text2num(channel), level)
+		music_voice_levels_sent[channel] = level
 
 /datum/song/proc/update_music_voice_listener(mob/listener, channel, level)
 	var/list/spatial = listener_spatial[listener]
-	if(!spatial)
+	if(!spatial || !listener.client)
 		return
 	var/sound/update = sound(null, channel = channel)
 	update.status = SOUND_UPDATE
-	update.volume = level * spatial["ratio"] * get_listener_volume_multiplier(listener)
+	update.volume = level * spatial["gain"]
 	update.x = spatial["x"]
 	update.z = spatial["z"]
 	update.y = 0

@@ -9,6 +9,8 @@
 #define INSTRUMENT_FILE_OUTPUT_GAIN 3
 #define INSTRUMENT_FALLOFF_DISTANCE 4
 #define INSTRUMENT_FALLOFF_EXPONENT 3
+/// Hearing and sustained-voice updates share one pass; note deadlines remain independent.
+#define MUSIC_SPATIAL_UPDATE_INTERVAL (1 SECONDS)
 /// Bounds shared by instrument uploads and physical concert disks.
 #define MUSIC_UPLOAD_MAX_BYTES (10 * 1024 * 1024)
 #define MUSIC_UPLOAD_MAX_DURATION (30 MINUTES)

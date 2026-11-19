@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import {
   type MusicUploadKind,
   type MusicUploadStatus,
-  type PlayAction,
   nativeMusicPages,
+  type PlayAction,
   splitMusicDocument,
 } from './upload';
 
@@ -85,9 +85,13 @@ export function useMusicUpload(
             });
           } else {
             const controls = controlsKey?.split(';');
-            if (controls?.length !== 32)
-              throw new Error('The native MIDI transfer bank is unavailable.');
             const page = transfer.parts[next];
+            if (
+              !controls ||
+              controls.length > 32 ||
+              controls.length < Math.ceil(page.length / 1024)
+            )
+              throw new Error('The native music transfer bank is unavailable.');
             for (let offset = 0; offset < page.length; offset += 1024) {
               Byond.winset(
                 controls[offset / 1024],
@@ -145,9 +149,9 @@ export function useMusicUpload(
     onComplete?: () => void,
   ) => {
     if (transfer) return;
-    const native = kind === 'sequence' && Byond.IS_BYOND;
+    const native = (kind === 'sequence' || kind === 'notes') && Byond.IS_BYOND;
     const parts = native
-      ? nativeMusicPages(document)
+      ? nativeMusicPages(document, kind)
       : splitMusicDocument(document, kind);
     setError('');
     setTransfer({

@@ -14,7 +14,7 @@
 	file_track = player.selected_track.song_path
 	file_track_name = player.selected_track.song_name
 	file_track_length = player.selected_track.song_length
-	start_file_playing(parent)
+	start_file_playing(parent, ismob(user) ? user : null)
 
 /datum/song/concert/should_stop_playing(atom/user)
 	var/obj/machinery/concert_player/player = parent
@@ -48,8 +48,8 @@
 /datum/song/concert/authorize_music_action(action, list/params, mob/user)
 	return FALSE
 
-/** Refresh an active stage after a receiver changes its location or availability. */
+/** Coalesce moving receivers into the same maintenance interval as periodic hearing checks. */
 /obj/machinery/concert_player/proc/refresh_sources()
-	if(song?.playing)
+	if(song?.playing && world.time >= song.last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		song.do_hearcheck()
 	SStgui.update_uis(src)

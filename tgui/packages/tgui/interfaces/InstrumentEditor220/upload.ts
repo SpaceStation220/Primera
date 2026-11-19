@@ -32,9 +32,12 @@ function serializeMusicDocument(document: object, kind?: MusicUploadKind) {
 }
 
 // One small native bank is reused for each page; no data goes into act() payloads.
-export function nativeMusicPages(document: object): string[] {
+export function nativeMusicPages(
+  document: object,
+  kind: MusicUploadKind = 'sequence',
+): string[] {
   const bytes = new TextEncoder().encode(
-    serializeMusicDocument(document, 'sequence'),
+    serializeMusicDocument(document, kind),
   );
   if (bytes.length > 600000) throw new Error('Music project exceeds 600 KB.');
   let binary = '';

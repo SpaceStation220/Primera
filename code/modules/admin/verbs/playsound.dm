@@ -223,6 +223,7 @@ ADMIN_VERB(stop_sounds, R_SOUND, "Stop All Playing Sounds", "Stops all playing s
 		SEND_SOUND(player, sound(null))
 		var/client/player_client = player.client
 		player_client?.tgui_panel?.stop_music()
+		player_client?.tgui_panel?.stop_instrument_music()
 
 	CLIENT_COOLDOWN_RESET(GLOB, web_sound_cooldown)
 	BLACKBOX_LOG_ADMIN_VERB("Stop All Playing Sounds")

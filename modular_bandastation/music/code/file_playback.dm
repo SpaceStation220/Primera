@@ -7,6 +7,9 @@
 	var/file_track_length = 0
 	/// Absolute end time of the current OGG cycle.
 	var/file_track_finish_time = 0
+	/// Initial human-triggered playback stays at zero until this listener can play it.
+	var/datum/weakref/file_start_listener
+	var/file_start_deadline = 0
 	/// OGG resources retained by this instrument.
 	var/list/loaded_file_tracks = list()
 	/// Listener -> current mute status of its persistent non-positional file channel.
@@ -100,13 +103,23 @@
 			fdel(path)
 			music_uploads -= path
 
-/datum/song/proc/start_file_playing(atom/player)
+/datum/song/proc/start_file_playing(atom/player, mob/initiator)
 	if(!can_use_advanced_music(player))
 		return
 	if(!file_track)
 		return FALSE
+	if(!prepare_file_transfer())
+		to_chat(player, span_warning("The recording could not be prepared for playback."))
+		return FALSE
 	playing = TRUE
 	music_player = player
+	if(!initiator && ismob(player))
+		initiator = player
+	file_start_listener = null
+	file_start_deadline = 0
+	if(initiator?.client && !sync_starting)
+		file_start_listener = WEAKREF(initiator)
+		file_start_deadline = world.time + 3 MINUTES
 	playback_started_at = world.time
 	file_track_finish_time = playback_started_at + file_track_length
 	next_cue = 1
@@ -116,11 +129,30 @@
 	SEND_SIGNAL(parent, COMSIG_INSTRUMENT_START, src, player)
 	SEND_SIGNAL(player, COMSIG_ATOM_STARTING_INSTRUMENT, src)
 	START_PROCESSING(SSinstruments, src)
+	if(!file_start_deadline && auto_unison_enabled && !sync_starting)
+		sync_play()
+	return TRUE
+
+/** Commit the shared start only after the initiating browser has decoded its recording. */
+/datum/song/proc/begin_file_timeline(mob/listener)
+	if(!playing || !file_start_deadline || !IS_WEAKREF_OF(listener, file_start_listener))
+		return FALSE
+	if(world.time >= file_start_deadline || !listener?.client || should_stop_playing(music_player) == STOP_PLAYING || !can_use_advanced_music(music_player))
+		stop_playing()
+		return FALSE
+	file_start_listener = null
+	file_start_deadline = 0
+	playback_started_at = world.time
+	file_track_finish_time = playback_started_at + file_track_length
+	next_cue = 1
+	do_hearcheck()
 	if(auto_unison_enabled && !sync_starting)
 		sync_play()
 	return TRUE
 
 /datum/song/proc/play_file_to_current_listeners(atom/player)
+	var/static/playback_serial = 0
+	file_transfer_token = "[REF(src)]-[++playback_serial]"
 	var/channel = pop_channel()
 	if(isnull(channel))
 		channel_starvation++
@@ -144,7 +176,6 @@
 			continue
 		var/turf/destination = get_turf(listener)
 		var/turf/loudest
-		var/loudest_distance
 		var/nearest_distance = INFINITY
 		var/strongest_gain = 0
 		for(var/turf/origin as anything in sources)
@@ -156,7 +187,6 @@
 			if(source_gain > strongest_gain)
 				strongest_gain = source_gain
 				loudest = origin
-				loudest_distance = distance
 		var/multiplier = get_listener_volume_multiplier(listener)
 		if(nearest_distance > instrument_range + INSTRUMENT_FILE_RETENTION_MARGIN)
 			if(listener in file_listeners)
@@ -166,16 +196,17 @@
 		if(!(listener in hearing_mobs) || !loudest || !multiplier || HAS_TRAIT(listener, TRAIT_DEAF))
 			mute_file_listener(listener)
 			continue
-		var/sound/track = make_file_sound(listener, loudest, loudest_distance, multiplier, sources[loudest])
-		SEND_SOUND(listener, track)
+		send_browser_file_listener(listener, get_file_output_volume() * multiplier * strongest_gain)
+	// Muted/deaf initiators still need the preparation packet to release the shared start.
+	var/mob/initiator = file_start_listener?.resolve()
+	if(file_start_deadline && initiator?.client && !(initiator in file_listeners))
+		send_browser_file_listener(initiator, 0)
 
 /// Keep a nearby stream alive silently so crossing a range edge does not seek again.
 /datum/song/proc/mute_file_listener(mob/listener)
 	if(!(listener in file_listeners) || file_listeners[listener] == SOUND_MUTE)
 		return
-	var/sound/update = sound(channel = text2num(last_channel_played))
-	update.status = SOUND_UPDATE | SOUND_MUTE
-	SEND_SOUND(listener, update)
+	send_browser_file_listener(listener, 0)
 	file_listeners[listener] = SOUND_MUTE
 
 /// Stop retained muted listeners too, before the shared channel is released or reused.
@@ -220,10 +251,16 @@
 	if(should_stop_playing(music_player) == STOP_PLAYING)
 		stop_playing()
 		return
-	if(world.time >= last_hearcheck + 5)
+	if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		do_hearcheck()
 	if(!can_use_advanced_music(music_player))
 		stop_playing()
+		return
+	if(file_start_deadline)
+		var/mob/initiator = file_start_listener?.resolve()
+		if(!initiator?.client || world.time >= file_start_deadline)
+			to_chat(initiator, span_warning("Music preparation was interrupted. Start it again to retry."))
+			stop_playing()
 		return
 	process_song_cues()
 	if(world.time < file_track_finish_time)
@@ -331,6 +368,9 @@
 	file_track_name = null
 	file_track_length = 0
 	file_track_hash = null
+	file_transfer_data = null
+	file_transfer_hash = null
+	file_transfer_token = null
 	cue_spacing = 5
 	song_cues = list()
 	next_cue = 1

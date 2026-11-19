@@ -3,24 +3,25 @@
 	var/datum/weakref/native_music_source
 	var/native_music_id
 
-/// Create a small bank once, then reuse it for every page of this MIDI upload.
+/// Reuse a bounded native bank so Notes and MIDI avoid Topic's small payload chunks.
 /datum/song/proc/begin_native_music_upload(list/params, mob/user, datum/tgui/ui)
 	var/id = params["id"]
 	var/count = params["count"]
 	var/size = params["size"]
+	var/kind = params["kind"]
 	var/play_action = params["play_action"]
-	if(!istext(id) || !length(id) || length(id) > 80 || params["kind"] != "sequence" || !isnum(size) || size != round(size) || size < 4 || size > MUSIC_NATIVE_MAX_CHARS || size % 4 || !isnum(count) || count != CEILING(size / MUSIC_NATIVE_PAGE_CHARS, 1) || (!isnull(play_action) && play_action != "play_music"))
+	if(!istext(id) || !length(id) || length(id) > 80 || !(kind in list("sequence", "notes")) || !isnum(size) || size != round(size) || size < 4 || size > MUSIC_NATIVE_MAX_CHARS || size % 4 || !isnum(count) || count != CEILING(size / MUSIC_NATIVE_PAGE_CHARS, 1) || (!isnull(play_action) && (play_action != "play_music" || kind == "notes")))
 		return TRUE
-	if(!can_use_advanced_music(user) || !can_use_music_ui(ui, user) || !in_range(parent, user) || playing || midi_start_timer || sequence_master)
+	if((kind != "notes" && !can_use_advanced_music(user)) || !can_use_music_ui(ui, user) || !in_range(parent, user) || playing || midi_start_timer || sequence_master)
 		return TRUE
 	if(music_document_upload?["state"] in list("preparing", "receiving"))
 		return TRUE
 	cancel_music_document_upload()
 	var/client/owner = user.client
 	if(!owner || owner.native_music_source?.resolve())
-		music_document_upload = list("id" = id, "state" = "error", "error" = "Another instrument is uploading MIDI. Finish or cancel it first.")
+		music_document_upload = list("id" = id, "state" = "error", "error" = "Another instrument is uploading music. Finish or cancel it first.")
 		return TRUE
-	var/list/upload = list("id" = id, "kind" = "sequence", "user" = WEAKREF(user), "count" = count, "next" = 0, "size" = size, "parts" = list(), "state" = "preparing", "play_action" = play_action, "native_client" = WEAKREF(owner), "native_ui" = WEAKREF(ui), "native_controls" = list(), "expires" = world.time + max(20 SECONDS, get_music_upload_delay() * 3))
+	var/list/upload = list("id" = id, "kind" = kind, "user" = WEAKREF(user), "count" = count, "next" = 0, "size" = size, "parts" = list(), "state" = "preparing", "play_action" = play_action, "native_client" = WEAKREF(owner), "native_ui" = WEAKREF(ui), "native_controls" = list(), "expires" = world.time + max(20 SECONDS, get_music_upload_delay() * 3))
 	music_document_upload = upload
 	owner.native_music_source = WEAKREF(src)
 	owner.native_music_id = id
@@ -28,13 +29,14 @@
 	addtimer(CALLBACK(src, PROC_REF(expire_music_upload), id), upload["expires"] - world.time)
 	var/prefix = "mainwindow.music_upload_[copytext(md5("[REF(src)]:[id]"), 1, 17)]"
 	var/list/controls = upload["native_controls"]
-	for(var/index in 0 to MUSIC_NATIVE_FIELDS - 1)
+	var/bank_fields = kind == "notes" ? min(MUSIC_NATIVE_FIELDS, CEILING(size / MUSIC_NATIVE_FIELD_CHARS, 1)) : MUSIC_NATIVE_FIELDS
+	for(var/index in 0 to bank_fields - 1)
 		var/control = "[prefix]_[index]"
 		controls += control
 		winset(owner, control, list("parent" = "mainwindow", "type" = "input", "no-command" = TRUE, "is-visible" = FALSE))
-	var/created = winexists(owner, controls[MUSIC_NATIVE_FIELDS])
+	var/created = winexists(owner, controls[bank_fields])
 	if(!native_music_upload_valid(upload, user, ui) || created != "INPUT")
-		fail_native_music_upload(upload, "The MIDI transfer window is no longer available.")
+		fail_native_music_upload(upload, "The music transfer window is no longer available.")
 		return TRUE
 	upload["state"] = "receiving"
 	return TRUE
@@ -48,7 +50,7 @@
 		return FALSE
 	if(!IS_WEAKREF_OF(src, owner.native_music_source) || owner.native_music_id != upload["id"] || upload["user"] != WEAKREF(user) || ui_ref?.resolve() != ui)
 		return FALSE
-	return can_use_advanced_music(user) && can_use_music_ui(ui, user) && in_range(parent, user) && !playing && !midi_start_timer && !sequence_master && (upload["state"] in list("preparing", "receiving")) && world.time <= upload["expires"]
+	return (upload["kind"] == "notes" || can_use_advanced_music(user)) && can_use_music_ui(ui, user) && in_range(parent, user) && !playing && !midi_start_timer && !sequence_master && (upload["state"] in list("preparing", "receiving")) && world.time <= upload["expires"]
 
 /// Read at most one 32-field page; normal Topic limits still govern this request.
 /datum/song/proc/read_native_music_upload(list/params, mob/user, datum/tgui/ui)
@@ -56,7 +58,7 @@
 	if(!upload || !upload["native_controls"] || upload["state"] != "receiving" || upload["id"] != params["id"] || upload["user"] != WEAKREF(user) || upload["reading"])
 		return TRUE
 	if(!native_music_upload_valid(upload, user, ui))
-		fail_native_music_upload(upload, "MIDI upload lost access to the instrument.")
+		fail_native_music_upload(upload, "Music upload lost access to the instrument.")
 		return TRUE
 	var/index = params["index"]
 	if(!isnum(index) || index != upload["next"])
@@ -71,10 +73,10 @@
 		var/list/ids = controls.Copy(start, min(start + 16, field_count + 1))
 		var/response = winget(owner, ids.Join(";"), "text")
 		if(!native_music_upload_valid(upload, user, ui))
-			fail_native_music_upload(upload, "MIDI upload was interrupted; the previous composition is unchanged.")
+			fail_native_music_upload(upload, "Music upload was interrupted; the previous composition is unchanged.")
 			return TRUE
 		if(!istext(response) || length(response) > 16 * MUSIC_NATIVE_FIELD_CHARS * 4)
-			fail_native_music_upload(upload, "The MIDI transfer response exceeded its page limit.")
+			fail_native_music_upload(upload, "The music transfer response exceeded its page limit.")
 			return TRUE
 		var/list/values = length(ids) > 1 ? params2list(response) : list("[ids[1]].text" = response)
 		for(var/field in start to min(start + 15, field_count))
@@ -82,7 +84,7 @@
 			var/expected_size = min(MUSIC_NATIVE_FIELD_CHARS, page_size - (field - 1) * MUSIC_NATIVE_FIELD_CHARS)
 			var/prefix = "[index]:"
 			if(!istext(value) || length(value) != length(prefix) + expected_size || copytext(value, 1, length(prefix) + 1) != prefix)
-				fail_native_music_upload(upload, "MIDI transfer was incomplete. Please retry.")
+				fail_native_music_upload(upload, "Music transfer was incomplete. Please retry.")
 				return TRUE
 			parts += copytext(value, length(prefix) + 1)
 	var/list/pages = upload["parts"]
@@ -95,7 +97,7 @@
 	var/encoded = replacetext(replacetext(pages.Join(), "-", "+"), "_", "/")
 	var/raw = rustg_decode_base64(encoded)
 	if(length(encoded) != upload["size"] || !length(raw) || length(raw) > MUSIC_DOCUMENT_MAX_BYTES || rustg_encode_base64(raw) != encoded)
-		fail_native_music_upload(upload, "Invalid MIDI transport data; the previous composition is unchanged.")
+		fail_native_music_upload(upload, "Invalid music transport data; the previous composition is unchanged.")
 		return TRUE
 	return complete_music_document_upload(upload, raw, user)
 
