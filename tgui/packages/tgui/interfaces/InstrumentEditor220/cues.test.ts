@@ -33,7 +33,7 @@ describe('OGG cue timing', () => {
     );
   });
 
-  it('imports a track-bound JSON sheet preserving times, spacing and Unicode', () => {
+  it('imports JSON preserving times, spacing and Unicode without binding to a hash', () => {
     const sheet = {
       version: 1 as const,
       audio_hash: 'track',
@@ -54,6 +54,16 @@ describe('OGG cue timing', () => {
         10,
       ).spacing_seconds,
     ).toBe(5);
+    expect(parseCueDocument(JSON.stringify(sheet), 'other', 10).audio_hash).toBe(
+      'other',
+    );
+    expect(
+      parseCueDocument(
+        JSON.stringify({ ...sheet, audio_hash: undefined }),
+        'track',
+        10,
+      ).cues,
+    ).toEqual([sheet.cues[1], sheet.cues[0]]);
   });
 
   it('distinguishes JSON syntax, format, track, interval and cue errors', () => {
@@ -71,9 +81,6 @@ describe('OGG cue timing', () => {
     ).toThrow('version 1');
     expect(() => parseCueDocument(JSON.stringify(sheet), null, 10)).toThrow(
       'Load an OGG',
-    );
-    expect(() => parseCueDocument(JSON.stringify(sheet), 'other', 10)).toThrow(
-      'audio_hash',
     );
     expect(() =>
       parseCueDocument(JSON.stringify({ ...sheet, cues: null }), 'track', 10),
@@ -103,6 +110,27 @@ describe('OGG cue timing', () => {
         (cue) => cue.time,
       ),
     ).toEqual([10, 13]);
+  });
+  it('skips bracketed tags without consuming mass-cue intervals', () => {
+    expect(
+      appendCueText([], '[Verse]\nFirst [quiet]\n[Chorus]\nSecond', 5, 10),
+    ).toEqual([
+      { time: 0, text: 'First' },
+      { time: 5, text: 'Second' },
+    ]);
+    expect(
+      parseCueDocument(
+        JSON.stringify({
+          version: 1,
+          cues: [
+            { time: 1, text: '[Verse]' },
+            { time: 3, text: '[quiet] First' },
+          ],
+        }),
+        'track',
+        10,
+      ).cues,
+    ).toEqual([{ time: 3, text: 'First' }]);
   });
   it('moves every following cue by the edited time delta', () => {
     const original = [0, 5, 12, 20].map((time) => ({

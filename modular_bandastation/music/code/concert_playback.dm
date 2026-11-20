@@ -3,7 +3,6 @@
 	allowed_instrument_ids = list()
 	playback_mode = "file"
 	min_volume = 0
-	volume = 75
 	max_sound_channels = 1
 
 /datum/song/concert/start_playing(atom/user)

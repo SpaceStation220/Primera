@@ -408,8 +408,9 @@
 		return
 	stop_playing(TRUE)
 
+/// Import timed lyrics for the selected OGG, ignoring bracketed performance annotations.
 /datum/song/proc/load_song_cues(list/document)
-	if(!islist(document) || document["version"] != 1 || document["audio_hash"] != file_track_hash)
+	if(!file_track || !islist(document) || document["version"] != 1)
 		return FALSE
 	var/list/cues = document["cues"]
 	var/spacing = document["spacing_seconds"]
@@ -421,13 +422,16 @@
 		return FALSE
 	var/list/validated = list()
 	var/previous_time = -1
+	var/static/regex/cue_tags = regex("\\\[\[^\\\]\\r\\n]*\\\]", "g")
 	for(var/list/cue as anything in cues)
 		if(!islist(cue) || !isnum(cue["time"]) || !istext(cue["text"]))
 			return FALSE
 		if(cue["time"] < previous_time || cue["time"] < 0 || cue["time"] > file_track_length / (1 SECONDS) || length_char(cue["text"]) > 300)
 			return FALSE
 		previous_time = cue["time"]
-		validated += list(list("time" = cue["time"], "text" = trim(cue["text"])))
+		var/text = trim(cue_tags.Replace(cue["text"], ""))
+		if(length(text))
+			validated += list(list("time" = cue["time"], "text" = text))
 	song_cues = validated
 	cue_spacing = spacing
 	for(var/list/track as anything in loaded_file_tracks)

@@ -287,7 +287,7 @@
 		return TRUE
 	var/success = action == "set_sequence_document" ? load_sequence(document) : load_song_cues(document)
 	if(!success)
-		to_chat(user, span_warning("Music document rejected. Check its limits, timing and audio fingerprint."))
+		to_chat(user, span_warning("Music document rejected. Check its format, limits and timing."))
 		return FALSE
 	update_static_data_for_all_viewers()
 	piano_roll?.update_static_data_for_all_viewers()

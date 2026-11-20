@@ -14,6 +14,43 @@ const document: MusicDocument = {
   tracks: [{ id: 0, name: 'Guitar' }],
 };
 
+it('edits a track row without changing the selected track settings', () => {
+  const commit = { current: null as ((action?: PlayAction) => boolean) | null };
+  const upload = mock((_doc: MusicDocument) => {});
+  render(
+    <MidiEditor
+      commitRef={commit}
+      document={{
+        ...document,
+        tracks: [
+          { id: 0, name: 'Guitar', instrument: 'rock' },
+          { id: 1, name: 'Vocals', instrument: 'bass' },
+        ],
+      }}
+      instruments={[
+        { id: 'rock', name: 'Rock' },
+        { id: 'bass', name: 'Bass' },
+      ]}
+      defaultInstrument="rock"
+      disabled={false}
+      channels={[0]}
+      position={0}
+      playing={false}
+      act={() => {}}
+      upload={upload}
+    />,
+  );
+  fireEvent.change(screen.getByLabelText('Track 2 name'), {
+    target: { value: 'Backing' },
+  });
+  fireEvent.click(screen.getByLabelText('Toggle track 2'));
+  expect(commit.current?.()).toBe(true);
+  expect(upload.mock.calls[0][0].tracks).toEqual([
+    { id: 0, name: 'Guitar', instrument: 'rock' },
+    { id: 1, name: 'Backing', instrument: 'bass', muted: true },
+  ]);
+});
+
 for (const state of ['complete', 'error'] as const) {
   it(`keeps the piano roll hidden and handles upload ${state} before opening`, async () => {
     const send = mock((_action: string, _payload?: object) => {});

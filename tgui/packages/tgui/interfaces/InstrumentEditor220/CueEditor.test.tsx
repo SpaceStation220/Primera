@@ -1,5 +1,5 @@
 import { expect, it, mock } from 'bun:test';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { type CueDocument, CueEditor } from './CueEditor';
 
 it('pastes JSON as a replacement sheet, preserves it on errors and still appends plain lyrics', () => {
@@ -37,12 +37,12 @@ it('pastes JSON as a replacement sheet, preserves it on errors and still appends
     target: { value: JSON.stringify({ ...sheet, audio_hash: 'other' }) },
   });
   fireEvent.click(screen.getByLabelText('Parse mass cue'));
-  expect(screen.getByText(/audio_hash does not match/)).toBeTruthy();
+  expect(screen.queryByText(/audio_hash does not match/)).toBeNull();
   expect(screen.getByDisplayValue('Imported')).toBeTruthy();
   fireEvent.change(input, { target: { value: '{' } });
   fireEvent.click(screen.getByLabelText('Parse mass cue'));
   expect(screen.getByText(/Invalid JSON/)).toBeTruthy();
-  fireEvent.change(input, { target: { value: 'Next\nLast' } });
+  fireEvent.change(input, { target: { value: '[Verse]\nNext\n[quiet] Last' } });
   fireEvent.click(screen.getByLabelText('Parse mass cue'));
   fireEvent.click(screen.getByLabelText('Apply cues'));
   expect(upload.mock.calls[1][0].cues).toEqual([
@@ -58,7 +58,7 @@ it('pastes JSON as a replacement sheet, preserves it on errors and still appends
   expect(screen.queryByDisplayValue('Too late')).toBe(input);
 });
 
-it('checks the current OGG again when a file read finishes', async () => {
+it('checks current editability again when a file read finishes', async () => {
   const source: CueDocument = { version: 1, audio_hash: 'first', cues: [] };
   const props = {
     document: source,
@@ -84,6 +84,7 @@ it('checks the current OGG again when a file read finishes', async () => {
   view.rerender(
     <CueEditor
       {...props}
+      disabled
       document={{
         ...source,
         audio_hash: 'second',
@@ -91,10 +92,10 @@ it('checks the current OGG again when a file read finishes', async () => {
       }}
     />,
   );
-  finishRead(raw);
-  await waitFor(() =>
-    expect(screen.getByText(/audio_hash does not match/)).toBeTruthy(),
-  );
+  await act(async () => {
+    finishRead(raw);
+    await pending;
+  });
   expect(screen.getByDisplayValue('Current')).toBeTruthy();
   expect(screen.queryByDisplayValue('Stale')).toBeNull();
 });

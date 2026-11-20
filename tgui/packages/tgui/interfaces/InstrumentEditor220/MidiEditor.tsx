@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -33,6 +33,7 @@ type Props = {
     onComplete?: () => void,
   ) => void;
   pianoRoll?: boolean;
+  headerControls?: ReactNode;
   uploading?: boolean;
   instruments: { id: string; name: string }[];
   defaultInstrument: string | null;
@@ -63,6 +64,7 @@ export function MidiEditor({
   instruments,
   defaultInstrument,
   pianoRoll = false,
+  headerControls,
   uploading = false,
 }: Props) {
   const [doc, setDoc] = useState<MusicDocument>(serverDocument || empty);
@@ -238,11 +240,14 @@ export function MidiEditor({
   const trackNotes = doc.notes.filter((note) => note.track === track);
   const selectedTrack = doc.tracks.find((item) => item.id === track);
   const defaultOption = `Default: ${instruments.find((item) => item.id === defaultInstrument)?.name || 'Instrument'}`;
-  const updateTrack = (patch: Partial<NonNullable<typeof selectedTrack>>) =>
+  const updateTrack = (
+    patch: Partial<NonNullable<typeof selectedTrack>>,
+    trackId = track,
+  ) =>
     change({
       ...doc,
       tracks: doc.tracks.map((item) =>
-        item.id === track ? { ...item, ...patch } : item,
+        item.id === trackId ? { ...item, ...patch } : item,
       ),
     });
   const fit = () => {
@@ -275,302 +280,328 @@ export function MidiEditor({
 
   return (
     <Section title={doc.title} buttons={<Box>{doc.notes.length}/4096</Box>}>
-      <Stack wrap align="center">
-        <Stack.Item>
-          <Button
-            icon="file"
-            tooltip="New MIDI"
-            disabled={disabled}
-            onClick={() => change(empty)}
-          />
-        </Stack.Item>
-        <Stack.Item>
-          <Button
-            icon="folder-open"
-            tooltip="Import MIDI / JSON"
-            disabled={disabled}
-            onClick={() => fileInput.current?.click()}
-          />
-        </Stack.Item>
-        <Stack.Item>
-          <Button
-            icon="save"
-            tooltip="Apply to instrument"
-            disabled={disabled}
-            onClick={() => commit()}
-          />
-        </Stack.Item>
-        <Stack.Item>
-          <Button
-            icon="download"
-            tooltip="Export MIDI"
-            onClick={() => exportDocument('midi')}
-          />
-        </Stack.Item>
-        <Stack.Item>
-          <Button
-            icon="file-export"
-            tooltip="Export project"
-            onClick={() => exportDocument('json')}
-          />
-        </Stack.Item>
-        <Stack.Item>
-          <Button
-            icon="undo"
-            tooltip="Undo"
-            disabled={disabled || !history.length}
-            onClick={undo}
-          />
-        </Stack.Item>
-        <Stack.Item>
-          <Button
-            icon="redo"
-            tooltip="Redo"
-            disabled={disabled || !future.length}
-            onClick={redo}
-          />
-        </Stack.Item>
-        {!pianoRoll && (
-          <Stack.Item>
-            <Button
-              icon="keyboard"
-              disabled={uploading}
-              onClick={() =>
-                disabled
-                  ? act('open_piano_roll')
-                  : commit(undefined, () => act('open_piano_roll'))
-              }
-            >
-              Piano roll
-            </Button>
-          </Stack.Item>
-        )}
-        {pianoRoll && (
-          <>
+      <Stack>
+        <Stack.Item grow style={{ minWidth: 0 }}>
+          <Stack wrap align="center">
             <Stack.Item>
               <Button
-                icon="copy"
-                tooltip="Copy selection"
-                disabled={!selection.length}
+                icon="file"
+                tooltip="New MIDI"
+                disabled={disabled}
+                onClick={() => change(empty)}
+              />
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="folder-open"
+                tooltip="Import MIDI / JSON"
+                disabled={disabled}
+                onClick={() => fileInput.current?.click()}
+              />
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="save"
+                tooltip="Apply to instrument"
+                disabled={disabled}
+                onClick={() => commit()}
+              />
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="download"
+                tooltip="Export MIDI"
+                onClick={() => exportDocument('midi')}
+              />
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="file-export"
+                tooltip="Export project"
+                onClick={() => exportDocument('json')}
+              />
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="undo"
+                tooltip="Undo"
+                disabled={disabled || !history.length}
+                onClick={undo}
+              />
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="redo"
+                tooltip="Redo"
+                disabled={disabled || !future.length}
+                onClick={redo}
+              />
+            </Stack.Item>
+            {pianoRoll && (
+              <>
+                <Stack.Item>
+                  <Button
+                    icon="copy"
+                    tooltip="Copy selection"
+                    disabled={!selection.length}
+                    onClick={() =>
+                      setClipboard(selection.map((i) => ({ ...doc.notes[i] })))
+                    }
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    icon="paste"
+                    tooltip="Paste at cursor"
+                    disabled={disabled || !clipboard.length}
+                    onClick={() => {
+                      const start = Math.min(...clipboard.map((n) => n.time));
+                      change({
+                        ...doc,
+                        notes: [
+                          ...doc.notes,
+                          ...clipboard.map((n) => ({
+                            ...n,
+                            time: n.time - start + viewTime,
+                            track,
+                          })),
+                        ],
+                      });
+                    }}
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    icon="trash"
+                    tooltip="Delete selection"
+                    disabled={disabled || !selection.length}
+                    onClick={() => {
+                      change({
+                        ...doc,
+                        notes: doc.notes.filter(
+                          (_, i) => !selection.includes(i),
+                        ),
+                      });
+                      setSelection([]);
+                    }}
+                  />
+                </Stack.Item>
+              </>
+            )}
+          </Stack>
+          {!pianoRoll && (
+            <Box mt={0.5}>
+              <Button
+                icon="keyboard"
+                disabled={uploading}
                 onClick={() =>
-                  setClipboard(selection.map((i) => ({ ...doc.notes[i] })))
+                  disabled
+                    ? act('open_piano_roll')
+                    : commit(undefined, () => act('open_piano_roll'))
+                }
+              >
+                Piano roll
+              </Button>
+            </Box>
+          )}
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".mid,.midi,.json"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              void importFile(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+          {!!error && <Box color="bad">{error}</Box>}
+          <Stack mt={1} align="center" wrap>
+            <Stack.Item grow>
+              <Input
+                fluid
+                value={doc.title}
+                maxLength={80}
+                disabled={disabled}
+                onChange={(value) => change({ ...doc, title: value })}
+              />
+            </Stack.Item>
+            {pianoRoll && (
+              <>
+                <Stack.Item>
+                  BPM{' '}
+                  <NumberInput
+                    width="5em"
+                    minValue={1}
+                    maxValue={1000}
+                    step={1}
+                    format={musicInteger}
+                    value={doc.tempos[0]?.bpm || 120}
+                    disabled={disabled}
+                    onChange={(value) =>
+                      change(editTempo(doc, 0, 0, Math.round(value)))
+                    }
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  Grid{' '}
+                  <NumberInput
+                    width="4em"
+                    minValue={0.0625}
+                    maxValue={4}
+                    step={0.0625}
+                    format={musicDecimal}
+                    value={snap}
+                    onChange={setSnap}
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    icon="magnet"
+                    tooltip="Quantize selection"
+                    disabled={disabled || !selection.length}
+                    onClick={() =>
+                      change({
+                        ...doc,
+                        notes: doc.notes.map((n, i) =>
+                          selection.includes(i)
+                            ? {
+                                ...n,
+                                time: snapTime(n.time),
+                                duration: Math.max(
+                                  snapSeconds,
+                                  snapTime(n.duration),
+                                ),
+                              }
+                            : n,
+                        ),
+                      })
+                    }
+                  />
+                </Stack.Item>
+              </>
+            )}
+          </Stack>
+        </Stack.Item>
+        {!!headerControls && (
+          <Stack.Item basis="8em" shrink={0}>
+            {headerControls}
+          </Stack.Item>
+        )}
+      </Stack>
+      <Box
+        mt={1}
+        style={{ maxHeight: pianoRoll ? '8em' : '15em', overflowY: 'auto' }}
+      >
+        {doc.tracks.map((item) => (
+          <Stack key={item.id} mb={0.5} align="center">
+            <Stack.Item basis="5em" shrink={0}>
+              <Button
+                fluid
+                aria-label={`Select track ${item.id + 1}`}
+                selected={track === item.id}
+                icon={item.muted ? 'volume-mute' : undefined}
+                onClick={() => {
+                  const view = midiView(doc, item.id);
+                  setTrack(item.id);
+                  setBaseKey(view.baseKey);
+                  setKeyCount(view.keyCount);
+                  setChannel(
+                    doc.notes.find((note) => note.track === item.id)?.channel ||
+                      0,
+                  );
+                }}
+              >
+                {item.id + 1} (
+                {doc.notes.filter((note) => note.track === item.id).length})
+              </Button>
+            </Stack.Item>
+            <Stack.Item grow basis="35%" style={{ minWidth: 0 }}>
+              <Input
+                fluid
+                aria-label={`Track ${item.id + 1} name`}
+                value={item.name}
+                maxLength={64}
+                disabled={disabled}
+                onChange={(name) => updateTrack({ name }, item.id)}
+              />
+            </Stack.Item>
+            <Stack.Item grow basis="45%" style={{ minWidth: 0 }}>
+              <Dropdown
+                fluid
+                selected={
+                  item.instrument
+                    ? instruments.find(
+                        (instrument) => instrument.id === item.instrument,
+                      )?.name || item.instrument
+                    : defaultOption
+                }
+                options={[
+                  defaultOption,
+                  ...instruments.map((instrument) => instrument.name),
+                ]}
+                disabled={disabled}
+                onSelected={(name) =>
+                  updateTrack(
+                    {
+                      instrument:
+                        name === defaultOption
+                          ? null
+                          : instruments.find(
+                              (instrument) => instrument.name === name,
+                            )?.id,
+                    },
+                    item.id,
+                  )
                 }
               />
             </Stack.Item>
-            <Stack.Item>
+            <Stack.Item shrink={0}>
               <Button
-                icon="paste"
-                tooltip="Paste at cursor"
-                disabled={disabled || !clipboard.length}
-                onClick={() => {
-                  const start = Math.min(...clipboard.map((n) => n.time));
-                  change({
-                    ...doc,
-                    notes: [
-                      ...doc.notes,
-                      ...clipboard.map((n) => ({
-                        ...n,
-                        time: n.time - start + viewTime,
-                        track,
-                      })),
-                    ],
-                  });
-                }}
+                icon={item.muted ? 'volume-mute' : 'volume-up'}
+                aria-label={`Toggle track ${item.id + 1}`}
+                tooltip={item.muted ? 'Enable track' : 'Mute track'}
+                selected={!!item.muted}
+                disabled={disabled}
+                onClick={() => updateTrack({ muted: !item.muted }, item.id)}
               />
-            </Stack.Item>
-            <Stack.Item>
-              <Button
+              <Button.Confirm
                 icon="trash"
-                tooltip="Delete selection"
-                disabled={disabled || !selection.length}
+                aria-label={`Delete track ${item.id + 1}`}
+                tooltip="Delete track and its notes"
+                disabled={disabled}
                 onClick={() => {
-                  change({
-                    ...doc,
-                    notes: doc.notes.filter((_, i) => !selection.includes(i)),
-                  });
+                  const next = removeMidiTrack(doc, item.id);
+                  change(next);
+                  const view = midiView(next);
+                  setTrack(view.track);
+                  setBaseKey(view.baseKey);
+                  setKeyCount(view.keyCount);
+                  setViewTime(0);
                   setSelection([]);
                 }}
               />
             </Stack.Item>
-          </>
-        )}
-      </Stack>
-      <input
-        ref={fileInput}
-        type="file"
-        accept=".mid,.midi,.json"
-        style={{ display: 'none' }}
-        onChange={(e) => {
-          void importFile(e.target.files?.[0]);
-          e.target.value = '';
-        }}
-      />
-      {!!error && <Box color="bad">{error}</Box>}
-      <Stack mt={1} align="center" wrap>
-        <Stack.Item grow>
-          <Input
-            value={doc.title}
-            maxLength={80}
-            disabled={disabled}
-            onChange={(value) => change({ ...doc, title: value })}
-          />
-        </Stack.Item>
-        {pianoRoll && (
-          <>
-            <Stack.Item>
-              BPM{' '}
-              <NumberInput
-                width="5em"
-                minValue={1}
-                maxValue={1000}
-                step={1}
-                format={musicInteger}
-                value={doc.tempos[0]?.bpm || 120}
-                disabled={disabled}
-                onChange={(value) =>
-                  change(editTempo(doc, 0, 0, Math.round(value)))
-                }
-              />
-            </Stack.Item>
-            <Stack.Item>
-              Grid{' '}
-              <NumberInput
-                width="4em"
-                minValue={0.0625}
-                maxValue={4}
-                step={0.0625}
-                format={musicDecimal}
-                value={snap}
-                onChange={setSnap}
-              />
-            </Stack.Item>
-            <Stack.Item>
-              <Button
-                icon="magnet"
-                tooltip="Quantize selection"
-                disabled={disabled || !selection.length}
-                onClick={() =>
-                  change({
-                    ...doc,
-                    notes: doc.notes.map((n, i) =>
-                      selection.includes(i)
-                        ? {
-                            ...n,
-                            time: snapTime(n.time),
-                            duration: Math.max(
-                              snapSeconds,
-                              snapTime(n.duration),
-                            ),
-                          }
-                        : n,
-                    ),
-                  })
-                }
-              />
-            </Stack.Item>
-          </>
-        )}
-      </Stack>
-      <Stack mt={1} wrap align="center">
-        {doc.tracks.map((item) => (
-          <Stack.Item key={item.id}>
-            <Button
-              selected={track === item.id}
-              icon={item.muted ? 'volume-mute' : undefined}
-              onClick={() => {
-                const view = midiView(doc, item.id);
-                setTrack(item.id);
-                setBaseKey(view.baseKey);
-                setKeyCount(view.keyCount);
-                setChannel(
-                  doc.notes.find((note) => note.track === item.id)?.channel ||
-                    0,
-                );
-              }}
-            >
-              {item.name} (
-              {doc.notes.filter((note) => note.track === item.id).length})
-            </Button>
-          </Stack.Item>
+          </Stack>
         ))}
-        <Stack.Item>
-          <Button
-            icon="plus"
-            tooltip="Add track"
-            disabled={disabled || doc.tracks.length >= 128}
-            onClick={() => {
-              const id =
-                Array.from({ length: 128 }, (_, i) => i).find(
-                  (i) => !doc.tracks.some((t) => t.id === i),
-                ) ?? 0;
-              change({
-                ...doc,
-                tracks: [...doc.tracks, { id, name: `Track ${id + 1}` }],
-              });
-              setTrack(id);
-            }}
-          />
-        </Stack.Item>
-      </Stack>
-      {selectedTrack && (
-        <Stack mt={1} wrap align="center">
-          <Stack.Item grow>
-            <Input
-              fluid
-              value={selectedTrack.name}
-              maxLength={64}
-              disabled={disabled}
-              onChange={(name) => updateTrack({ name })}
-            />
-          </Stack.Item>
-          <Stack.Item grow>
-            <Dropdown
-              fluid
-              selected={
-                selectedTrack.instrument
-                  ? instruments.find(
-                      (item) => item.id === selectedTrack.instrument,
-                    )?.name || selectedTrack.instrument
-                  : defaultOption
-              }
-              options={[defaultOption, ...instruments.map((item) => item.name)]}
-              disabled={disabled}
-              onSelected={(name) =>
-                updateTrack({
-                  instrument:
-                    name === defaultOption
-                      ? null
-                      : instruments.find((item) => item.name === name)?.id,
-                })
-              }
-            />
-          </Stack.Item>
-          <Stack.Item>
-            <Button
-              icon={selectedTrack.muted ? 'volume-mute' : 'volume-up'}
-              tooltip={selectedTrack.muted ? 'Enable track' : 'Mute track'}
-              selected={!!selectedTrack.muted}
-              disabled={disabled}
-              onClick={() => updateTrack({ muted: !selectedTrack.muted })}
-            />
-            <Button.Confirm
-              icon="trash"
-              tooltip="Delete track and its notes"
-              disabled={disabled}
-              onClick={() => {
-                const next = removeMidiTrack(doc, track);
-                change(next);
-                const view = midiView(next);
-                setTrack(view.track);
-                setBaseKey(view.baseKey);
-                setKeyCount(view.keyCount);
-                setViewTime(0);
-                setSelection([]);
-              }}
-            />
-          </Stack.Item>
-        </Stack>
-      )}
+      </Box>
+      <Box mt={0.5}>
+        <Button
+          icon="plus"
+          tooltip="Add track"
+          disabled={disabled || doc.tracks.length >= 128}
+          onClick={() => {
+            const id =
+              Array.from({ length: 128 }, (_, i) => i).find(
+                (i) => !doc.tracks.some((t) => t.id === i),
+              ) ?? 0;
+            change({
+              ...doc,
+              tracks: [...doc.tracks, { id, name: `Track ${id + 1}` }],
+            });
+            setTrack(id);
+          }}
+        />
+      </Box>
       {pianoRoll && (
         <>
           <Stack mt={1} align="center" wrap>

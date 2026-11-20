@@ -29,7 +29,12 @@ export function validateCues(cues: Cue[], length: number) {
   }
 }
 
-/** File and clipboard imports accept the same exported, track-bound cue sheet. */
+/** Ignore bracketed performance annotations rather than singing them. */
+function stripCueTags(text: string) {
+  return text.replace(/\[[^\]\r\n]*\]/g, '').trim();
+}
+
+/** File and clipboard imports share the same cue-sheet format. */
 export function parseCueDocument(
   raw: string,
   audioHash: string | null,
@@ -48,8 +53,6 @@ export function parseCueDocument(
   if (data.version !== 1)
     throw new Error('Unsupported cue sheet version; expected version 1.');
   if (!audioHash) throw new Error('Load an OGG before importing a cue sheet.');
-  if (data.audio_hash !== audioHash)
-    throw new Error('Cue sheet audio_hash does not match the loaded OGG.');
   if (!Array.isArray(data.cues))
     throw new Error('JSON cue sheet must contain a cues array.');
   validateCues(data.cues, length);
@@ -60,7 +63,8 @@ export function parseCueDocument(
     audio_hash: audioHash,
     spacing_seconds: spacing,
     cues: data.cues
-      .map(({ time, text }: Cue) => ({ time, text }))
+      .map(({ time, text }: Cue) => ({ time, text: stripCueTags(text) }))
+      .filter((cue: Cue) => cue.text)
       .sort((a: Cue, b: Cue) => a.time - b.time),
   };
 }
@@ -121,7 +125,7 @@ export function appendCueText(
   validateCueInterval(interval);
   const lines = text
     .split(/\r\n|\n|\r/)
-    .map((line) => line.trim())
+    .map(stripCueTags)
     .filter(Boolean);
   const start = cues.length ? cues[cues.length - 1].time + interval : 0;
   const added = lines.map((line, i) => ({

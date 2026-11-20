@@ -150,7 +150,7 @@ export function InstrumentEditor220() {
     />
   );
   return (
-    <Window width={960} height={820}>
+    <Window width={760} height={tab === 'midi' ? 520 : 640}>
       <Window.Content scrollable>
         <Tabs>
           <Tabs.Tab
@@ -213,6 +213,7 @@ export function InstrumentEditor220() {
             uploading={transfer.busy}
             instruments={data.possible_instruments}
             defaultInstrument={data.using_instrument_id}
+            headerControls={<MidiVolume />}
             disabled={!!data.playing || !!data.midi_shared || transfer.busy}
             channels={data.midi_channels}
             position={
@@ -242,26 +243,27 @@ export function InstrumentEditor220() {
             />
           </>
         )}
-        {tab === 'midi' && (
-          <Section>
-            <Stack align="center" justify="end" wrap>
-              <Stack.Item>
-                Volume{' '}
-                <NumberInput
-                  width="5em"
-                  minValue={0}
-                  maxValue={100}
-                  value={data.volume}
-                  step={1}
-                  format={musicInteger}
-                  onChange={(amount) => act('set_volume', { amount })}
-                />
-              </Stack.Item>
-            </Stack>
-          </Section>
-        )}
       </Window.Content>
     </Window>
+  );
+}
+
+export function MidiVolume() {
+  const { act, data } = useBackend<Data>();
+  return (
+    <Box textAlign="center">
+      <Knob
+        size={1.8}
+        value={data.volume}
+        minValue={data.min_volume}
+        maxValue={data.max_volume}
+        step={1}
+        stepPixelSize={6}
+        format={musicInteger}
+        onChange={(_event, amount) => act('set_volume', { amount })}
+      />
+      <Box mt={0.3}>Volume ({musicInteger(data.volume)}%)</Box>
+    </Box>
   );
 }
 

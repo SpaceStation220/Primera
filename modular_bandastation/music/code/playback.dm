@@ -1,5 +1,5 @@
 /datum/song
-	volume = 75
+	volume = 30
 	max_volume = 100
 	max_sound_channels = 32
 
@@ -37,7 +37,11 @@
 	hearing_mobs.len = 0
 	var/list/sources = get_instrument_sources()
 	for(var/turf/origin as anything in sources)
-		var/list/listeners = get_hearers_in_view(instrument_range, origin, RECURSIVE_CONTENTS_CLIENT_MOBS) | get_hearers_in_range(min(2, instrument_range), origin, RECURSIVE_CONTENTS_CLIENT_MOBS)
+		var/list/listeners
+		if(playback_mode == "file")
+			listeners = get_hearers_in_range(instrument_range, origin, RECURSIVE_CONTENTS_CLIENT_MOBS)
+		else
+			listeners = get_hearers_in_view(instrument_range, origin, RECURSIVE_CONTENTS_CLIENT_MOBS) | get_hearers_in_range(min(2, instrument_range), origin, RECURSIVE_CONTENTS_CLIENT_MOBS)
 		for(var/mob/listener as anything in listeners)
 			if(!listener.client || !HAS_TRAIT(listener, TRAIT_HEARING_SENSITIVE))
 				continue

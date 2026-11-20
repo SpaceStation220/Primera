@@ -274,7 +274,7 @@ export function CueEditor({
               disabled={disabled || !source.audio_hash || !bulkText.trim()}
               onClick={() => {
                 const pasted = bulkText.trim();
-                if (pasted.startsWith('{') || pasted.startsWith('[')) {
+                if (pasted.startsWith('{')) {
                   try {
                     importJson.current(pasted);
                   } catch (err) {

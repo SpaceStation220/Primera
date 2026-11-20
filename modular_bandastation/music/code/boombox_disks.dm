@@ -159,7 +159,6 @@
 
 /** Reuse the disk engine's channel allocation, stereo/falloff and jukebox preferences. */
 /datum/song/concert/boombox
-	volume = 50
 	auto_repeat = TRUE
 	instrument_range = SOUND_RANGE + MEDIUM_RANGE_SOUND_EXTRARANGE
 

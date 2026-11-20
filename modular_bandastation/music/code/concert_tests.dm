@@ -152,6 +152,7 @@
 	if(!builder.put_in_inactive_hand(disk) || !player.insert_disk(disk, builder) || !player.play_music())
 		return Fail("Could not start the stage through its physical player and disk.", __FILE__, __LINE__)
 	var/started_at = player.song.playback_started_at
+	player.song.set_volume(75)
 	if(!receiver.playing || !speaker.active)
 		return Fail("The installed master did not start its linked speaker.", __FILE__, __LINE__)
 	var/sound/near_speaker = player.song.make_file_sound(builder, speaker_turf, 1, 1, sources[speaker_turf])

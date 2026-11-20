@@ -55,7 +55,7 @@
 	start = add_input_port("Play", PORT_TYPE_SIGNAL)
 	stop = add_input_port("Stop", PORT_TYPE_SIGNAL)
 	track_number = add_input_port("Track", PORT_TYPE_NUMBER, default = 1)
-	volume = add_input_port("Volume", PORT_TYPE_NUMBER, default = 75)
+	volume = add_input_port("Volume", PORT_TYPE_NUMBER, default = 30)
 	track_name = add_output_port("Track Name", PORT_TYPE_STRING)
 	is_playing = add_output_port("Is Playing", PORT_TYPE_BOOLEAN)
 	started_playing = add_output_port("Started Playing", PORT_TYPE_SIGNAL)

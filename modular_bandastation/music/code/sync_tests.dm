@@ -192,6 +192,28 @@
 	if(song.set_file_track('sound/items/barcodebeep.ogg', player) || song.file_track != original || length(song.loaded_file_tracks) != 1)
 		Fail("An overlapping retry bypassed the cooldown or changed the committed recording.", __FILE__, __LINE__)
 
+/// Cue sheets are reusable across recordings, while timing and lyric limits remain enforced.
+/datum/unit_test/music_ogg_cues
+
+/datum/unit_test/music_ogg_cues/Run()
+	var/obj/item/instrument/guitar/instrument = allocate(/obj/item/instrument/guitar, run_loc_floor_bottom_left)
+	var/datum/song/song = instrument.song
+	var/list/document = list("version" = 1, "audio_hash" = "another-track", "cues" = list(list("time" = 0, "text" = "\[Verse\]"), list("time" = 3, "text" = "\[quiet\] First")))
+	if(song.load_song_cues(document))
+		return Fail("Lyrics imported without a selected OGG.", __FILE__, __LINE__)
+	song.file_track = 'sound/items/bikehorn.ogg'
+	song.file_track_hash = "current-track"
+	song.file_track_length = 10 SECONDS
+	if(!song.load_song_cues(document) || length(song.song_cues) != 1 || song.song_cues[1]["text"] != "First" || song.song_cues[1]["time"] != 3)
+		return Fail("A reusable cue sheet was rejected or bracketed annotations were not skipped.", __FILE__, __LINE__)
+	document.Remove("audio_hash")
+	if(!song.load_song_cues(document))
+		return Fail("A cue sheet without an audio hash was rejected.", __FILE__, __LINE__)
+	var/list/accepted = song.song_cues
+	document["cues"] = list(list("time" = 11, "text" = "Too late"))
+	if(song.load_song_cues(document) || song.song_cues != accepted)
+		Fail("An out-of-range cue replaced the accepted lyrics.", __FILE__, __LINE__)
+
 /// Removing groups must preserve MIDI unison and release the follower on stop.
 /datum/unit_test/music_midi_unison
 	parent_type = /datum/unit_test/music_with_test_minds
