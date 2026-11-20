@@ -2,17 +2,34 @@ Any time you make a change to the schema files, remember to increment the databa
 
 Make sure to also update `DB_MAJOR_VERSION_220` and `DB_MINOR_VERSION_220`, which can be found in `code/modular_bandastation/_defines220/code/defines/subsystems.dm`.
 
-The latest database version is 1.4; The query to update the schema revision table is:
+The latest database version is 1.5; The query to update the schema revision table is:
 
 ```sql
-INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 4);
+INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 5);
 ```
 
 or
 
 ```sql
-INSERT INTO `SS13_schema_revision_220` (`major`, `minor`) VALUES (1, 4);
+INSERT INTO `SS13_schema_revision_220` (`major`, `minor`) VALUES (1, 5);
 ```
+
+---
+
+Version 1.5, 20 November 2026
+
+Paged books store a versioned JSON document in the existing library content column.
+Back up the library first. Apply your deployment prefix to **both** table names:
+
+```sql
+ALTER TABLE `library` MODIFY COLUMN `content` MEDIUMTEXT NOT NULL;
+INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 5);
+```
+
+Old rows are not destructively rewritten. The game imports their encoded text as
+one page when loading/printing; re-upload saves the new versioned format. JSON
+documents retain separate pages, photos and stamps. Downgrading the code does not
+decode these new records; restore the backup or convert them before a downgrade.
 
 ---
 

@@ -31,6 +31,7 @@ export type LibraryConsoleData = {
   book_id: string;
   cache_author: string;
   cache_content: string;
+  cache_pages?: import('../MarkdownViewer').BookPage[];
   cache_title: string;
   can_connect: BooleanLike;
   can_db_request: BooleanLike;

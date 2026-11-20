@@ -260,7 +260,7 @@ CREATE TABLE `library` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `author` varchar(45) NOT NULL,
   `title` varchar(45) NOT NULL,
-  `content` text NOT NULL,
+  `content` mediumtext NOT NULL,
   `category` enum('Any','Fiction','Non-Fiction','Adult','Reference','Religion') NOT NULL,
   `ckey` varchar(32) NOT NULL DEFAULT 'LEGACY',
   `datetime` datetime NOT NULL,

@@ -1,0 +1,6 @@
+author: "msw7007"
+delete-after: True
+changes:
+  - rscadd: "Paper now has two sides. Combine sheets and photographs into stacks and bind them into multi-page books."
+  - qol: "Read books by spreads, extract individual sheets, and preserve pages, photos and stamps through library scanning and printing."
+  - server: "Library schema revision 1.5 expands book content to MEDIUMTEXT; existing text-only books remain readable."

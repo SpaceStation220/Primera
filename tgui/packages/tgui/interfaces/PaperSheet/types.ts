@@ -10,6 +10,12 @@ export type PaperContext = {
   sanitize_text: boolean;
   signature_font: string;
   user_name: string;
+  current_side?: number;
+  page_key?: string;
+  page_photo?: string;
+  is_stack?: boolean | 0 | 1;
+  stack_page_index?: number;
+  stack_page_count?: number;
 
   // ui_data
   held_item_details?: WritingImplement;

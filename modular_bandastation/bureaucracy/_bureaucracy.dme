@@ -1,0 +1,5 @@
+#include "_bureaucracy.dm"
+#include "code/paper_page.dm"
+#include "code/paper.dm"
+#include "code/paper_stack.dm"
+#include "code/book.dm"

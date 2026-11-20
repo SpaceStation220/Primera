@@ -79,11 +79,16 @@
 			var/list/book_deets = query_get_random_books.item
 			var/obj/item/book/to_randomize = existing_book ? existing_book : new(location)
 
-			to_randomize.book_data = new()
-			var/datum/book_info/data = to_randomize.book_data
+			var/datum/book_info/data = new
 			data.set_title(book_deets[1], trusted = TRUE)
 			data.set_author(book_deets[2], trusted = TRUE)
-			data.set_content(book_deets[3], trusted = TRUE)
+			if(!data.load_archive(book_deets[3]))
+				qdel(data)
+				if(!existing_book)
+					qdel(to_randomize)
+				continue
+			QDEL_NULL(to_randomize.book_data)
+			to_randomize.book_data = data
 			to_randomize.name = "Book: [to_randomize.book_data.title]"
 			if(!existing_book)
 				to_randomize.gen_random_icon_state()

@@ -9,7 +9,10 @@ CREATE TABLE `schema_revision_220` (
   PRIMARY KEY (`major`, `minor`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 4);
+INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 5);
+
+-- Run after the base schema, using the same deployment table prefix.
+ALTER TABLE `library` MODIFY COLUMN `content` MEDIUMTEXT NOT NULL;
 
 -- Token accounts are created only by an actual grant.
 CREATE TABLE IF NOT EXISTS `antag_tokens` (

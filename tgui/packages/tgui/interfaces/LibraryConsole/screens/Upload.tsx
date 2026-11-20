@@ -15,6 +15,7 @@ import {
 
 import type { LibraryConsoleData } from '../types';
 import { useLibraryContext } from '../useLibraryContext';
+import { BookPageView } from '../../MarkdownViewer';
 
 export function Upload(props) {
   const { act, data } = useBackend<LibraryConsoleData>();
@@ -107,7 +108,13 @@ export function Upload(props) {
                 fontSize="15px"
                 title="Content:"
               >
-                <Box dangerouslySetInnerHTML={contentHtml} />
+                {data.cache_pages ? (
+                  data.cache_pages.map((page, index) => (
+                    <BookPageView key={index} page={page} number={index + 1} />
+                  ))
+                ) : (
+                  <Box dangerouslySetInnerHTML={contentHtml} />
+                )}
               </Section>
             </Stack.Item>
           </Stack>

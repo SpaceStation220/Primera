@@ -511,6 +511,8 @@
 #include "../../../modular_bandastation/species/code/tests/ipc_os_malware_tests.dm"
 #include "../../../modular_bandastation/species/code/tests/ipc_os_revision_tests.dm"
 
+#include "../../../modular_bandastation/bureaucracy/code/tests.dm"
+
 #undef TEST_ASSERT
 #undef TEST_ASSERT_EQUAL
 #undef TEST_ASSERT_NOTEQUAL

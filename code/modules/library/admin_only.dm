@@ -351,6 +351,11 @@
 	data["author"] = author
 	data["title"] = title
 	data["content"] = content
+	if(!view_raw)
+		var/datum/book_info/book = new
+		if(book.load_archive(content))
+			data["pages"] = book.get_pages_ui()
+		qdel(book)
 	data["category"] = category
 	data["author_ckey"] = author_ckey
 	data["creation_time"] = creation_time
