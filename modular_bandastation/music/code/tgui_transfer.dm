@@ -52,7 +52,7 @@
 	file_listeners[listener] = NONE
 	var/output_gain = clamp(output_volume / 100, 0, 1)
 	var/waiting = !!file_start_deadline
-	var/prepare = file_start_deadline && IS_WEAKREF_OF(listener, file_start_listener)
+	var/prepare = waiting && !(listener in file_failed_listeners)
 	var/list/previous = panel.instrument_audio_states[last_channel_played]
 	if(previous && previous["token"] == file_transfer_token && previous["hash"] == file_transfer_hash && previous["volume"] == output_gain && previous["waiting"] == waiting && previous["prepare"] == prepare && world.time < previous["sent_at"] + MUSIC_PLAYBACK_SYNC_INTERVAL)
 		return
@@ -61,7 +61,7 @@
 		"token" = file_transfer_token,
 		"hash" = file_transfer_hash,
 		"volume" = output_gain,
-		"position" = file_start_deadline ? 0 : max(0, (world.time - playback_started_at) / (1 SECONDS)),
+		"position" = file_start_deadline ? 0 : (world.time - playback_started_at) / (1 SECONDS),
 		"waiting" = waiting,
 		"prepare" = prepare,
 	))
@@ -95,7 +95,7 @@
 		return
 	var/datum/weakref/source_ref = instrument_songs[id]
 	var/datum/song/song = source_ref?.resolve()
-	if(!song || !song.playing || song.playback_mode != "file" || song.last_channel_played != id || song.file_transfer_token != token || song.file_transfer_hash != hash || !(client?.mob in song.file_listeners))
+	if(!song || (!song.playing && !song.file_preparing) || song.playback_mode != "file" || song.last_channel_played != id || song.file_transfer_token != token || song.file_transfer_hash != hash || !(client?.mob in song.file_listeners))
 		return
 	return song
 
@@ -209,8 +209,6 @@
 			instrument_transfer["acked"] = received
 			instrument_transfer["deadline"] = world.time + MUSIC_TRANSFER_TIMEOUT
 			if(received == instrument_transfer["size"])
-				if(payload["bytes"] == instrument_transfer["bytes"])
-					to_chat(client, span_notice("Music loaded: [round(payload["bytes"] / 1024)] KiB."))
 				cancel_instrument_transfer(FALSE)
 			return TRUE
 		if("audio/instrumentCancel")
@@ -218,13 +216,32 @@
 				cancel_instrument_transfer(FALSE)
 			return TRUE
 		if("audio/instrumentError")
-			if(islist(payload))
-				var/datum/song/song = get_instrument_song(payload["id"], payload["token"], payload["hash"])
-				if(song?.file_start_deadline && IS_WEAKREF_OF(client?.mob, song.file_start_listener))
-					song.stop_playing()
-			if(world.time >= next_instrument_audio_warning)
-				next_instrument_audio_warning = world.time + 10 SECONDS
-				to_chat(client, span_warning("Instrument music could not be loaded or played. Stop and restart it to retry."))
+			if(!islist(payload))
+				return TRUE
+			var/datum/song/song = get_instrument_song(payload["id"], payload["token"], payload["hash"])
+			if(!song)
+				return TRUE
+			var/mob/initiator = song.file_initiator?.resolve()
+			var/datum/tgui_panel/initiator_panel = initiator?.client?.tgui_panel
+			var/reason = payload["reason"]
+			song.file_failed_listeners |= client.mob
+			song.file_ready_listeners -= client.mob
+			SStgui.update_uis(song)
+			if(!song.playing || (!song.file_start_deadline && world.time > song.file_start_error_until))
+				return TRUE
+			if(reason != "blocked" && IS_WEAKREF_OF(client?.mob, song.file_start_listener))
+				song.stop_playing()
+			if(initiator_panel && world.time >= initiator_panel.next_instrument_audio_warning)
+				initiator_panel.next_instrument_audio_warning = world.time + 10 SECONDS
+				var/message = "Instrument music could not be played. Stop and restart it to retry."
+				switch(reason)
+					if("blocked")
+						message = "A listening browser blocked automatic music playback. That listener needs to click the chat window to enable it."
+					if("transfer")
+						message = "The recording could not be transferred to a listening browser. Stop and restart it to retry."
+					if("decode")
+						message = "A listening browser could not decode the OGG recording. Check its codec and try another recording."
+				to_chat(initiator, span_warning(message))
 			return TRUE
 
 #undef MUSIC_TRANSFER_CHARS

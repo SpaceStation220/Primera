@@ -9,10 +9,15 @@
 #define INSTRUMENT_FILE_OUTPUT_GAIN 3
 #define INSTRUMENT_FALLOFF_DISTANCE 4
 #define INSTRUMENT_FALLOFF_EXPONENT 3
-/// Hearing and sustained-voice updates share one pass; note deadlines remain independent.
+/// Local audibility is refreshed independently of note scheduling and envelopes.
 #define MUSIC_SPATIAL_UPDATE_INTERVAL (1 SECONDS)
+/// Bound the initial audience wait after the starter is ready, then schedule a shared lead-in.
+#define MUSIC_START_AUDIENCE_WAIT (5 SECONDS)
+#define MUSIC_START_LEAD (0.5 SECONDS)
+/// Release sampled MIDI voices instead of cutting the waveform at note-off.
+#define MUSIC_MIDI_RELEASE (0.1 SECONDS)
 /// Bounds shared by instrument uploads and physical concert disks.
-#define MUSIC_UPLOAD_MAX_BYTES (10 * 1024 * 1024)
+#define MUSIC_UPLOAD_MAX_BYTES (3 * 1024 * 1024)
 #define MUSIC_UPLOAD_MAX_DURATION (30 MINUTES)
 /// Capacity of one round-local physical disk.
 #define CONCERT_DISK_MAX_TRACKS 12

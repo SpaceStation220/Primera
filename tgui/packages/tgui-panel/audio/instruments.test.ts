@@ -190,8 +190,8 @@ test('enforces the file bound before retaining chunks', () => {
     request: Number(messages.at(-1)?.payload.request),
     transfer: '1',
     hash,
-    size: 16000000,
-    bytes: 12000000,
+    size: 4 * Math.ceil((3 * 1024 * 1024 + 1) / 3),
+    bytes: 3 * 1024 * 1024 + 1,
     chunkSize: 16384,
     window: 8,
   });
@@ -225,7 +225,7 @@ test('body changes clear suppression and stale begin messages cannot claim a new
   expect(blobs).toHaveLength(1);
 });
 
-test('holds a cold initiator at zero until canplay and a fresh shared start', () => {
+test('warms a cold initiator silently, stops at zero, then accepts a fresh shared start', async () => {
   const now = spyOn(performance, 'now').mockReturnValue(1_000);
   try {
     playInstrumentMusic({ ...packet, waiting: true, prepare: true });
@@ -247,7 +247,11 @@ test('holds a cold initiator at zero until canplay and a fresh shared start', ()
     });
     audio.dispatchEvent(new Event('canplay'));
     audio.dispatchEvent(new Event('canplay'));
-    expect(audio.play).not.toHaveBeenCalled();
+    expect(audio.play).toHaveBeenCalledTimes(1);
+    expect(audio.muted).toBe(true);
+    expect(audio.volume).toBe(0);
+    await Promise.resolve();
+    expect(audio.pause).toHaveBeenCalledTimes(1);
     expect(audio.currentTime).toBe(0);
     const ready = messages.filter((m) => m.type === 'audio/instrumentReady');
     expect(ready).toHaveLength(1);
@@ -258,14 +262,16 @@ test('holds a cold initiator at zero until canplay and a fresh shared start', ()
     });
     now.mockReturnValue(92_000);
     playInstrumentMusic({ ...packet, waiting: false });
-    expect(audio.play).toHaveBeenCalledTimes(1);
+    expect(audio.play).toHaveBeenCalledTimes(2);
+    expect(audio.muted).toBe(false);
+    expect(audio.volume).toBe(packet.volume);
     expect(audio.currentTime).toBe(0);
   } finally {
     now.mockRestore();
   }
 });
 
-test('cached restarts still acknowledge readiness without downloading again', () => {
+test('cached restarts still acknowledge readiness without downloading again', async () => {
   playInstrumentMusic(packet);
   deliver(begin(recording()));
   stopInstrumentMusic({ id: packet.id, token: packet.token });
@@ -278,11 +284,13 @@ test('cached restarts still acknowledge readiness without downloading again', ()
   const audio = audios[1];
   Object.defineProperty(audio, 'readyState', { value: 4 });
   audio.dispatchEvent(new Event('canplay'));
+  await Promise.resolve();
   expect(
     messages.filter((m) => m.type === 'audio/instrumentRequest'),
   ).toHaveLength(1);
   expect(messages.at(-1)?.payload.token).toBe('cached-restart');
-  expect(audio.play).not.toHaveBeenCalled();
+  expect(audio.play).toHaveBeenCalledTimes(1);
+  expect(audio.muted).toBe(true);
 });
 
 test('other listeners cannot release the start and late listeners keep the shared position', () => {
@@ -319,6 +327,130 @@ test('stop while preparing ignores later readiness and playback errors identify 
   audios[1].dispatchEvent(new Event('error'));
   expect(messages.at(-1)).toEqual({
     type: 'audio/instrumentError',
-    payload: { id: packet.id, token: 'retry', hash },
+    payload: { id: packet.id, token: 'retry', hash, reason: 'decode' },
   });
+});
+
+test('blocked autoplay retries at the shared position on a user gesture without another download', async () => {
+  playInstrumentMusic(packet);
+  deliver(begin(recording()));
+  const audio = audios[0];
+  const play = spyOn(audio, 'play')
+    .mockRejectedValueOnce(
+      new DOMException('Gesture required', 'NotAllowedError'),
+    )
+    .mockResolvedValue(undefined);
+  Object.defineProperty(audio, 'readyState', { value: 4 });
+  audio.dispatchEvent(new Event('canplay'));
+  await Promise.resolve();
+  expect(messages.at(-1)?.payload.reason).toBe('blocked');
+  playInstrumentMusic({ ...packet, position: 42 });
+  expect(play).toHaveBeenCalledTimes(1);
+  window.dispatchEvent(new MouseEvent('mousedown'));
+  await Promise.resolve();
+  expect(play).toHaveBeenCalledTimes(2);
+  expect(audio.currentTime).toBeGreaterThanOrEqual(42);
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentRequest'),
+  ).toHaveLength(1);
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentError'),
+  ).toHaveLength(1);
+  stopInstrumentMusic({ id: packet.id, token: packet.token });
+  window.dispatchEvent(new KeyboardEvent('keydown'));
+  expect(play).toHaveBeenCalledTimes(2);
+});
+
+test('an interrupted play is retried but a decode failure is not', async () => {
+  playInstrumentMusic(packet);
+  deliver(begin(recording()));
+  const audio = audios[0];
+  const play = spyOn(audio, 'play')
+    .mockRejectedValueOnce(
+      new DOMException('Seek interrupted playback', 'AbortError'),
+    )
+    .mockRejectedValueOnce(
+      new DOMException('Invalid recording', 'NotSupportedError'),
+    );
+  Object.defineProperty(audio, 'readyState', { value: 4 });
+  audio.dispatchEvent(new Event('canplay'));
+  await Promise.resolve();
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentError'),
+  ).toHaveLength(0);
+  playInstrumentMusic({ ...packet, position: 1 });
+  await Promise.resolve();
+  expect(messages.at(-1)?.payload.reason).toBe('decode');
+  playInstrumentMusic({ ...packet, position: 2 });
+  window.dispatchEvent(new MouseEvent('mousedown'));
+  expect(play).toHaveBeenCalledTimes(2);
+});
+
+test('a warmed listener waits for the shared future start without reloading', async () => {
+  playInstrumentMusic({ ...packet, waiting: true, prepare: true });
+  deliver(begin(recording()));
+  const audio = audios[0];
+  Object.defineProperty(audio, 'readyState', { value: 4 });
+  audio.dispatchEvent(new Event('canplay'));
+  await Promise.resolve();
+  const now = spyOn(performance, 'now').mockReturnValue(0);
+  const timers: { callback: () => void; delay: number }[] = [];
+  const timer = spyOn(globalThis, 'setTimeout').mockImplementation(((
+    callback: () => void,
+    delay: number,
+  ) => {
+    timers.push({ callback, delay });
+    return 1;
+  }) as typeof setTimeout);
+  try {
+    playInstrumentMusic({ ...packet, position: -0.5, waiting: false });
+    expect(audio.play).toHaveBeenCalledTimes(1);
+    expect(timers.at(-1)?.delay).toBe(500);
+    now.mockReturnValue(500);
+    timers.at(-1)?.callback();
+    expect(audio.play).toHaveBeenCalledTimes(2);
+    expect(audio.currentTime).toBe(0);
+    expect(
+      messages.filter((m) => m.type === 'audio/instrumentRequest'),
+    ).toHaveLength(1);
+  } finally {
+    timer.mockRestore();
+    now.mockRestore();
+    stopInstrumentMusic({ id: packet.id, token: packet.token });
+  }
+});
+
+test('accepts a full 3 MiB recording in bounded chunks', () => {
+  playInstrumentMusic({ ...packet, waiting: true, prepare: true });
+  deliver(begin(recording(3 * 1024 * 1024)));
+  expect(blobs).toHaveLength(1);
+  expect(blobs[0].size).toBe(3 * 1024 * 1024);
+  expect(messages.some((m) => m.type === 'audio/instrumentError')).toBe(false);
+  expect(messages.at(-1)?.payload.bytes).toBe(3 * 1024 * 1024);
+});
+
+test('a late silent warm-up joins the current position instead of pausing the real performance', async () => {
+  playInstrumentMusic({ ...packet, waiting: true, prepare: true });
+  deliver(begin(recording()));
+  const audio = audios[0];
+  let finishWarmup!: () => void;
+  const play = spyOn(audio, 'play')
+    .mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishWarmup = resolve;
+        }),
+    )
+    .mockResolvedValue(undefined);
+  Object.defineProperty(audio, 'readyState', { value: 4 });
+  audio.dispatchEvent(new Event('canplay'));
+  playInstrumentMusic({ ...packet, waiting: false, position: 42 });
+  expect(audio.muted).toBe(true);
+  expect(play).toHaveBeenCalledTimes(1);
+  finishWarmup();
+  await Promise.resolve();
+  expect(play).toHaveBeenCalledTimes(2);
+  expect(audio.currentTime).toBeGreaterThanOrEqual(42);
+  expect(audio.muted).toBe(false);
+  expect(messages.some((m) => m.type === 'audio/instrumentReady')).toBe(false);
 });

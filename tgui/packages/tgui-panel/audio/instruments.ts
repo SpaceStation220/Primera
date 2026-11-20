@@ -1,7 +1,7 @@
 import { createLogger } from 'tgui/logging';
 
 const logger = createLogger('InstrumentAudio');
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_BYTES = 3 * 1024 * 1024;
 const MAX_CACHE_BYTES = 40 * 1024 * 1024;
 const MAX_VOICES = 32;
 const TRANSFER_TIMEOUT_MS = 25_000;
@@ -24,6 +24,8 @@ type Voice = {
   failed: boolean;
   disposed: boolean;
   readySent: boolean;
+  autoplayBlocked: boolean;
+  startTimer?: ReturnType<typeof setTimeout>;
 };
 
 type Transfer = {
@@ -49,6 +51,7 @@ let requestSerial = 0;
 
 function dispose(voice: Voice) {
   voice.disposed = true;
+  clearTimeout(voice.startTimer);
   const audio = voice.audio;
   if (!audio) return;
   audio.onloadedmetadata = null;
@@ -64,14 +67,17 @@ function failHash(hash: string) {
     if (voice.packet.hash !== hash) continue;
     dispose(voice);
     voice.failed = true;
-    reportVoiceError(voice);
+    reportVoiceError(voice, 'transfer');
   }
   logger.warn('instrument transfer failed', hash);
 }
 
-function reportVoiceError(voice: Voice) {
+function reportVoiceError(
+  voice: Voice,
+  reason: 'transfer' | 'decode' | 'blocked' | 'playback',
+) {
   const { id, token, hash } = voice.packet;
-  Byond.sendMessage('audio/instrumentError', { id, token, hash });
+  Byond.sendMessage('audio/instrumentError', { id, token, hash, reason });
 }
 
 function clearTransfer(cancel: boolean) {
@@ -136,20 +142,75 @@ function makeRoom(bytes: number) {
   return cacheBytes + bytes <= MAX_CACHE_BYTES;
 }
 
-function synchronize(voice: Voice, force = false) {
+function playVoice(voice: Voice, onPlayed?: () => void) {
+  const audio = voice.audio;
+  if (!audio || voice.pending) return;
+  voice.pending = true;
+  Promise.resolve(audio.play()).then(
+    () => {
+      voice.pending = false;
+      if (voice.disposed || voice.failed) return;
+      voice.autoplayBlocked = false;
+      onPlayed?.();
+    },
+    (error) => {
+      voice.pending = false;
+      if (voice.disposed) return;
+      if (error?.name === 'NotAllowedError') {
+        if (!voice.autoplayBlocked) reportVoiceError(voice, 'blocked');
+        voice.autoplayBlocked = true;
+        return;
+      }
+      if (error?.name === 'AbortError') return;
+      voice.failed = true;
+      logger.warn('playback failed', error);
+      reportVoiceError(
+        voice,
+        error?.name === 'NotSupportedError' ? 'decode' : 'playback',
+      );
+    },
+  );
+}
+
+function synchronize(voice: Voice, force = false, userGesture = false) {
   const audio = voice.audio;
   if (!audio || voice.failed || voice.disposed) return;
+  clearTimeout(voice.startTimer);
+  if (voice.autoplayBlocked && !userGesture) return;
   if (voice.packet.waiting) {
-    if (voice.packet.prepare && audio.readyState >= 3 && !voice.readySent) {
-      voice.readySent = true;
-      const { id, token, hash } = voice.packet;
-      Byond.sendMessage('audio/instrumentReady', { id, token, hash });
+    if (
+      voice.packet.prepare &&
+      audio.readyState >= 3 &&
+      !voice.readySent &&
+      !voice.pending
+    ) {
+      audio.muted = true;
+      audio.volume = 0;
+      playVoice(voice, () => {
+        audio.pause();
+        audio.currentTime = 0;
+        voice.readySent = true;
+        if (voice.packet.waiting) {
+          const { id, token, hash } = voice.packet;
+          Byond.sendMessage('audio/instrumentReady', { id, token, hash });
+        } else {
+          synchronize(voice, true);
+        }
+      });
     }
     return;
   }
+  // A late warm-up must finish silently before joining an already started timeline.
+  if (voice.pending && audio.muted && !voice.readySent) return;
   if (!audio.readyState || audio.ended) return;
   const position =
     voice.packet.position + (performance.now() - voice.receivedAt) / 1000;
+  if (position < 0) {
+    voice.startTimer = setTimeout(() => synchronize(voice), -position * 1000);
+    return;
+  }
+  audio.muted = false;
+  audio.volume = voice.packet.volume;
   if (Number.isFinite(audio.duration) && position >= audio.duration) return;
   if (
     !audio.seeking &&
@@ -161,22 +222,17 @@ function synchronize(voice: Voice, force = false) {
       logger.warn('seek failed', error);
     }
   }
-  if (audio.paused && !voice.pending) {
-    voice.pending = true;
-    Promise.resolve(audio.play()).then(
-      () => {
-        voice.pending = false;
-      },
-      (error) => {
-        voice.pending = false;
-        if (voice.disposed) return;
-        voice.failed = true;
-        logger.warn('playback failed', error);
-        reportVoiceError(voice);
-      },
-    );
+  if (audio.paused && !voice.pending) playVoice(voice);
+}
+
+function retryBlockedVoices() {
+  for (const voice of voices.values()) {
+    if (voice.autoplayBlocked) synchronize(voice, true, true);
   }
 }
+
+window.addEventListener('mousedown', retryBlockedVoices);
+window.addEventListener('keydown', retryBlockedVoices);
 
 function attachAudio(voice: Voice) {
   const entry = cache.get(voice.packet.hash);
@@ -191,7 +247,7 @@ function attachAudio(voice: Voice) {
   audio.onerror = () => {
     if (voice.disposed) return;
     voice.failed = true;
-    reportVoiceError(voice);
+    reportVoiceError(voice, 'decode');
   };
   audio.preload = 'auto';
   audio.volume = voice.packet.volume;
@@ -234,6 +290,7 @@ export function playInstrumentMusic(packet: Packet) {
       failed: false,
       disposed: false,
       readySent: false,
+      autoplayBlocked: false,
     };
     voices.set(packet.id, voice);
   }

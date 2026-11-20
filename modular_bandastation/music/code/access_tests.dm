@@ -37,6 +37,8 @@
 		Fail("The modular UI lost base song data or exposed advanced controls to a normal profession.", __FILE__, __LINE__)
 	if(song.can_use_advanced_music(player))
 		Fail("A normal profession unlocked advanced music.", __FILE__, __LINE__)
+	if(song.authorize_music_action("play_music", list("mode" = "midi"), player))
+		Fail("A normal profession unlocked Notes playback.", __FILE__, __LINE__)
 	if(!song.authorize_music_action("select_music_mode", list("mode" = "midi"), player))
 		Fail("Notes were locked for a normal profession.", __FILE__, __LINE__)
 	if(song.authorize_music_action("set_sequence_document", list(), player))
@@ -46,6 +48,17 @@
 	player.mind.assigned_role = musician
 	if(!song.can_use_advanced_music(player))
 		Fail("Musician did not unlock advanced music.", __FILE__, __LINE__)
+	song.lines = list("C4,D4")
+	if(!player.put_in_active_hand(instrument))
+		return Fail("The access fixture could not hold its instrument.", __FILE__, __LINE__)
+	song.start_playing(player)
+	if(!song.playing)
+		return Fail("Musician could not start Notes.", __FILE__, __LINE__)
+	player.mind.assigned_role = null
+	song.process(SSinstruments.wait)
+	if(song.playing)
+		Fail("Notes kept playing after losing the Musician profession.", __FILE__, __LINE__)
+	player.mind.assigned_role = musician
 	var/list/musician_ui = song.ui_data(player)
 	var/list/metadata = song.ui_static_data(player)
 	if(!musician_ui["advanced_music_access"] || !islist(metadata["possible_instruments"]) || !islist(metadata["sequence_document"]))

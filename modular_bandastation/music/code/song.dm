@@ -231,7 +231,12 @@
 			target.set_playback_mode("midi")
 			transmit_song_to(target)
 			target.ignore_midi_start_delay = TRUE
+	if(playback_mode == "file")
+		target.file_sync_start_at = playback_started_at
 	target.force_start_playing()
+	target.file_sync_start_at = null
+	if(playback_mode == "file" && target.playing)
+		target.file_initiator = file_initiator
 	if(target.sequence_master == src && !target.playing)
 		sequence_followers -= target
 		target.sequence_master = null

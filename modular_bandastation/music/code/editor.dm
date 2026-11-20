@@ -9,9 +9,17 @@
 	data["auto_repeat"] = auto_repeat
 	data["playback_mode"] = playback_mode
 	data["file_track_name"] = file_track_name
+	data["file_preparation"] = file_track ? "not_ready" : "none"
+	if(file_preparing)
+		data["file_preparation"] = length(file_failed_listeners) ? "error" : "preparing"
+		if(length(file_listeners) && length(file_ready_listeners) == length(file_listeners))
+			data["file_preparation"] = "ready"
+	else if(playing && playback_mode == "file")
+		data["file_preparation"] = file_start_deadline ? "preparing" : "ready"
 	data["file_track_length"] = file_track_length ? DisplayTimeText(file_track_length) : null
 	data["file_track_length_seconds"] = max(0, file_track_length / (1 SECONDS))
 	data["can_load_file_tracks"] = TRUE
+	data["file_upload_pending"] = file_upload_pending
 	data["preset_file_tracks"] = list()
 	data["loaded_file_tracks"] = list()
 	for(var/list/track as anything in loaded_file_tracks)
@@ -64,11 +72,11 @@
 		return FALSE
 	switch(action)
 		if("import_file_song")
-			var/new_file = input(user, "Select an OGG file to play through this instrument.", name) as sound|null
-			if(!new_file || QDELETED(src) || QDELETED(parent) || !can_use_music_ui(ui, user) || !in_range(parent, user))
+			if(file_upload_pending)
+				to_chat(user, span_notice("An OGG upload is already in progress for this instrument."))
 				return TRUE
-			set_file_track(new_file, user)
-			update_static_data_for_all_viewers()
+			file_upload_pending = TRUE
+			INVOKE_ASYNC(src, PROC_REF(import_file_song), user, ui.state)
 			return TRUE
 		if("clear_file_song")
 			clear_file_track()
@@ -77,8 +85,10 @@
 			set_playback_mode(params["mode"])
 			return TRUE
 		if("select_loaded_file_track")
-			if(select_loaded_file_track(params["track"]) && params["play"])
-				INVOKE_ASYNC(src, PROC_REF(start_playing), user)
+			if(select_loaded_file_track(params["track"]))
+				prepare_file_playback(user)
+				if(params["play"])
+					INVOKE_ASYNC(src, PROC_REF(start_playing), user)
 			update_static_data_for_all_viewers()
 			return TRUE
 		if("set_file_track_length")

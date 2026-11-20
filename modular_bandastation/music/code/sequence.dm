@@ -160,29 +160,33 @@
 	if(sequence_master)
 		return
 	var/elapsed = (world.time - playback_started_at) / (1 SECONDS)
+	// Score timestamps can fall between server ticks; do not subtract that quantization from the attack.
+	var/tick_window = max(world.tick_lag, SSinstruments.wait) / (1 SECONDS)
 	var/budget = 64
 	while(sequence_cursor <= length(midi_notes) && budget-- > 0)
 		var/list/note = midi_notes[sequence_cursor]
 		if(note["time"] > elapsed)
 			break
 		sequence_cursor++
-		if(note["time"] + note["duration"] <= elapsed)
+		var/duration = note["duration"] - max(0, elapsed - note["time"] - tick_window)
+		if(duration <= 0)
 			continue
-		play_sequence_note(note, note["time"] + note["duration"] - elapsed)
+		play_sequence_note(note, duration)
 		for(var/datum/song/follower as anything in sequence_followers.Copy())
 			if(QDELETED(follower) || !follower.playing || follower.sequence_master != src)
 				sequence_followers -= follower
 				continue
-			follower.play_sequence_note(note, note["time"] + note["duration"] - elapsed)
-	if(elapsed < sequence_length)
+			follower.play_sequence_note(note, duration)
+	if(sequence_cursor <= length(midi_notes) || elapsed < sequence_length)
 		return
 	if(repeat > 0 || auto_repeat)
 		if(!auto_repeat)
 			repeat--
-		terminate_all_sounds()
-		voice_ends.Cut()
+		// Let the previous cycle's releases finish while the next attacks begin.
 		sequence_cursor = 1
 		playback_started_at += sequence_length SECONDS
+		return
+	if(elapsed < sequence_length + tick_window + MUSIC_MIDI_RELEASE / (1 SECONDS))
 		return
 	stop_playing(TRUE)
 
@@ -238,6 +242,15 @@
 	for(var/channel in voice_ends.Copy())
 		if(world.time < voice_ends[channel])
 			continue
+		if(playback_mode == "sequence" && world.time < voice_ends[channel] + MUSIC_MIDI_RELEASE)
+			var/remaining = (voice_ends[channel] + MUSIC_MIDI_RELEASE - world.time) / MUSIC_MIDI_RELEASE
+			channels_playing[channel] = 100 * remaining
+			var/level = get_output_volume(volume * voice_levels[channel]) * remaining
+			if(!(channel in music_voice_levels_sent) || music_voice_levels_sent[channel] != level)
+				for(var/mob/listener as anything in hearing_mobs)
+					update_music_voice_listener(listener, text2num(channel), level)
+				music_voice_levels_sent[channel] = level
+			continue
 		for(var/mob/listener as anything in hearing_mobs)
 			if(listener.client)
 				listener.stop_sound_channel(text2num(channel))
@@ -264,14 +277,17 @@
 		var/distance = get_dist_euclidean(source, destination)
 		var/x = source.x - destination.x
 		var/z = source.y - destination.y
-		var/gain = max(0, 1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)) * get_listener_volume_multiplier(listener)
+		var/preference = (listener.client.prefs.read_preference(/datum/preference/numeric/volume/sound_instruments) || 0) / 100
+		var/gain = max(0, 1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)) * preference
 		var/list/spatial = previous_spatial[listener]
 		if(!spatial || spatial["client"] != listener.client || spatial["x"] != x || spatial["z"] != z || spatial["gain"] != gain || spatial["range"] != instrument_range)
-			spatial = list("client" = listener.client, "x" = x, "z" = z, "gain" = gain, "range" = instrument_range)
+			spatial = list("client" = listener.client, "x" = x, "z" = z, "gain" = gain, "range" = instrument_range, "preference" = preference)
 			changed_listeners += listener
 		listener_spatial[listener] = spatial
 	for(var/channel in channels_playing)
 		var/level = voice_levels[channel] ? get_output_volume(volume * voice_levels[channel]) : (channels_playing[channel] * 0.01 * get_output_volume(volume * using_instrument.volume_multiplier))
+		if(playback_mode == "sequence" && voice_levels[channel])
+			level *= channels_playing[channel] * 0.01
 		var/list/listeners = ((channel in music_voice_levels_sent) && music_voice_levels_sent[channel] == level) ? changed_listeners : listener_spatial
 		for(var/mob/listener as anything in listeners)
 			update_music_voice_listener(listener, text2num(channel), level)
@@ -279,7 +295,7 @@
 
 /datum/song/proc/update_music_voice_listener(mob/listener, channel, level)
 	var/list/spatial = listener_spatial[listener]
-	if(!spatial || !listener.client)
+	if(!spatial || !listener.client || spatial["client"] != listener.client)
 		return
 	var/sound/update = sound(null, channel = channel)
 	update.status = SOUND_UPDATE

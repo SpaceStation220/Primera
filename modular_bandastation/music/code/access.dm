@@ -28,12 +28,12 @@
 		return params["kind"] == "notes" || can_use_advanced_music(user)
 	if(action == "read_native_music_upload")
 		return music_document_upload?["kind"] == "notes" || can_use_advanced_music(user)
-	var/advanced = (action in list("open_piano_roll", "upload_music_document", "set_sequence_document", "set_song_cues", "sequence_channel", "sequence_seek", "auto_sing", "singing_tts", "import_file_song", "clear_file_song", "select_loaded_file_track", "set_file_track_length", "remove_file_track"))
+	var/advanced = (action in list("play_music", "play", "open_piano_roll", "upload_music_document", "set_sequence_document", "set_song_cues", "sequence_channel", "sequence_seek", "auto_sing", "singing_tts", "import_file_song", "clear_file_song", "select_loaded_file_track", "set_file_track_length", "remove_file_track"))
 	if(action == "upload_music_document" && params["kind"] == "notes")
 		advanced = FALSE
-	if(action in list("select_music_mode", "set_playback_mode", "play_music"))
+	if(action in list("select_music_mode", "set_playback_mode"))
 		advanced = (params["mode"] in list("sequence", "file"))
 	if(!advanced || can_use_advanced_music(user))
 		return TRUE
-	to_chat(user, span_warning("Extended music controls require the Musician profession."))
+	to_chat(user, span_warning("Playing instruments and extended music controls require the Musician profession."))
 	return FALSE

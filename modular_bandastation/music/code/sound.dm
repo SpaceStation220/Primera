@@ -98,7 +98,14 @@
 				var/mob/M = i
 				if(M.client)
 					M.stop_sound_channel(channelnumber)
-	// Gain updates are sent by the shared spatial pass, while expiry stays tick-accurate.
+		else
+			var/level = (current_volume * 0.01) * get_output_volume(volume * using_instrument.volume_multiplier)
+			if((channel in music_voice_levels_sent) && music_voice_levels_sent[channel] == level)
+				continue
+			music_voice_levels_sent[channel] = level
+			for(var/i in hearing_mobs)
+				var/mob/M = i
+				update_music_voice_listener(M, channelnumber, level)
 	trim_idle_channels()
 
 /// Update output gain and refresh active listener volumes.
@@ -166,6 +173,9 @@
 
 /// Read the listener's existing instrument volume preference.
 /datum/song/proc/get_listener_volume_multiplier(mob/listener)
+	var/list/spatial = listener_spatial[listener]
+	if(playback_mode != "file" && spatial && spatial["client"] == listener?.client)
+		return spatial["preference"]
 	var/instrument_volume = listener?.client?.prefs.read_preference(/datum/preference/numeric/volume/sound_instruments)
 	if(!instrument_volume)
 		return 0

@@ -82,9 +82,11 @@ export type Data = {
   auto_repeat: BooleanLike;
   playback_mode: string;
   file_track_name?: string | null;
+  file_preparation?: 'none' | 'not_ready' | 'preparing' | 'ready' | 'error';
   file_track_length?: string | null;
   file_track_length_seconds: number;
   can_load_file_tracks: BooleanLike;
+  file_upload_pending?: BooleanLike;
   preset_file_tracks: string[];
   loaded_file_tracks: LoadedFileTrack[];
 
@@ -302,7 +304,7 @@ export function TopBar(props: TopBarProps) {
               <Button
                 icon={playing || midi_start_pending ? 'stop' : 'play'}
                 color={playing || midi_start_pending ? 'average' : 'good'}
-                disabled={uploading}
+                disabled={uploading || !data.advanced_music_access}
                 onClick={() => onPlay('play_music')}
               >
                 {playing || midi_start_pending ? 'Stop' : 'Start'}
@@ -457,7 +459,9 @@ const LibraryPanel = () => {
             <Button
               fluid
               icon="folder-open"
-              disabled={!!playing || !can_load_file_tracks}
+              disabled={
+                !!playing || !!data.file_upload_pending || !can_load_file_tracks
+              }
               tooltip={
                 can_load_file_tracks
                   ? 'Load an OGG file'
@@ -465,7 +469,7 @@ const LibraryPanel = () => {
               }
               onClick={() => act('import_file_song')}
             >
-              Load OGG
+              {data.file_upload_pending ? 'Receiving OGG' : 'Load OGG'}
             </Button>
             {loaded_file_tracks.length === 0 ? (
               <Box mt={1} color="label">
@@ -518,6 +522,34 @@ const LibraryPanel = () => {
             {file_track_name ? (
               <>
                 <Box bold>{file_track_name}</Box>
+                <Box
+                  mt={0.5}
+                  color={
+                    data.file_preparation === 'ready'
+                      ? 'good'
+                      : data.file_preparation === 'preparing'
+                        ? 'average'
+                        : 'bad'
+                  }
+                >
+                  <Icon
+                    name={
+                      data.file_preparation === 'ready'
+                        ? 'check-circle'
+                        : data.file_preparation === 'preparing'
+                          ? 'spinner'
+                          : 'circle'
+                    }
+                    mr={0.5}
+                  />
+                  {data.file_preparation === 'ready'
+                    ? 'Prepared'
+                    : data.file_preparation === 'preparing'
+                      ? 'Preparing audio'
+                      : data.file_preparation === 'error'
+                        ? 'Preparation failed'
+                        : 'Not prepared'}
+                </Box>
                 <Box mt={0.5} color="label">
                   Detected: {file_track_length}
                 </Box>
