@@ -26,7 +26,17 @@
 	file_transfer_bytes = length(file_track)
 	if(file_transfer_bytes <= 0 || file_transfer_bytes > MUSIC_UPLOAD_MAX_BYTES)
 		return FALSE
-	var/encoded = rustg_hash_file(RUSTG_HASH_BASE64, "[file_track]")
+	// rust-g cannot read a resource packed into the DMB/RSC as a filesystem path.
+	var/path = "data/concert_transfer_[REF(src)].ogg"
+	if(!fcopy(file_track, path))
+		fdel(path)
+		return FALSE
+	var/encoded
+	try
+		encoded = rustg_hash_file(RUSTG_HASH_BASE64, path)
+	catch
+		encoded = null
+	fdel(path)
 	if(!istext(encoded) || length(encoded) != 4 * CEILING(file_transfer_bytes / 3, 1))
 		return FALSE
 	file_transfer_data = encoded
