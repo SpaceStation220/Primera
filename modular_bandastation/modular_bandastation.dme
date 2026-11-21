@@ -33,6 +33,7 @@
 #include "closet_picklocking/_closet_picklocking.dme"
 #include "communication/_communication.dme"
 #include "contraband/_contraband.dme"
+#include "cortical_borer/_cortical_borer.dme"
 #include "cryosleep/_cryosleep.dme"
 #include "cult_overhaul/_cult_overhaul.dme"
 #include "custom_emote_panel/_custom_emote_panel.dme"
