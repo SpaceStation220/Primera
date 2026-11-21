@@ -9,6 +9,10 @@ https://github.com/ss220club/Paradise-SS220/blob/0fffca1f1f29a63aff49d9b56524813
 Changes: limb states renamed for TG's ipc_* layout; torso and groin combined
 into chest; each leg combined with its foot; original hands retained as separate
 auxiliary overlays. Alternate models inherit missing pieces from the base model.
+The thirteen selectable body chassis also include optional ipc_l_leg_base and
+ipc_r_leg_base states, cut at row 29 for interchangeable cosmetic feet. Existing
+combined states are retained pixel-for-pixel. Yang Company's custom complete
+legs use the same fixed ankle cut because no separate source feet are available.
 Screens, antennae and optics are unmodified copies with original DMI animation.
 
 Original files (history and individual contributions are available at each URL):

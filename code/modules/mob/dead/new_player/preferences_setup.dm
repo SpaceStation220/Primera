@@ -96,11 +96,12 @@
 
 	return preview_job
 
-/datum/preferences/proc/render_new_preview_appearance(mob/living/carbon/human/dummy/mannequin, show_job_clothes = TRUE)
+/// Builds the mannequin appearance, optionally keeping hands and feet visible for cosmetic editing.
+/datum/preferences/proc/render_new_preview_appearance(mob/living/carbon/human/dummy/mannequin, show_job_clothes = TRUE, show_extremities = FALSE)
 	var/datum/job/no_job = SSjob.get_job_type(/datum/job/unassigned)
 	var/datum/job/preview_job = get_highest_priority_job() || no_job
 
-	if(preview_job)
+	if(preview_job && !show_extremities)
 		// Silicons only need a very basic preview since there is no customization for them.
 		if (istype(preview_job,/datum/job/ai))
 			return image('icons/mob/silicon/ai.dmi', icon_state = resolve_ai_icon(read_preference(/datum/preference/choiced/ai_core_display)), dir = SOUTH)
@@ -108,15 +109,18 @@
 			return image('icons/mob/silicon/robots.dmi', icon_state = "robot", dir = SOUTH)
 
 	// Set up the dummy for its photoshoot
-	apply_prefs_to(mannequin, TRUE)
+	if(show_extremities)
+		mannequin.socks = null
+	apply_prefs_to(mannequin, do_not_apply = show_extremities ? list(/datum/preference/choiced/socks) : null)
 
 	mannequin.job = preview_job.title
-	mannequin.dress_up_as_job(
-		equipping = show_job_clothes ? preview_job : no_job,
-		visual_only = TRUE,
-		player_client = parent,
-		consistent = TRUE,
-	)
+	if(!show_extremities)
+		mannequin.dress_up_as_job(
+			equipping = show_job_clothes ? preview_job : no_job,
+			visual_only = TRUE,
+			player_client = parent,
+			consistent = TRUE,
+		)
 
 	// Apply visual quirks
 	// Yes we do it every time because it needs to be done after job gear

@@ -6,19 +6,33 @@ import {
   Modal,
   Section,
   Stack,
+  Tooltip,
 } from 'tgui-core/components';
 
 import { useBackend } from '../../../backend';
 import { LoadingScreen } from '../../common/LoadingScreen';
 import type { BodyModification, PreferencesMenuData } from '../types';
 import { useServerPrefs } from '../useServerPrefs';
+import { features } from './features';
+import { FeatureValueInput } from './features/base';
+
+const extremityByProsthesis = new Map([
+  ['left_arm_prosthesis', 'cosmetic_left_hand'],
+  ['right_arm_prosthesis', 'cosmetic_right_hand'],
+  ['left_leg_prosthesis', 'cosmetic_left_foot'],
+  ['right_leg_prosthesis', 'cosmetic_right_foot'],
+]);
+
+export const cosmeticExtremityPreferences = [...extremityByProsthesis.values()];
 
 type BodyModificationsProps = {
   handleClose: () => void;
 };
 
 export const BodyModificationsPage = (props: BodyModificationsProps) => {
+  const { act, data } = useBackend<PreferencesMenuData>();
   const serverData = useServerPrefs();
+  const cosmeticPreferences = data.character_preferences.secondary_features ?? {};
   if (!serverData) {
     return <LoadingScreen />;
   }
@@ -34,6 +48,34 @@ export const BodyModificationsPage = (props: BodyModificationsProps) => {
               <Icon name="robot" />
             </Stack.Item>
             <Stack.Item grow>Модификации тела</Stack.Item>
+            {cosmeticExtremityPreferences.some(
+              (id) => id in cosmeticPreferences,
+            ) && (
+              <Stack.Item>
+                <Stack>
+                  <Button
+                    icon="undo"
+                    tooltip="Повернуть манекен"
+                    aria-label="Повернуть манекен"
+                    onClick={() => act('rotate')}
+                  />
+                  <Button
+                    icon="eye"
+                    selected={data.show_cosmetic_extremities}
+                    tooltip="Показать кисти и стопы без одежды в предпросмотре"
+                    onClick={() =>
+                      act('set_cosmetic_extremity_preview', {
+                        enabled: data.show_cosmetic_extremities ? 0 : 1,
+                      })
+                    }
+                  >
+                    {data.show_cosmetic_extremities
+                      ? 'Вернуть одежду'
+                      : 'Без одежды'}
+                  </Button>
+                </Stack>
+              </Stack.Item>
+            )}
             <Stack.Item>
               <Button
                 fontSize={1.1}
@@ -49,6 +91,7 @@ export const BodyModificationsPage = (props: BodyModificationsProps) => {
       >
         <BodyModificationsPageInner
           bodyModification={serverData.body_modifications}
+          cosmeticPreferences={cosmeticPreferences}
         />
       </Section>
     </Modal>
@@ -57,8 +100,9 @@ export const BodyModificationsPage = (props: BodyModificationsProps) => {
 
 const BodyModificationsPageInner = (props: {
   bodyModification: BodyModification[];
+  cosmeticPreferences: Record<string, unknown>;
 }) => {
-  const { act, data } = useBackend<PreferencesMenuData>();
+  const { data } = useBackend<PreferencesMenuData>();
   const {
     applied_body_modifications = [],
     incompatible_body_modifications = [],
@@ -95,23 +139,48 @@ const BodyModificationsPageInner = (props: {
           </Stack>
         </Collapsible>
       )}
-      {Object.entries(modificationsByCategory).map(([category, mods]) => (
-        <Collapsible key={category} title={category} open>
-          <Stack vertical>
-            {mods.map((mod, index) => (
-              <BodyModificationRow
-                key={mod.key}
-                index={index}
-                bodyModification={mod}
-                usedKeys={[
-                  ...applied_body_modifications,
-                  ...incompatible_body_modifications,
-                ]}
-              />
-            ))}
-          </Stack>
-        </Collapsible>
-      ))}
+      {Object.entries(modificationsByCategory).map(([category, mods]) => {
+        const featureId = mods
+          .map((mod) => extremityByProsthesis.get(mod.key))
+          .find(Boolean);
+        const feature = featureId ? features[featureId] : undefined;
+
+        return (
+          <Collapsible key={category} title={category} open>
+            <Stack vertical>
+              {mods.map((mod, index) => (
+                <BodyModificationRow
+                  key={mod.key}
+                  index={index}
+                  bodyModification={mod}
+                  usedKeys={[
+                    ...applied_body_modifications,
+                    ...incompatible_body_modifications,
+                  ]}
+                />
+              ))}
+              {featureId &&
+                feature &&
+                featureId in props.cosmeticPreferences && (
+                  <Stack fill className="PreferencesMenu__AugmentationsRow">
+                    <Stack.Item className="PreferencesMenu__AugmentationsRow--name">
+                      <Tooltip content={feature.description}>
+                        {feature.name}
+                      </Tooltip>
+                    </Stack.Item>
+                    <Stack.Item width={9}>
+                      <FeatureValueInput
+                        value={props.cosmeticPreferences[featureId]}
+                        feature={feature}
+                        featureId={featureId}
+                      />
+                    </Stack.Item>
+                  </Stack>
+                )}
+            </Stack>
+          </Collapsible>
+        );
+      })}
     </>
   );
 };
