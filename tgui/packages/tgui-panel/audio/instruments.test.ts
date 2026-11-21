@@ -386,6 +386,37 @@ test('an interrupted play is retried but a decode failure is not', async () => {
   expect(play).toHaveBeenCalledTimes(2);
 });
 
+test('delayed playback and gain packets do not seek an already playing recording', async () => {
+  const now = spyOn(performance, 'now').mockReturnValue(0);
+  try {
+    playInstrumentMusic(packet);
+    deliver(begin(recording()));
+    const audio = audios[0];
+    Object.defineProperty(audio, 'readyState', { value: 4 });
+    audio.dispatchEvent(new Event('canplay'));
+    await Promise.resolve();
+    Object.defineProperty(audio, 'paused', { value: false });
+
+    now.mockReturnValue(10_000);
+    audio.currentTime = 10;
+    playInstrumentMusic({ ...packet, position: 9 });
+    expect(audio.currentTime).toBe(10);
+
+    now.mockReturnValue(15_000);
+    audio.currentTime = 15;
+    playInstrumentMusic({ ...packet, position: 14, volume: 0.2 });
+    expect(audio.currentTime).toBe(15);
+    expect(audio.volume).toBe(0.2);
+    expect(audio.play).toHaveBeenCalledTimes(1);
+    expect(audios).toHaveLength(1);
+    expect(
+      messages.filter((m) => m.type === 'audio/instrumentRequest'),
+    ).toHaveLength(1);
+  } finally {
+    now.mockRestore();
+  }
+});
+
 test('a warmed listener waits for the shared future start without reloading', async () => {
   playInstrumentMusic({ ...packet, waiting: true, prepare: true });
   deliver(begin(recording()));

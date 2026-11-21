@@ -212,9 +212,10 @@ function synchronize(voice: Voice, force = false, userGesture = false) {
   audio.muted = false;
   audio.volume = voice.packet.volume;
   if (Number.isFinite(audio.duration) && position >= audio.duration) return;
+  // Packet transit delay must not rewind a recording that is already playing.
   if (
     !audio.seeking &&
-    (force || Math.abs(audio.currentTime - position) > 0.75)
+    (force || (audio.paused && Math.abs(audio.currentTime - position) > 0.75))
   ) {
     try {
       audio.currentTime = Math.max(0, position);
