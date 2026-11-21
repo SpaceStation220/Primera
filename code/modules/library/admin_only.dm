@@ -30,14 +30,14 @@
 	search_page = clamp(search_page, 0, page_count)
 	var/datum/db_query/query_library_list_books = SSdbcore.NewQuery({"
 		SELECT id, author, title, category, ckey, deleted
-		FROM [format_table_name("library")]
+		FROM [SSlibrary.archive_source()]
 		[show_deleted ? "" : "WHERE deleted IS NULL"]
 			[show_deleted ? "WHERE" : "AND"] author LIKE CONCAT('%',:author,'%')
 			AND title LIKE CONCAT('%',:title,'%')
 			AND (:category = 'Any' OR category = :category)
 			[book_id ? "AND id LIKE CONCAT('%', :book_id, '%')" : ""]
 			AND ckey LIKE CONCAT('%',:ckey,'%')
-		ORDER BY id DESC
+		ORDER BY datetime DESC, ABS(id) DESC
 		LIMIT :skip, :take
 	"}, list("author" = author, "title" = title, "book_id" = book_id, "category" = category, "ckey" = ckey, "skip" = BOOKS_PER_PAGE * search_page, "take" = BOOKS_PER_PAGE))
 
@@ -61,7 +61,7 @@
 /obj/machinery/computer/libraryconsole/admin_only_do_not_map_in_you_fucker/update_page_count()
 	var/bookcount = 0
 	var/datum/db_query/query_library_count_books = SSdbcore.NewQuery({"
-		SELECT COUNT(id) FROM [format_table_name("library")]
+		SELECT COUNT(id) FROM [SSlibrary.archive_source()]
 			[show_deleted ? "" : "WHERE deleted IS NULL"]
 			[show_deleted ? "WHERE" : "AND"] author LIKE CONCAT('%',:author,'%')
 			AND title LIKE CONCAT('%',:title,'%')
@@ -148,14 +148,18 @@
 	.["history"] = histories
 
 /obj/machinery/computer/libraryconsole/admin_only_do_not_map_in_you_fucker/proc/view_book(id, mob/show_to)
+	var/record_id = SSlibrary.archive_record_id(id)
+	var/archive_table = SSlibrary.archive_table(id)
+	if(!record_id || !archive_table)
+		return
 	if (!SSdbcore.Connect())
 		can_connect = FALSE
 		message_admins("Failed to establish database connection.")
 		return
 
 	var/datum/db_query/query_library_view = SSdbcore.NewQuery(
-		"SELECT * FROM [format_table_name("library")] WHERE id=:id",
-		list("id" = id)
+		"SELECT * FROM [archive_table] WHERE id=:id",
+		list("id" = record_id)
 	)
 	if(!query_library_view.Execute())
 		qdel(query_library_view)
@@ -164,7 +168,7 @@
 	while(query_library_view.NextRow())
 		var/datum/admin_book_viewer/viewer = new()
 		viewer.set_owner(src)
-		viewer.id = query_library_view.item[1]
+		viewer.id = id
 		viewer.author = query_library_view.item[2]
 		viewer.title = query_library_view.item[3]
 		viewer.content = query_library_view.item[4]
@@ -179,11 +183,15 @@
 	qdel(query_library_view)
 
 /obj/machinery/computer/libraryconsole/admin_only_do_not_map_in_you_fucker/proc/get_book_history(id)
+	var/record_id = SSlibrary.archive_record_id(id)
+	var/history_table = SSlibrary.archive_table(id, history = TRUE)
+	if(!record_id || !history_table)
+		return list()
 	var/datum/db_query/query_book_history = SSdbcore.NewQuery({"
 		SELECT id, book, reason, ckey, datetime, action, INET_NTOA(ip_addr)
-			FROM [format_table_name("library_action")] WHERE book=:id
+			FROM [history_table] WHERE book=:id
 		"},
-		list("id" = id)
+		list("id" = record_id)
 	)
 	if(!query_book_history.Execute())
 		qdel(query_book_history)
@@ -193,7 +201,7 @@
 	while(query_book_history.NextRow())
 		var/datum/book_history_entry/history = new()
 		history.id = query_book_history.item[1]
-		history.book = query_book_history.item[2]
+		history.book = id
 		history.reason = query_book_history.item[3]
 		history.ckey = query_book_history.item[4]
 		history.datetime = query_book_history.item[5]
@@ -204,6 +212,11 @@
 	return full_history
 
 /obj/machinery/computer/libraryconsole/admin_only_do_not_map_in_you_fucker/proc/hide_book(id, reason, client/admin)
+	var/record_id = SSlibrary.archive_record_id(id)
+	var/archive_table = SSlibrary.archive_table(id)
+	var/history_table = SSlibrary.archive_table(id, history = TRUE)
+	if(!record_id || !archive_table || !history_table)
+		return
 	if(!SSdbcore.Connect())
 		can_connect = FALSE
 		to_chat(admin, span_danger("Failed to establish database connection."))
@@ -214,10 +227,10 @@
 		return
 
 	var/datum/db_query/query_hide_book = SSdbcore.NewQuery({"
-		UPDATE [format_table_name("library")]
+		UPDATE [archive_table]
 		SET deleted = 1
 		WHERE id = :id
-	"}, list("id" = id))
+	"}, list("id" = record_id))
 	if(!query_hide_book.warn_execute())
 		qdel(query_hide_book)
 		return
@@ -225,9 +238,9 @@
 
 
 	var/datum/db_query/query_update_log = SSdbcore.NewQuery({"
-		INSERT INTO [format_table_name("library_action")] (book, reason, ckey, datetime, action, ip_addr)
+		INSERT INTO [history_table] (book, reason, ckey, datetime, action, ip_addr)
 		VALUES (:book, :reason, :ckey, Now(), :action, INET_ATON(:ip_addr))
-	"}, list("book" = id, "reason" = reason, "ckey" = admin.ckey, "action" = BOOK_ADMIN_DELETE, "ip_addr" = admin.address))
+	"}, list("book" = record_id, "reason" = reason, "ckey" = admin.ckey, "action" = BOOK_ADMIN_DELETE, "ip_addr" = admin.address))
 	if(!query_update_log.warn_execute())
 		qdel(query_update_log)
 		return
@@ -239,6 +252,11 @@
 	update_db_info()
 
 /obj/machinery/computer/libraryconsole/admin_only_do_not_map_in_you_fucker/proc/unhide_book(id, reason, client/admin)
+	var/record_id = SSlibrary.archive_record_id(id)
+	var/archive_table = SSlibrary.archive_table(id)
+	var/history_table = SSlibrary.archive_table(id, history = TRUE)
+	if(!record_id || !archive_table || !history_table)
+		return
 	if(!SSdbcore.Connect())
 		can_connect = FALSE
 		to_chat(admin, span_danger("Failed to establish database connection."))
@@ -249,10 +267,10 @@
 		return
 
 	var/datum/db_query/query_unhide_book = SSdbcore.NewQuery({"
-		UPDATE [format_table_name("library")]
+		UPDATE [archive_table]
 		SET deleted = NULL
 		WHERE id = :id
-	"}, list("id" = id))
+	"}, list("id" = record_id))
 
 	if(!query_unhide_book.warn_execute())
 		qdel(query_unhide_book)
@@ -260,9 +278,9 @@
 	qdel(query_unhide_book)
 
 	var/datum/db_query/query_update_log = SSdbcore.NewQuery({"
-		INSERT INTO [format_table_name("library_action")] (book, reason, ckey, datetime, action, ip_addr)
+		INSERT INTO [history_table] (book, reason, ckey, datetime, action, ip_addr)
 		VALUES (:book, :reason, :ckey, Now(), :action, INET_ATON(:ip_addr))
-	"}, list("book" = id, "reason" = reason, "ckey" = admin.ckey, "action" = BOOK_ADMIN_RESTORE, "ip_addr" = admin.address))
+	"}, list("book" = record_id, "reason" = reason, "ckey" = admin.ckey, "action" = BOOK_ADMIN_RESTORE, "ip_addr" = admin.address))
 	if(!query_update_log.warn_execute())
 		qdel(query_update_log)
 		return

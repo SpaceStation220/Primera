@@ -124,7 +124,14 @@ export function PreviewView(props: PreviewViewProps) {
         ),
         Array.isArray(replacements) ? replacements : [],
       ),
-    [textAreaTextForPreview, fontFace, fontColor, fontBold, advanced_html_user, replacements],
+    [
+      textAreaTextForPreview,
+      fontFace,
+      fontColor,
+      fontBold,
+      advanced_html_user,
+      replacements,
+    ],
   );
 
   // Wraps the given raw text in a font span based on the supplied props.
@@ -243,9 +250,7 @@ export function PreviewView(props: PreviewViewProps) {
       return;
     }
 
-    const replacement = replacements.find(
-      (r) => r.key === autofillType,
-    );
+    const replacement = replacements.find((r) => r.key === autofillType);
 
     if (!replacement) {
       return;
@@ -447,7 +452,9 @@ export function PreviewView(props: PreviewViewProps) {
   }, [previewText, activeWriteButtonId]);
 
   useEffect(() => {
-    usedReplacementsRef.current = Array.isArray(replacements) ? replacements : [];
+    usedReplacementsRef.current = Array.isArray(replacements)
+      ? replacements
+      : [];
     return () => {
       usedReplacementsRef.current = [];
     };
@@ -474,6 +481,13 @@ export function PreviewView(props: PreviewViewProps) {
       ref={scrollableRef}
       onScroll={handleOnScroll as any}
     >
+      {paperContext.page_photo && (
+        <img
+          className="Book__Photo"
+          alt="Photograph"
+          src={`data:image/png;base64,${paperContext.page_photo}`}
+        />
+      )}
       <Box
         fillPositionedParent
         position="relative"

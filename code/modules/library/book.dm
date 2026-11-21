@@ -75,7 +75,6 @@
 	var/list/data = list()
 	data["author"] = book_data.get_author()
 	data["title"] = book_data.get_title()
-	data["content"] = book_data.get_content()
 	return data
 
 /obj/item/book/ui_interact(mob/living/user, datum/tgui/ui)
@@ -101,7 +100,7 @@
 		balloon_alert(user, "book is carved out!")
 		return FALSE
 
-	if(!length(book_data.get_content()))
+	if(!book_data.has_content() && !can_edit_images(user))
 		balloon_alert(user, "book is blank!")
 		return FALSE
 
@@ -216,7 +215,7 @@
 	if(!can_vandalize(user, tool))
 		return ITEM_INTERACT_BLOCKING
 
-	book_data.set_content(html_decode(content))
+	book_data.set_page_content(book_data.current_page_index, html_decode(content))
 	playsound(src, SFX_WRITING_PEN, 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE, SOUND_FALLOFF_EXPONENT + 3, ignore_walls = FALSE)
 	return ITEM_INTERACT_SUCCESS
 

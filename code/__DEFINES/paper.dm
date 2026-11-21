@@ -2,6 +2,18 @@
 #define MAX_PAPER_LENGTH 5000
 /// Maximimum number of characters that we allow in a book, after unfolding and encoding html.
 #define MAX_BOOK_LENGTH (MAX_PAPER_LENGTH * 2)
+/// Twenty physical leaves, each with a front and back.
+#define MAX_PAPER_STACK_SHEETS 20
+#define MAX_BOOK_PAGES (MAX_PAPER_STACK_SHEETS * 2)
+/// Bound archive/TGUI payloads independently of SQL's larger MEDIUMTEXT capacity.
+#define MAX_BOOK_ARCHIVE_LENGTH (2 * 1024 * 1024)
+/// Raw PNG upload/normalized file limit; the page stores its Base64 representation.
+#define MAX_BOOK_PNG_BYTES (128 * 1024)
+#define MAX_PAPER_PHOTO_LENGTH (4 * CEILING(MAX_BOOK_PNG_BYTES / 3, 1))
+#define MAX_BOOK_PHOTOS 10
+#define MAX_BOOK_PNG_DIMENSION 300
+/// Bound fragmented/malicious PNGs before calling the native decoder.
+#define MAX_BOOK_PNG_CHUNKS 256
 /// Max number of stamps that can be applied to the paper in tgui.
 #define MAX_PAPER_STAMPS 30
 /// Max number of stamp overlays that we'll add to a piece of paper's icon.

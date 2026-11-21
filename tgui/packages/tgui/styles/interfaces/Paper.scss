@@ -5,6 +5,55 @@
   * @license ISC
   */
 
+.Book__Spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+}
+
+.Book__Sheet {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: #fff;
+  color: #111;
+  border: 1px solid #ccc;
+}
+
+.Book__Content {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  padding: 12px;
+}
+
+.Book__PageNumber {
+  padding: 6px;
+  text-align: center;
+  border-top: 1px solid #ddd;
+}
+
+.Book__Photo {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 8px;
+  image-rendering: pixelated;
+}
+
+.Book__Stamps {
+  position: absolute;
+  inset: 0;
+  transform: scale(0.6);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
 .Paper {
   &__Stamp {
     position: absolute;
