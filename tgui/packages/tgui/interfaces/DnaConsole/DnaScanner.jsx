@@ -32,7 +32,7 @@ const DnaScannerButtons = (props) => {
   if (!isScannerConnected) {
     return (
       <Button
-        content="Connect Scanner"
+        content="Подключить сканер"
         onClick={() => act('connect_scanner')}
       />
     );
@@ -41,30 +41,36 @@ const DnaScannerButtons = (props) => {
     <>
       {!!hasDelayedAction && (
         <Button
-          content="Cancel Delayed Action"
+          content="Отменить перенос"
           onClick={() => act('cancel_delay')}
         />
       )}
       {!!isViableSubject && (
         <Button
           disabled={!isScrambleReady || isPulsing}
+          tooltip="Удаляет мутации, создаёт новый набор генов и повреждает ДНК"
           onClick={() => act('scramble_dna')}
         >
-          Scramble DNA
-          {!isScrambleReady && ` (${scrambleSeconds}s)`}
+          Перемешать гены
+          {!isScrambleReady && ` (${scrambleSeconds} с)`}
         </Button>
       )}
       <Box inline mr={1} />
       <Button
         icon={scannerLocked ? 'lock' : 'lock-open'}
+        tooltip={
+          scannerLocked
+            ? 'Разблокировать дверь сканера'
+            : 'Заблокировать дверь сканера'
+        }
         color={scannerLocked && 'bad'}
         disabled={scannerOpen}
-        content={scannerLocked ? 'Locked' : 'Unlocked'}
+        content={scannerLocked ? 'Отпереть' : 'Запереть'}
         onClick={() => act('toggle_lock')}
       />
       <Button
         disabled={scannerLocked}
-        content={scannerOpen ? 'Close' : 'Open'}
+        content={scannerOpen ? 'Закрыть' : 'Открыть'}
         onClick={() => act('toggle_door')}
       />
     </>
@@ -79,39 +85,39 @@ const SubjectStatus = (props) => {
   if (status === SUBJECT_CONCIOUS) {
     return (
       <Box inline color="good">
-        Conscious
+        В сознании
       </Box>
     );
   }
   if (status === SUBJECT_UNCONSCIOUS || status === SUBJECT_HARD_CRIT) {
     return (
       <Box inline color="average">
-        Unconscious
+        Без сознания
       </Box>
     );
   }
   if (status === SUBJECT_SOFT_CRIT) {
     return (
       <Box inline color="average">
-        Critical
+        Критическое состояние
       </Box>
     );
   }
   if (status === SUBJECT_DEAD) {
     return (
       <Box inline color="bad">
-        Dead
+        Мёртв
       </Box>
     );
   }
   if (status === SUBJECT_TRANSFORMING) {
     return (
       <Box inline color="bad">
-        Transforming
+        Трансформация
       </Box>
     );
   }
-  return <Box inline>Unknown</Box>;
+  return <Box inline>Неизвестно</Box>;
 };
 
 const DnaScannerContent = (props) => {
@@ -125,19 +131,19 @@ const DnaScannerContent = (props) => {
     subjectStatus,
   } = data;
   if (!isScannerConnected) {
-    return <Box color="bad">DNA Scanner is not connected.</Box>;
+    return <Box color="bad">Сканер ДНК не подключён.</Box>;
   }
   if (!isViableSubject) {
-    return <Box color="average">No viable subject found in DNA Scanner.</Box>;
+    return <Box color="average">В сканере нет подходящего подопытного.</Box>;
   }
   return (
     <LabeledList>
-      <LabeledList.Item label="Status">
+      <LabeledList.Item label="Состояние">
         {subjectName}
         <Icon mx={1} color="label" name="long-arrow-alt-right" />
         <SubjectStatus status={subjectStatus} />
       </LabeledList.Item>
-      <LabeledList.Item label="Health">
+      <LabeledList.Item label="Здоровье">
         <ProgressBar
           value={subjectHealth}
           minValue={0}
@@ -152,7 +158,7 @@ const DnaScannerContent = (props) => {
           {subjectHealth}%
         </ProgressBar>
       </LabeledList.Item>
-      <LabeledList.Item label="Genetic Damage">
+      <LabeledList.Item label="Повреждение ДНК">
         <ProgressBar
           value={subjectDamage}
           minValue={0}
@@ -173,7 +179,7 @@ const DnaScannerContent = (props) => {
 
 export const DnaScanner = (props) => {
   return (
-    <Section title="DNA Scanner" buttons={<DnaScannerButtons />}>
+    <Section title="Сканер ДНК" buttons={<DnaScannerButtons />}>
       <DnaScannerContent />
     </Section>
   );

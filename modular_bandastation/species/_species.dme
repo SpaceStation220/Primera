@@ -4,6 +4,7 @@
 
 #include "code/clothing/items.dm"
 #include "code/clothing/resomi_generated.dm"
+#include "code/clothing/lesser_form_uniform.dm"
 
 #include "code/human/species/skills.dm"
 #include "code/human/species_type/moth.dm"
@@ -20,6 +21,8 @@
 #include "code/human/species_type/skrell.dm"
 #include "code/human/species_type/tajaran.dm"
 #include "code/human/species_type/vulpkanin.dm"
+#include "code/human/species_type/wolpin.dm"
+#include "code/human/species_type/lesser_forms.dm"
 
 #include "code/human/sprite_accessories/skrell/skrell_cloth_wrap.dm"
 #include "code/human/sprite_accessories/skrell/skrell_cloth_wrap_toggle.dm"

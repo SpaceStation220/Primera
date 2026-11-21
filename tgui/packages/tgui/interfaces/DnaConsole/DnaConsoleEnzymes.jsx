@@ -9,10 +9,17 @@ import {
   NumberInput,
   Section,
   Stack,
+  Tabs,
 } from 'tgui-core/components';
 
 import { useBackend } from '../../backend';
-import { PULSE_DURATION_MAX, PULSE_STRENGTH_MAX } from './constants';
+import {
+  CONSOLE_MODE_ENZYMES,
+  CONSOLE_MODE_FEATURES,
+  PULSE_DURATION_MAX,
+  PULSE_STRENGTH_MAX,
+} from './constants';
+import { DnaConsoleAppearance } from './DnaConsoleAppearance';
 import { GeneticMakeupInfo } from './GeneticMakeupInfo';
 
 const GeneticMakeupBufferInfo = (props) => {
@@ -22,21 +29,21 @@ const GeneticMakeupBufferInfo = (props) => {
   // Type of the action for applying makeup
   const ACTION_MAKEUP_APPLY = isViableSubject ? 'makeup_apply' : 'makeup_delay';
   if (!makeup) {
-    return <Box color="average">No stored subject data.</Box>;
+    return <Box color="average">Образец ДНК не сохранён.</Box>;
   }
   return (
     <>
       <GeneticMakeupInfo makeup={makeup} />
       <Divider />
       <Box bold color="label" mb={1}>
-        Makeup Actions
+        Действия с образцом
       </Box>
       <LabeledList>
-        <LabeledList.Item label="Enzymes">
+        <LabeledList.Item label="Отпечаток ДНК">
           <Button
             icon="syringe"
             disabled={!isInjectorReady}
-            content="Print"
+            content="Инъектор"
             onClick={() =>
               act('makeup_injector', {
                 index,
@@ -46,6 +53,11 @@ const GeneticMakeupBufferInfo = (props) => {
           />
           <Button
             icon="exchange-alt"
+            tooltip={
+              isViableSubject
+                ? 'Применить образец к подопытному'
+                : 'Применить образец при помещении следующего подопытного в сканер'
+            }
             onClick={() =>
               act(ACTION_MAKEUP_APPLY, {
                 index,
@@ -53,15 +65,14 @@ const GeneticMakeupBufferInfo = (props) => {
               })
             }
           >
-            Transfer
-            {!isViableSubject && ' (Delayed)'}
+            {isViableSubject ? 'Применить' : 'Отложить'}
           </Button>
         </LabeledList.Item>
-        <LabeledList.Item label="Identity">
+        <LabeledList.Item label="Базовая ДНК">
           <Button
             icon="syringe"
             disabled={!isInjectorReady}
-            content="Print"
+            content="Инъектор"
             onClick={() =>
               act('makeup_injector', {
                 index,
@@ -71,6 +82,11 @@ const GeneticMakeupBufferInfo = (props) => {
           />
           <Button
             icon="exchange-alt"
+            tooltip={
+              isViableSubject
+                ? 'Применить образец к подопытному'
+                : 'Применить образец при помещении следующего подопытного в сканер'
+            }
             onClick={() =>
               act(ACTION_MAKEUP_APPLY, {
                 index,
@@ -78,15 +94,14 @@ const GeneticMakeupBufferInfo = (props) => {
               })
             }
           >
-            Transfer
-            {!isViableSubject && ' (Delayed)'}
+            {isViableSubject ? 'Применить' : 'Отложить'}
           </Button>
         </LabeledList.Item>
-        <LabeledList.Item label="Features">
+        <LabeledList.Item label="Видовая ДНК">
           <Button
             icon="syringe"
             disabled={!isInjectorReady}
-            content="Print"
+            content="Инъектор"
             onClick={() =>
               act('makeup_injector', {
                 index,
@@ -96,6 +111,11 @@ const GeneticMakeupBufferInfo = (props) => {
           />
           <Button
             icon="exchange-alt"
+            tooltip={
+              isViableSubject
+                ? 'Применить образец к подопытному'
+                : 'Применить образец при помещении следующего подопытного в сканер'
+            }
             onClick={() =>
               act(ACTION_MAKEUP_APPLY, {
                 index,
@@ -103,15 +123,14 @@ const GeneticMakeupBufferInfo = (props) => {
               })
             }
           >
-            Transfer
-            {!isViableSubject && ' (Delayed)'}
+            {isViableSubject ? 'Применить' : 'Отложить'}
           </Button>
         </LabeledList.Item>
-        <LabeledList.Item label="Full Makeup">
+        <LabeledList.Item label="Полный образец">
           <Button
             icon="syringe"
             disabled={!isInjectorReady}
-            content="Print"
+            content="Инъектор"
             onClick={() =>
               act('makeup_injector', {
                 index,
@@ -121,6 +140,11 @@ const GeneticMakeupBufferInfo = (props) => {
           />
           <Button
             icon="exchange-alt"
+            tooltip={
+              isViableSubject
+                ? 'Применить образец к подопытному'
+                : 'Применить образец при помещении следующего подопытного в сканер'
+            }
             onClick={() =>
               act(ACTION_MAKEUP_APPLY, {
                 index,
@@ -128,15 +152,14 @@ const GeneticMakeupBufferInfo = (props) => {
               })
             }
           >
-            Transfer
-            {!isViableSubject && ' (Delayed)'}
+            {isViableSubject ? 'Применить' : 'Отложить'}
           </Button>
         </LabeledList.Item>
         <LabeledList.Item>
           <Button
             icon="save"
             disabled={!hasDisk || diskReadOnly}
-            content="Export To Disk"
+            content="Записать на диск"
             onClick={() =>
               act('save_makeup_disk', {
                 index,
@@ -164,14 +187,14 @@ const GeneticMakeupBuffers = (props) => {
     const makeup = makeupStorage[i];
     const element = (
       <Collapsible
-        title={makeup ? makeup.label || makeup.name : `Slot ${i}`}
+        title={makeup ? makeup.label || makeup.name : `Ячейка ${i}`}
         buttons={
           <>
             {!!(hasDisk && diskHasMakeup) && (
               <Button
                 mr={1}
                 disabled={!hasDisk || !diskHasMakeup}
-                content="Import from disk"
+                content="Загрузить с диска"
                 onClick={() =>
                   act('load_makeup_disk', {
                     index: i,
@@ -181,7 +204,7 @@ const GeneticMakeupBuffers = (props) => {
             )}
             <Button
               disabled={!isViableSubject}
-              content="Save"
+              content="Сохранить"
               onClick={() =>
                 act('save_makeup_console', {
                   index: i,
@@ -208,13 +231,13 @@ const GeneticMakeupBuffers = (props) => {
     elements.push(element);
   }
   return (
-    <Section title="Genetic Makeup Buffers">
+    <Section title="Образцы ДНК">
       {!!geneticMakeupCooldown && (
         <Dimmer fontSize="14px" textAlign="center">
           <Icon mr={1} name="spinner" spin />
-          Genetic makeup transfer ready in...
+          Перенос ДНК будет доступен через…
           <Box mt={1} />
-          {geneticMakeupCooldown}s
+          {geneticMakeupCooldown} с
         </Dimmer>
       )}
       {elements}
@@ -222,29 +245,98 @@ const GeneticMakeupBuffers = (props) => {
   );
 };
 
-const PulseEmitterProbs = (props) => {
-  const { data } = useBackend();
-  const { stdDevAcc, stdDevStr } = data;
+const PulseSettings = () => {
+  const { data, act } = useBackend();
+  const {
+    pulseStrength,
+    pulseDuration,
+    stdDevAcc,
+    stdDevStr,
+    appearance,
+    subjectUNI,
+    subjectUF,
+    targetUNI,
+    targetUF,
+    isPulsing,
+    isViableSubject,
+  } = data;
+  const hasDifferences =
+    !!appearance &&
+    ((targetUNI && targetUNI !== subjectUNI) ||
+      (targetUF && targetUF !== subjectUF));
   return (
-    <Section title="Probabilities" minHeight="100%">
-      <LabeledList>
-        <LabeledList.Item label="Accuracy" textAlign="right">
-          {stdDevAcc}
-        </LabeledList.Item>
-        <LabeledList.Item label={`P(±${stdDevStr})`} textAlign="right">
-          68 %
-        </LabeledList.Item>
-        <LabeledList.Item label={`P(±${stdDevStr * 2})`} textAlign="right">
-          95 %
-        </LabeledList.Item>
-      </LabeledList>
+    <Section>
+      <Stack align="center" g={0.5}>
+        <Stack.Item>
+          <Box color="label" mb={0.5}>
+            Мощность
+          </Box>
+          <NumberInput
+            animated
+            tickWhileDragging
+            width="64px"
+            step={1}
+            stepPixelSize={10}
+            value={pulseStrength}
+            minValue={1}
+            maxValue={PULSE_STRENGTH_MAX}
+            onChange={(value) => act('set_pulse_strength', { val: value })}
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <Box color="label" mb={0.5}>
+            Длительность
+          </Box>
+          <NumberInput
+            animated
+            tickWhileDragging
+            width="80px"
+            unit="с"
+            step={1}
+            stepPixelSize={10}
+            value={pulseDuration}
+            minValue={1}
+            maxValue={PULSE_DURATION_MAX}
+            onChange={(value) => act('set_pulse_duration', { val: value })}
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <Box color="label" mb={0.5}>
+            Все отличия
+          </Box>
+          <Button
+            icon="radiation"
+            disabled={!isViableSubject || isPulsing || !hasDifferences}
+            tooltip="Облучить отличающиеся позиции базовой и видовой ДНК обычными случайными импульсами."
+            onClick={() =>
+              act('makeup_pulse_differences', {
+                subject_ref: appearance.subject_ref,
+                target_ref: appearance.target_ref,
+              })
+            }
+          >
+            Облучить
+          </Button>
+        </Stack.Item>
+        <Stack.Item grow textAlign="right">
+          <Box mb={0.5}>
+            <Box inline color="label">
+              Точность:{' '}
+            </Box>
+            {stdDevAcc}
+          </Box>
+          <Box color="label">
+            68%: ±{stdDevStr} · 95%: ±{stdDevStr * 2}
+          </Box>
+        </Stack.Item>
+      </Stack>
     </Section>
   );
 };
 
 const PulseBoard = (props) => {
   const { act } = useBackend();
-  const { subjectBlock = [], type, name } = props;
+  const { subjectBlock = [], targetBlock, type, name } = props;
   // Build blocks of buttons of unique enzymes
   const blocks = [];
   let buffer = [];
@@ -257,6 +349,18 @@ const PulseBoard = (props) => {
         key={i}
         textAlign="center"
         content={char}
+        color={
+          targetBlock &&
+          subjectBlock.slice(i - (i % 3), i - (i % 3) + 3) !==
+            targetBlock.slice(i - (i % 3), i - (i % 3) + 3)
+            ? 'good'
+            : undefined
+        }
+        tooltip={
+          targetBlock
+            ? `Цель: ${targetBlock.slice(i - (i % 3), i - (i % 3) + 3)}`
+            : undefined
+        }
         onClick={() =>
           act('makeup_pulse', {
             index: i + 1,
@@ -279,77 +383,47 @@ const PulseBoard = (props) => {
     }
   }
   return (
-    <Section title={`Unique ${name}`} minHeight="100%" position="relative">
+    <Section fill scrollable title={name} position="relative">
+      <Tabs fluid mb={1}>
+        <Tabs.Tab
+          selected={type === 'ui'}
+          onClick={() => act('set_view', { consoleMode: CONSOLE_MODE_ENZYMES })}
+        >
+          Базовая ДНК
+        </Tabs.Tab>
+        <Tabs.Tab
+          selected={type === 'uf'}
+          onClick={() =>
+            act('set_view', { consoleMode: CONSOLE_MODE_FEATURES })
+          }
+        >
+          Видовая ДНК
+        </Tabs.Tab>
+      </Tabs>
       <Box mx="-1px">{blocks}</Box>
     </Section>
   );
 };
 
-const PulseSettings = (props) => {
-  const { data, act } = useBackend();
-  const { pulseStrength, pulseDuration } = data;
-  return (
-    <Section title="Emitter Configuration" minHeight="100%">
-      <LabeledList>
-        <LabeledList.Item label="Output level">
-          <NumberInput
-            animated
-            tickWhileDragging
-            width="32px"
-            step={1}
-            stepPixelSize={10}
-            value={pulseStrength}
-            minValue={1}
-            maxValue={PULSE_STRENGTH_MAX}
-            onChange={(value) =>
-              act('set_pulse_strength', {
-                val: value,
-              })
-            }
-          />
-        </LabeledList.Item>
-        <LabeledList.Item label="Pulse duration">
-          <NumberInput
-            animated
-            tickWhileDragging
-            width="32px"
-            step={1}
-            stepPixelSize={10}
-            value={pulseDuration}
-            minValue={1}
-            maxValue={PULSE_DURATION_MAX}
-            onChange={(value) =>
-              act('set_pulse_duration', {
-                val: value,
-              })
-            }
-          />
-        </LabeledList.Item>
-      </LabeledList>
-    </Section>
-  );
-};
-
 export const DnaConsoleEnzymes = (props) => {
-  const { data, act } = useBackend();
+  const { data } = useBackend();
   const { isScannerConnected } = data;
-  const { subjectBlock, type, name } = props;
+  const { subjectBlock, targetBlock, type, name } = props;
   if (!isScannerConnected) {
-    return <Section color="bad">DNA Scanner is not connected.</Section>;
+    return <Section color="bad">Сканер ДНК не подключён.</Section>;
   }
   return (
     <>
-      <Stack mb={1}>
-        <Stack.Item width="155px">
-          <PulseSettings />
-        </Stack.Item>
-        <Stack.Item width="140px">
-          <PulseEmitterProbs />
-        </Stack.Item>
-        <Stack.Item grow={1} basis={0}>
-          <PulseBoard subjectBlock={subjectBlock} type={type} name={name} />
-        </Stack.Item>
-      </Stack>
+      <PulseSettings />
+      <div className="DnaConsoleMakeup">
+        <DnaConsoleAppearance />
+        <PulseBoard
+          subjectBlock={subjectBlock}
+          targetBlock={targetBlock}
+          type={type}
+          name={name}
+        />
+      </div>
       <GeneticMakeupBuffers />
     </>
   );

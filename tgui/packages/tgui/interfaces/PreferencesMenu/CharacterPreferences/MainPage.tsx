@@ -4,16 +4,17 @@ import { useState } from 'react';
 import { useBackend } from 'tgui/backend';
 import { sendAct } from 'tgui/events/act';
 import {
-  Box,
   Button,
   Floating,
   Icon,
   ImageButton,
-  Input,
   Section,
   Stack,
 } from 'tgui-core/components';
-import { capitalize, createSearch } from 'tgui-core/string';
+import {
+  ChoicedSelection,
+  MainFeatureButton,
+} from '../../common/AppearanceSelection';
 import { CharacterPreview } from '../../common/CharacterPreview';
 import { Preference } from '../components/Preference';
 import { RandomizationButton } from '../components/RandomizationButton';
@@ -123,86 +124,6 @@ function GenderButton(props: GenderButtonProps) {
   );
 }
 
-type ChoicedSelectionProps = {
-  name: string;
-  catalog: FeatureChoicedServerData;
-  selected: string;
-  supplementalFeature?: string;
-  supplementalValue?: unknown;
-  onSelect: (value: string) => void;
-};
-
-function ChoicedSelection(props: ChoicedSelectionProps) {
-  const { catalog, supplementalFeature, supplementalValue } = props;
-  const [searchText, setSearchText] = useState('');
-
-  if (!catalog.icons) {
-    return <Box color="red">В предоставленном каталоге не было иконок!</Box>;
-  }
-
-  return (
-    <Stack fill vertical g={0} className="PreferencesMenu__ChoicedSelection">
-      <Stack.Item>
-        <Section
-          fill
-          title={`${capitalize(props.name)}`}
-          buttons={
-            supplementalFeature && (
-              <FeatureValueInput
-                shrink
-                feature={features[supplementalFeature]}
-                featureId={supplementalFeature}
-                value={supplementalValue}
-              />
-            )
-          }
-        >
-          <Input
-            autoFocus
-            fluid
-            placeholder="Поиск..."
-            onChange={setSearchText}
-          />
-        </Section>
-      </Stack.Item>
-      <Stack.Item grow>
-        <Section fill scrollable noTopPadding>
-          <Stack wrap>
-            {searchInCatalog(searchText, catalog.icons).map(
-              ([name, image], index) => {
-                return (
-                  <ImageButton
-                    key={index}
-                    asset={['preferences32x32', image]}
-                    imageSize={32}
-                    selected={name === props.selected}
-                    tooltip={name}
-                    tooltipPosition="right"
-                    onClick={() => {
-                      props.onSelect(name);
-                    }}
-                  />
-                );
-              },
-            )}
-          </Stack>
-        </Section>
-      </Stack.Item>
-    </Stack>
-  );
-}
-
-function searchInCatalog(searchText = '', catalog: Record<string, string>) {
-  let items = Object.entries(catalog);
-  if (searchText) {
-    items = filter(
-      items,
-      createSearch(searchText, ([name, _icon]) => name),
-    );
-  }
-  return items;
-}
-
 type CatalogItem = {
   name: string;
   supplemental_feature?: string;
@@ -236,21 +157,26 @@ function MainFeature(props: MainFeatureProps) {
           name={catalog.name}
           catalog={catalog}
           selected={currentValue}
-          supplementalFeature={supplementalFeature}
-          supplementalValue={
-            supplementalFeature &&
-            data.character_preferences.supplemental_features[
-              supplementalFeature
-            ]
+          supplementalInput={
+            supplementalFeature && (
+              <FeatureValueInput
+                shrink
+                feature={features[supplementalFeature]}
+                featureId={supplementalFeature}
+                value={
+                  data.character_preferences.supplemental_features[
+                    supplementalFeature
+                  ]
+                }
+              />
+            )
           }
           onSelect={handleSelect}
         />
       }
     >
-      <ImageButton
-        className="PreferencesMenu__MainFeature"
+      <MainFeatureButton
         asset={['preferences32x32', catalog.icons![currentValue]]}
-        imageSize={48}
         buttons={
           randomization && (
             <RandomizationButton

@@ -494,9 +494,14 @@ GLOBAL_LIST_INIT(total_uf_len_by_block, populate_total_uf_len_by_block())
 		var/datum/dna_block/identity/block_to_apply = GLOB.dna_identity_blocks[block_type]
 		block_to_apply.apply_to_mob(src, dna.unique_identity)
 
+	var/list/species_marking_features = list()
+	for(var/datum/bodypart_overlay/simple/body_marking/marking_type as anything in dna.species.body_markings)
+		species_marking_features += marking_type::dna_feature_key
+		if(marking_type::dna_color_feature_key)
+			species_marking_features += marking_type::dna_color_feature_key
 	for(var/block_type in GLOB.dna_feature_blocks)
 		var/datum/dna_block/feature/block_to_apply = GLOB.dna_feature_blocks[block_type]
-		if(dna.features[block_to_apply.feature_key])
+		if(dna.features[block_to_apply.feature_key] || (block_to_apply.feature_key in species_marking_features))
 			block_to_apply.apply_to_mob(src, dna.unique_features)
 
 	for(var/obj/item/organ/organ in organs)

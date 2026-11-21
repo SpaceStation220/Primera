@@ -12,12 +12,12 @@
 	head_flags = HEAD_LIPS|HEAD_DEBRAIN
 
 /obj/item/bodypart/head/monkey/Initialize(mapload)
-	worn_head_offset = new(
+	worn_head_offset ||= new /datum/worn_feature_offset(
 		attached_part = src,
 		feature_key = OFFSET_HEAD,
 		offset_y = list("south" = 1),
 	)
-	worn_glasses_offset = new(
+	worn_glasses_offset ||= new /datum/worn_feature_offset(
 		attached_part = src,
 		feature_key = OFFSET_GLASSES,
 		offset_y = list("south" = 1),

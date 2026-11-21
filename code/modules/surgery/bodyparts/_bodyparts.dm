@@ -1253,7 +1253,7 @@
 	// Ensures marking overlays are updated accordingly as well
 	for(var/datum/bodypart_overlay/simple/body_marking/marking in bodypart_overlays)
 		var/marking_color = marking.dna_color_feature_key ? human_owner.dna.features[marking.dna_color_feature_key] : species_color /// BANDASTATION ADDITION - Species
-		marking.set_appearance(human_owner.dna.features[marking.dna_feature_key], marking_color) /// BANDASTATION EDIT - Species
+		marking.set_appearance(human_owner.dna.features[marking.dna_feature_key] || human_owner.dna.species.body_markings[marking.type], marking_color)
 
 	return TRUE
 

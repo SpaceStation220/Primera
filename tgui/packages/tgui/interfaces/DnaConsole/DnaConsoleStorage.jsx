@@ -29,7 +29,7 @@ export const DnaConsoleStorage = (props) => {
   const mutations = data.storage[storageMode];
 
   return (
-    <Section fill title="Storage" buttons={<StorageButtons />}>
+    <Section fill title="Хранилище" buttons={<StorageButtons />}>
       {storageMode === STORAGE_MODE_CONSOLE &&
         storageConsSubMode === STORAGE_CONS_SUBMODE_MUTATIONS && (
           <StorageMutations mutations={mutations} />
@@ -50,7 +50,7 @@ export const DnaConsoleStorage = (props) => {
               icon="times"
               color="red"
               disabled={!diskHasMakeup}
-              content={'Delete'}
+              content={'Удалить'}
               onClick={() => act('del_makeup_disk')}
             />
           </>
@@ -66,7 +66,7 @@ const DnaConsoleAdvancedInjectors = (props) => {
   const advInjectors = data.storage.injector ?? [];
 
   return (
-    <Section fill title="Advanced Injectors">
+    <Section fill title="Составные инъекторы">
       {advInjectors.map((injector) => (
         <Collapsible
           key={injector.name}
@@ -76,7 +76,7 @@ const DnaConsoleAdvancedInjectors = (props) => {
               <Button
                 icon="syringe"
                 disabled={!isInjectorReady}
-                content="Print"
+                content="Изготовить"
                 onClick={() =>
                   act('print_adv_inj', {
                     name: injector.name,
@@ -107,7 +107,7 @@ const DnaConsoleAdvancedInjectors = (props) => {
       <Box mt={2}>
         <Button.Input
           minWidth="200px"
-          buttonText="Create new injector"
+          buttonText="Создать инъектор"
           disabled={advInjectors.length >= maxAdvInjectors}
           onCommit={(value) =>
             act('new_adv_inj', {
@@ -131,7 +131,7 @@ const StorageButtons = (props) => {
         <>
           <Button
             selected={storageConsSubMode === STORAGE_CONS_SUBMODE_MUTATIONS}
-            content="Mutations"
+            content="Мутации"
             onClick={() =>
               act('set_view', {
                 storageConsSubMode: STORAGE_CONS_SUBMODE_MUTATIONS,
@@ -140,7 +140,7 @@ const StorageButtons = (props) => {
           />
           <Button
             selected={storageConsSubMode === STORAGE_CONS_SUBMODE_CHROMOSOMES}
-            content="Chromosomes"
+            content="Хромосомы"
             onClick={() =>
               act('set_view', {
                 storageConsSubMode: STORAGE_CONS_SUBMODE_CHROMOSOMES,
@@ -153,7 +153,7 @@ const StorageButtons = (props) => {
         <>
           <Button
             selected={storageDiskSubMode === STORAGE_CONS_SUBMODE_MUTATIONS}
-            content="Mutations"
+            content="Мутации"
             onClick={() =>
               act('set_view', {
                 storageDiskSubMode: STORAGE_CONS_SUBMODE_MUTATIONS,
@@ -162,7 +162,7 @@ const StorageButtons = (props) => {
           />
           <Button
             selected={storageDiskSubMode === STORAGE_DISK_SUBMODE_ENZYMES}
-            content="Enzymes"
+            content="Образец ДНК"
             onClick={() =>
               act('set_view', {
                 storageDiskSubMode: STORAGE_DISK_SUBMODE_ENZYMES,
@@ -173,7 +173,7 @@ const StorageButtons = (props) => {
       )}
       <Box inline mr={1} />
       <Button
-        content="Console"
+        content="Консоль"
         selected={storageMode === STORAGE_MODE_CONSOLE}
         onClick={() =>
           act('set_view', {
@@ -184,7 +184,7 @@ const StorageButtons = (props) => {
         }
       />
       <Button
-        content="Disk"
+        content="Диск"
         disabled={!hasDisk}
         selected={storageMode === STORAGE_MODE_DISK}
         onClick={() =>
@@ -196,7 +196,7 @@ const StorageButtons = (props) => {
         }
       />
       <Button
-        content="Adv. Injector"
+        content="Инъекторы"
         selected={storageMode === STORAGE_MODE_ADVINJ}
         onClick={() =>
           act('set_view', {
@@ -231,7 +231,7 @@ const StorageChromosomes = (props) => {
                   })
                 }
               >
-                {chromo.Name}
+                {data.chromosomeCatalog?.[chromo.Name]?.name || chromo.Name}
               </Tabs.Tab>
             ))}
           </Tabs>
@@ -241,22 +241,27 @@ const StorageChromosomes = (props) => {
         <Stack.Divider />
       </Stack.Item>
       <Stack.Item grow>
-        <Section title="Chromosome Info">
-          {(!chromo && <Box color="label">Nothing to show.</Box>) || (
+        <Section title="Сведения о хромосоме">
+          {(!chromo && (
+            <Box color="label">Нет данных для отображения.</Box>
+          )) || (
             <>
               <LabeledList>
-                <LabeledList.Item label="Name">{chromo.Name}</LabeledList.Item>
-                <LabeledList.Item label="Description">
-                  {chromo.Description}
+                <LabeledList.Item label="Название">
+                  {data.chromosomeCatalog?.[chromo.Name]?.name || chromo.Name}
                 </LabeledList.Item>
-                <LabeledList.Item label="Amount">
+                <LabeledList.Item label="Описание">
+                  {data.chromosomeCatalog?.[chromo.Name]?.description ||
+                    chromo.Description}
+                </LabeledList.Item>
+                <LabeledList.Item label="Количество">
                   {chromos.filter((x) => x.Name === chromo.Name).length}
                 </LabeledList.Item>
               </LabeledList>
               <Button
                 mt={2}
                 icon="eject"
-                content={'Eject Chromosome'}
+                content={'Извлечь хромосому'}
                 onClick={() =>
                   act('eject_chromo', {
                     chromo: chromo.Name,
@@ -303,7 +308,7 @@ const StorageMutations = (props) => {
                   })
                 }
               >
-                {mutation.Name}
+                {mutation.DisplayName || mutation.Name}
               </Tabs.Tab>
             ))}
           </Tabs>
@@ -313,7 +318,7 @@ const StorageMutations = (props) => {
         <Stack.Divider />
       </Stack.Item>
       <Stack.Item grow>
-        <Section title="Mutation Info">
+        <Section title="Сведения о мутации">
           <MutationInfo mutation={mutation} />
         </Section>
       </Stack.Item>

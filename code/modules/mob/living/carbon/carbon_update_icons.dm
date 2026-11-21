@@ -402,6 +402,9 @@
 
 	. = limb_count_update
 	if(!.)
+		if(update_limb_data)
+			update_eyes()
+			update_hair()
 		return
 
 	remove_overlay(BODYPARTS_LAYER)

@@ -15,24 +15,18 @@
 		finish_monkeyize()
 		return
 
-	//Make mob invisible and spawn animation
-	ADD_TRAIT(src, TRAIT_NO_TRANSFORM, TEMPORARY_TRANSFORMATION_TRAIT)
-	Stun(TRANSFORMATION_DURATION, ignore_canstun = TRUE)
-	icon = null
-	cut_overlays()
+	var/target_species = dna?.species?.primitive_form
+	var/obj/effect/temp_visual/lesser_form_scan/scan = start_lesser_form_transition(/obj/effect/temp_visual/monkeyify, target_species == /datum/species/monkey ? null : target_species)
+	transformation_timer = addtimer(CALLBACK(src, PROC_REF(finish_monkeyize), scan), TRANSFORMATION_DURATION, TIMER_UNIQUE)
 
-	var/obj/effect = new /obj/effect/temp_visual/monkeyify(loc)
-	effect.SetInvisibility(invisibility)
-	SetInvisibility(INVISIBILITY_MAXIMUM, id=type)
-
-	transformation_timer = addtimer(CALLBACK(src, PROC_REF(finish_monkeyize)), TRANSFORMATION_DURATION, TIMER_UNIQUE)
-
-/mob/living/carbon/proc/finish_monkeyize()
+/mob/living/carbon/proc/finish_monkeyize(obj/effect/temp_visual/lesser_form_scan/scan)
+	if(!QDELETED(scan))
+		qdel(scan)
 	transformation_timer = null
 	REMOVE_TRAIT(src, TRAIT_NO_TRANSFORM, TEMPORARY_TRANSFORMATION_TRAIT)
 	icon = initial(icon)
 	RemoveInvisibility(type)
-	set_species(/datum/species/monkey)
+	set_species(dna.species.primitive_form)
 	to_chat(src, span_boldnotice("Вы теперь [dna.species.name]."))
 	name = LOWER_TEXT(dna.species.name)
 	regenerate_icons()
@@ -55,20 +49,13 @@
 		finish_humanize(species)
 		return
 
-	//Make mob invisible and spawn animation
-	ADD_TRAIT(src, TRAIT_NO_TRANSFORM, TEMPORARY_TRANSFORMATION_TRAIT)
-	Stun(TRANSFORMATION_DURATION, ignore_canstun = TRUE)
-	icon = null
-	cut_overlays()
-
-	var/obj/effect = new /obj/effect/temp_visual/monkeyify/humanify(loc)
-	effect.SetInvisibility(invisibility)
-	SetInvisibility(INVISIBILITY_MAXIMUM, id=type)
-
-	transformation_timer = addtimer(CALLBACK(src, PROC_REF(finish_humanize), species), TRANSFORMATION_DURATION, TIMER_UNIQUE)
+	var/obj/effect/temp_visual/lesser_form_scan/scan = start_lesser_form_transition(/obj/effect/temp_visual/monkeyify/humanify, dna.species.type == /datum/species/monkey ? null : species)
+	transformation_timer = addtimer(CALLBACK(src, PROC_REF(finish_humanize), species, scan), TRANSFORMATION_DURATION, TIMER_UNIQUE)
 
 
-/mob/living/carbon/proc/finish_humanize(species = /datum/species/human)
+/mob/living/carbon/proc/finish_humanize(species = /datum/species/human, obj/effect/temp_visual/lesser_form_scan/scan)
+	if(!QDELETED(scan))
+		qdel(scan)
 	transformation_timer = null
 	REMOVE_TRAIT(src, TRAIT_NO_TRANSFORM, TEMPORARY_TRANSFORMATION_TRAIT)
 	icon = initial(icon)
@@ -78,10 +65,59 @@
 	SEND_SIGNAL(src, COMSIG_MONKEY_HUMANIZE)
 	return src
 
-/mob/living/carbon/human/finish_humanize(species = /datum/species/human)
+/mob/living/carbon/human/finish_humanize(species = /datum/species/human, obj/effect/temp_visual/lesser_form_scan/scan)
 	underwear = "Nude"
 	undershirt = "Nude"
 	socks = "Nude"
+	return ..()
+
+/// Show a scan of the target species, or the classic effect when there is no scan target.
+/mob/living/carbon/proc/start_lesser_form_transition(monkey_animation, scan_species)
+	ADD_TRAIT(src, TRAIT_NO_TRANSFORM, TEMPORARY_TRANSFORMATION_TRAIT)
+	Stun(TRANSFORMATION_DURATION, ignore_canstun = TRUE)
+	var/obj/effect/temp_visual/visual
+	if(scan_species && ishuman(src))
+		visual = new /obj/effect/temp_visual/lesser_form_scan(loc, src, scan_species)
+	else
+		visual = new monkey_animation(loc)
+	visual.SetInvisibility(invisibility)
+	icon = null
+	cut_overlays()
+	SetInvisibility(INVISIBILITY_MAXIMUM, id=type)
+	return istype(visual, /obj/effect/temp_visual/lesser_form_scan) ? visual : null
+
+/// Displays the outgoing appearance and reveals a preview of the other species.
+/obj/effect/temp_visual/lesser_form_scan
+	duration = TRANSFORMATION_DURATION
+	randomdir = FALSE
+
+/obj/effect/temp_visual/lesser_form_scan/Initialize(mapload, mob/living/carbon/human/source, target_species)
+	. = ..()
+	appearance = source.appearance
+	setDir(source.dir)
+	appearance_flags |= KEEP_TOGETHER | KEEP_APART
+	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+
+	var/mob/living/carbon/human/dummy/preview = new
+	// Copy appearance data without sharing the subject's mutation sequences with the dummy.
+	source.dna.copy_dna(preview.dna, NONE)
+	preview.physique = source.physique
+	preview.set_species(target_species, icon_update = FALSE)
+	preview.updateappearance(mutcolor_update = TRUE)
+	preview.setDir(source.dir)
+	var/mutable_appearance/target_appearance = new(preview.appearance)
+	target_appearance.alpha = source.alpha
+	target_appearance.color = source.color
+	target_appearance.plane = plane
+	target_appearance.layer = layer
+	qdel(preview)
+	var/obj/effect/overlay/target_visual = transformation_animation(target_appearance, duration)
+	target_visual.setDir(dir)
+
+/obj/effect/temp_visual/lesser_form_scan/Destroy()
+	// Our lifetime and the animation cleanup timer expire together.
+	if(GLOB.transformation_animation_objects[src])
+		_reset_transformation_animation(max(1, length(filters)))
 	return ..()
 
 /mob/proc/AIize(client/preference_source, move = TRUE)

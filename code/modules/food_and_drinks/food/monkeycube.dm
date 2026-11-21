@@ -37,7 +37,7 @@
 	if (ispath(spawned_mob, /mob/living/carbon/human/species/monkey))
 		var/cap = CONFIG_GET(number/monkeycap)
 		if (LAZYLEN(SSmobs.cubemonkeys) < cap)
-			bananas = new spawned_mob(drop_location(), TRUE)
+			bananas = new spawned_mob(drop_location(), null, TRUE)
 		else if (spammer)
 			to_chat(spammer, span_warning("Bluespace harmonics prevent the creation of more than [cap] monkeys on the station at one time!"))
 	else

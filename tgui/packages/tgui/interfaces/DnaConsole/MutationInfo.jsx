@@ -32,22 +32,25 @@ const ChromosomeInfo = (props) => {
   const { mutation, disabled } = props;
   const { data, act } = useBackend();
   if (mutation.CanChromo === CHROMOSOME_NEVER) {
-    return <Box color="label">No compatible chromosomes</Box>;
+    return <Box color="label">Несовместимо с хромосомами.</Box>;
   }
   if (mutation.CanChromo === CHROMOSOME_NONE) {
     if (disabled) {
-      return <Box color="label">No chromosome applied.</Box>;
+      return <Box color="label">Хромосома не применена.</Box>;
     }
     return (
       <>
         <Dropdown
           width="240px"
-          options={mutation.ValidStoredChromos}
+          options={mutation.ValidStoredChromos.map((name) => ({
+            value: name,
+            displayText: data.chromosomeCatalog?.[name]?.name || name,
+          }))}
           disabled={mutation.ValidStoredChromos.length === 0}
           selected={
             mutation.ValidStoredChromos.length === 0
-              ? 'No Suitable Chromosomes'
-              : 'Select a chromosome'
+              ? 'Нет подходящих хромосом'
+              : 'Выберите хромосому'
           }
           onSelected={(e) =>
             act('apply_chromo', {
@@ -57,14 +60,24 @@ const ChromosomeInfo = (props) => {
           }
         />
         <Box color="label" mt={1}>
-          Compatible with: {mutation.ValidChromos}
+          Совместимые хромосомы:{' '}
+          {mutation.ValidChromos.split(', ')
+            .map((name) => {
+              const catalogKey = `${name.toLowerCase()} chromosome`;
+              return data.chromosomeCatalog?.[catalogKey]?.name || name;
+            })
+            .join(', ')}
         </Box>
       </>
     );
   }
   if (mutation.CanChromo === CHROMOSOME_USED) {
     return (
-      <Box color="label">Applied chromosome: {mutation.AppliedChromo}</Box>
+      <Box color="label">
+        Применённая хромосома:{' '}
+        {data.chromosomeCatalog?.[mutation.AppliedChromo]?.name ||
+          mutation.AppliedChromo}
+      </Box>
     );
   }
   return null;
@@ -82,9 +95,12 @@ const MutationCombiner = (props) => {
     <Dropdown
       key={source.ByondRef}
       width="240px"
-      options={mutations.map((mutation) => mutation.Name)}
+      options={mutations.map((mutation) => ({
+        value: mutation.Name,
+        displayText: mutation.DisplayName || mutation.Name,
+      }))}
       disabled={mutations.length === 0}
-      selected="Combine mutations"
+      selected="Скрестить мутации"
       onSelected={(value) =>
         act(`combine_${source.Source}`, {
           firstref: brefFromName(value),
@@ -110,12 +126,14 @@ export const MutationInfo = (props) => {
   const mutationStorage = data.storage.console ?? [];
   const advInjectors = data.storage.injector ?? [];
   if (!mutation) {
-    return <Box color="label">Nothing to show.</Box>;
+    return <Box color="label">Выберите мутацию.</Box>;
   }
   if (mutation.Source === 'occupant' && !mutation.Discovered) {
     return (
       <LabeledList>
-        <LabeledList.Item label="Name">{mutation.Alias}</LabeledList.Item>
+        <LabeledList.Item label="Название">
+          {mutation.Alias.replace(/^Mutation /, 'Мутация №')}
+        </LabeledList.Item>
       </LabeledList>
     );
   }
@@ -130,15 +148,15 @@ export const MutationInfo = (props) => {
   return (
     <>
       <LabeledList>
-        <LabeledList.Item label="Name">
+        <LabeledList.Item label="Название">
           <Box inline color={MUT_COLORS[mutation.Quality]}>
-            {mutation.Name}
+            {mutation.DisplayName || mutation.Name}
           </Box>
         </LabeledList.Item>
-        <LabeledList.Item label="Description">
+        <LabeledList.Item label="Описание">
           {mutation.Description}
         </LabeledList.Item>
-        <LabeledList.Item label="Instability">
+        <LabeledList.Item label="Нестабильность">
           {mutation.Instability}
         </LabeledList.Item>
       </LabeledList>
@@ -164,7 +182,7 @@ export const MutationInfo = (props) => {
                   width="240px"
                   options={advInjectors.map((injector) => injector.name)}
                   disabled={advInjectors.length === 0 || !mutation.Active}
-                  selected="Add to advanced injector"
+                  selected="Добавить в составной инъектор"
                   onSelected={(value) =>
                     act('add_advinj_mut', {
                       mutref: mutation.ByondRef,
@@ -192,7 +210,7 @@ export const MutationInfo = (props) => {
                         })
                       }
                     >
-                      Print Activator
+                      Активатор
                     </Button>
                   </Stack.Item>
                   <Stack.Item>
@@ -211,7 +229,7 @@ export const MutationInfo = (props) => {
                         })
                       }
                     >
-                      Print Mutator
+                      Мутатор
                     </Button>
                   </Stack.Item>
                   <Stack.Item>
@@ -244,7 +262,7 @@ export const MutationInfo = (props) => {
                     !mutation.Active ||
                     mutation.Class === MUT_OTHER
                   }
-                  content="Save to Console"
+                  content="Сохранить в консоль"
                   onClick={() =>
                     act('save_console', {
                       mutref: mutation.ByondRef,
@@ -266,7 +284,7 @@ export const MutationInfo = (props) => {
                     !mutation.Active ||
                     mutation.Class === MUT_OTHER
                   }
-                  content="Save to Disk"
+                  content="Записать на диск"
                   onClick={() =>
                     act('save_disk', {
                       mutref: mutation.ByondRef,
@@ -281,7 +299,13 @@ export const MutationInfo = (props) => {
                 <Button
                   icon="times"
                   color="red"
-                  content={`Delete from ${mutation.Source}`}
+                  content={
+                    {
+                      console: 'Удалить из консоли',
+                      disk: 'Удалить с диска',
+                      injector: 'Удалить из инъектора',
+                    }[mutation.Source]
+                  }
                   onClick={() =>
                     act(`delete_${mutation.Source}_mut`, {
                       mutref: mutation.ByondRef,
@@ -294,7 +318,7 @@ export const MutationInfo = (props) => {
               (!!mutation.Scrambled && mutation.Source === 'occupant')) && (
               <Stack.Item>
                 <Button
-                  content="Nullify"
+                  content="Подавить"
                   onClick={() =>
                     act('nullify', {
                       mutref: mutation.ByondRef,

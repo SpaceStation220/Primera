@@ -1,0 +1,7 @@
+ParadiseSS13/Paradise and its contributors.
+Source revision: 4e8992132e1c15d919bf96f5597adcff40bde7a6
+Source files (unchanged): sound/creatures/dog_bark1.ogg, dog_bark2.ogg, dog_yelp.ogg.
+https://github.com/ParadiseSS13/Paradise/tree/4e8992132e1c15d919bf96f5597adcff40bde7a6/sound/creatures
+License: Creative Commons Attribution-ShareAlike 3.0 Unported.
+https://creativecommons.org/licenses/by-sa/3.0/
+Source declaration: https://github.com/ParadiseSS13/Paradise/blob/4e8992132e1c15d919bf96f5597adcff40bde7a6/README.md#licenses

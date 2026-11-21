@@ -1,4 +1,5 @@
 /datum/species/lizard
+	primitive_form = /datum/species/monkey/stok
 	// Reptilian humanoids with scaled skin and tails.
 	name = "\improper Lizardperson"
 	plural_form = "Lizardfolk"

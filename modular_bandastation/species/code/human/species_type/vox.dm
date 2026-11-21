@@ -2,6 +2,7 @@
 	name = "Вокс"
 	plural_form = "Воксы"
 	id = SPECIES_VOX
+	primitive_form = /datum/species/monkey/sparra
 	inherent_traits = list(
 		TRAIT_MUTANT_COLORS,
 		TRAIT_NODECAY,
@@ -51,6 +52,17 @@
 /datum/species/vox/on_species_gain(mob/living/carbon/human/human, datum/species/old_species, pref_load, regenerate_icons = TRUE, replace_missing = TRUE)
 	. = ..()
 	RegisterSignal(human, COMSIG_USER_PRE_ITEM_ATTACK, PROC_REF(try_eat_electronics))
+
+/datum/species/vox/randomize_features()
+	var/list/features = ..()
+	features[FEATURE_VOX_LIMB_MARKINGS] = "Default"
+	features[FEATURE_VOX_BODY_MARKINGS] = SPRITE_ACCESSORY_NONE
+	features[FEATURE_VOX_LIMB_MARKINGS_COLOR] = "#8a6036"
+	features[FEATURE_VOX_BODY_MARKINGS_COLOR] = "#8a6036"
+	features[FEATURE_VOX_SNOUT_COLOR] = "#FFB906"
+	features[FEATURE_VOX_QUILLS_COLOR] = "#361512"
+	features[FEATURE_VOX_FACIAL_QUILLS_COLOR] = "#361512"
+	return features
 
 /datum/species/vox/on_species_loss(mob/living/carbon/human/human, datum/species/new_species, pref_load)
 	. = ..()

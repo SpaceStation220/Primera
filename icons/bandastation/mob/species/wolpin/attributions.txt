@@ -1,0 +1,14 @@
+ParadiseSS13/Paradise and its contributors, CC BY-SA 3.0 Unported.
+Revision: 4e8992132e1c15d919bf96f5597adcff40bde7a6
+https://github.com/ParadiseSS13/Paradise/tree/4e8992132e1c15d919bf96f5597adcff40bde7a6
+License: https://creativecommons.org/licenses/by-sa/3.0/
+Source declaration: https://github.com/ParadiseSS13/Paradise/blob/4e8992132e1c15d919bf96f5597adcff40bde7a6/README.md#licenses
+
+paradise/r_wolpin.dmi: unchanged icons/mob/human_races/monkeys/r_wolpin.dmi.
+bodyparts.dmi: 32x32 states composited from that source (head_m; torso_m+groin_m;
+l_arm; r_arm; separate l_hand and r_hand overlay states; l_leg+l_foot; r_leg+r_foot), four directions unchanged.
+tail.dmi: wolpintail_s from icons/effects/species.dmi, renamed to TG overlay convention.
+cubes.dmi: monkeycube and monkeycubewrap from icons/obj/food/food.dmi, unchanged pixels.
+No states from goonstation or tgmc assets are included.
+box.dmi: unchanged wolpin_box from icons/obj/boxes.dmi at the same Paradise revision.
+The standalone box sprite replaces the inherited monkey illustration.

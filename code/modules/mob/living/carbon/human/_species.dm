@@ -16,6 +16,8 @@ GLOBAL_LIST_EMPTY(features_by_species)
  *
  */
 /datum/species
+	/// Species used by monkeyize; non-human races can supply their own lesser form.
+	var/primitive_form = /datum/species/monkey
 	///If the game needs to manually check your race to do something not included in a proc here, it will use this.
 	var/id
 	/// Minimum donor tier to choose this species in character preferences.
@@ -60,6 +62,10 @@ GLOBAL_LIST_EMPTY(features_by_species)
 	var/skinned_type
 	///flags for inventory slots the race can't equip stuff to. Golems cannot wear jumpsuits, for example.
 	var/no_equip_flags
+	/// Item type that can use the ID slot without a uniform.
+	var/obj/item/uniformless_id_type
+	/// Item type that can use the belt slot without a uniform.
+	var/obj/item/uniformless_belt_type
 	/// What languages this species can understand and say.
 	/// Use a [language holder datum][/datum/language_holder] typepath in this var.
 	/// Should never be null.
@@ -538,6 +544,16 @@ GLOBAL_LIST_EMPTY(features_by_species)
 
 	return new_features
 
+/// Checks the item exception for a slot, or whether the slot has any exception when no item is supplied.
+/datum/species/proc/allows_uniformless_item(slot, obj/item/item)
+	var/allowed_type
+	switch(slot)
+		if(ITEM_SLOT_ID)
+			allowed_type = uniformless_id_type
+		if(ITEM_SLOT_BELT)
+			allowed_type = uniformless_belt_type
+	return allowed_type && (isnull(item) || istype(item, allowed_type))
+
 /datum/species/proc/can_equip(obj/item/I, slot, disable_warning, mob/living/carbon/human/H, bypass_equip_delay_self = FALSE, ignore_equipped = FALSE, indirect_action = FALSE)
 	if(no_equip_flags & slot)
 		if(!I.species_exception || !is_type_in_list(src, I.species_exception))
@@ -597,7 +613,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 			return equip_delay_self_check(I, H, bypass_equip_delay_self)
 		if(ITEM_SLOT_BELT)
 			var/obj/item/bodypart/O = H.get_bodypart(BODY_ZONE_CHEST)
-			if(!H.w_uniform && !HAS_TRAIT(H, TRAIT_NO_JUMPSUIT) && (!O || IS_ORGANIC_LIMB(O)))
+			if(!H.w_uniform && !HAS_TRAIT(H, TRAIT_NO_JUMPSUIT) && (!O || IS_ORGANIC_LIMB(O)) && !allows_uniformless_item(slot, I))
 				if(!disable_warning)
 					to_chat(H, span_warning("Вам нужно сперва надеть комбинезон, чтобы прикрепить [I.declent_ru(ACCUSATIVE)]"))
 				return H.inventory_rejected("Сначала нужно надеть форму.")
@@ -623,7 +639,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 			return equip_delay_self_check(I, H, bypass_equip_delay_self)
 		if(ITEM_SLOT_ID)
 			var/obj/item/bodypart/O = H.get_bodypart(BODY_ZONE_CHEST)
-			if(!H.w_uniform && !HAS_TRAIT(H, TRAIT_NO_JUMPSUIT) && (!O || IS_ORGANIC_LIMB(O)))
+			if(!H.w_uniform && !HAS_TRAIT(H, TRAIT_NO_JUMPSUIT) && (!O || IS_ORGANIC_LIMB(O)) && !allows_uniformless_item(slot, I))
 				if(!disable_warning)
 					to_chat(H, span_warning("Вам нужно сперва надеть комбинезон, чтобы прикрепить [I.declent_ru(ACCUSATIVE)]!"))
 				return H.inventory_rejected("Сначала нужно надеть форму.")

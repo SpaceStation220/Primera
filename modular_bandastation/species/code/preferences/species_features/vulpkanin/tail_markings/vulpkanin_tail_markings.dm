@@ -1,4 +1,5 @@
 /datum/preference/choiced/species_feature/vulpkanin_tail_markings
+	feature_key = FEATURE_VULPKANIN_TAIL_MARKINGS
 	savefile_key = "feature_vulpkanin_tail_markings"
 	savefile_identifier = PREFERENCE_CHARACTER
 	category = PREFERENCE_CATEGORY_SECONDARY_FEATURES

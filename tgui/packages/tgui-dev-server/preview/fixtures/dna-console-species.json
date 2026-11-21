@@ -1,0 +1,120 @@
+{
+  "config": {
+    "interface": {
+      "name": "DnaConsole"
+    },
+    "title": "DNA Console",
+    "window": {
+      "size": [
+        550,
+        710
+      ]
+    }
+  },
+  "data": {
+    "view": {
+      "consoleMode": "features"
+    },
+    "isScannerConnected": true,
+    "scannerOpen": false,
+    "scannerLocked": true,
+    "isViableSubject": true,
+    "subjectName": "Тестовый унати с длинным названием внешности",
+    "subjectHealth": 100,
+    "subjectDamage": 0,
+    "subjectStatus": 0,
+    "subjectUNI": "0123456789ABCDEF0123456789ABCDEF012345678",
+    "subjectUF": "ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678",
+    "subjectEnzymes": "ABCDEF0123456789ABCDEF0123456789AB",
+    "isPulsing": false,
+    "hasDelayedAction": false,
+    "isScrambleReady": true,
+    "isInjectorReady": true,
+    "hasDisk": false,
+    "makeupCapacity": 3,
+    "makeupStorage": {},
+    "geneticMakeupCooldown": 0,
+    "appearance": {
+      "portrait": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFCSURBVFhH7VRbCsJADCwoqF/eo/foXfQQXkDP4KH652EqlSlMGYYULCb9ciBsm90kk8du0/yxEl3Xja4DlvTpaNt2RLC+f82Cf+j9bBkQbBjes2waHBkjaLT62XTcH885GL51hR7fbpOKy/U2B3OBHvtukw7NnFnz38+WAZm6+JkSeOYUrYTbpEF773Pge277MzwAV0opCXWs1zCqAPdTSahzvYZRBbCvJN3XarhzBogqQIJO0n2ugmaPfydB0eA4l1YFEqDjbyrAcykEHCyvDhsrxDa5TSq8vxSdE7dJhZbWW6CtKoPfcyfDYS2DBuXQ6VCmD50j6rfPhdukQu8/yx3pyqAPTFSBcgIayB+nTVrgQwjdpkOomUYESluAUrPfEQHORcljBKeH03nKEms0A7qfTgIOd/vj5JirEoj23ccSPj+tjZsxOntcAAAAAElFTkSuQmCC",
+      "features": {
+        "snout": "Острая",
+        "horns": "Удлинённые изогнутые рога с дополнительными ответвлениями",
+        "frills": "Короткие"
+      },
+      "secondary_features": {
+        "body_color": "#66967b",
+        "eye_color": "#bca150",
+        "body_markings": "Полосатый рисунок с контрастным светлым подбрюшьем"
+      },
+      "supplemental_features": {
+        "horn_color": "#b9a487",
+        "frill_color": "#777b9d"
+      },
+      "catalog": {
+        "snout": {
+          "name": "Форма морды",
+          "icons": {
+            "Острая": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACBSURBVFhH7ZHdCYAwDIQ7rg7hAjqDQ/XNYSqVPByEk4KU/iDcBwcJpL0jCUGIPxLjlVk80wWYpXS/NCTE1ADemGv0Xc/BpsMC7MeZTd7Ael+jRyjr+Z9qlnXLJm9QEkLZPP9TzfQAgNcOU38C1Py2GdhGSTzfHDZk8bwQQgghxBcewGx1iySuwWMAAAAASUVORK5CYII=",
+            "Округлая": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACJSURBVFhH7ZLdCYAwDIQ7rg7hAjqDQ/XNCfrmBkolQiCcFaT0B+E+OGho2juaOkfIH/F+iyjsqYKaHcf5UJMQXQNYY1xrXXUcaNoswLysUWQNpA5hv6X7NpTUeE82wzhFkZjZmaekoaQf78mmewDFPnvqD9hx4NliqNmbsL84aIjCfkIIIYSQL1y5TI1Y/KPccwAAAABJRU5ErkJggg==",
+            "Острая светлая": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACBSURBVFhH7ZHdCYAwDIQ7rg7hAjqDQ/XNYSqVPByEk4KU/iDcBwcJpL0jCUGIPxLjlVk80wWYpXS/NCTE1ADemGv0Xc/BpsMC7MeZTd7Ael+jRyjr+Z9qlnXLJm9QEkLZPP9TzfQAgNcOU38C1Py2GdhGSTzfHDZk8bwQQgghxBcewGx1iySuwWMAAAAASUVORK5CYII=",
+            "Округлая светлая": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACJSURBVFhH7ZLdCYAwDIQ7rg7hAjqDQ/XNCfrmBkolQiCcFaT0B+E+OGho2juaOkfIH/F+iyjsqYKaHcf5UJMQXQNYY1xrXXUcaNoswLysUWQNpA5hv6X7NpTUeE82wzhFkZjZmaekoaQf78mmewDFPnvqD9hx4NliqNmbsL84aIjCfkIIIYSQL1y5TI1Y/KPccwAAAABJRU5ErkJggg=="
+          }
+        },
+        "horns": {
+          "name": "Форма и расположение видовых рогов",
+          "icons": {
+            "Удлинённые изогнутые рога с дополнительными ответвлениями": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACJSURBVFhH7ZHdCYAwDIQdV1couIDO4FB9c5hKJQ8H4aQgpT8v98FBUtLc0S6LqCSEkE18LoYQ451ZPNMFmKX0fDQkxNQA3phr9F2/g02HBTjOK5u8gfW+Ro9Q1vOeatZtzyZvUBJC2TzvqWZ6AMDPDlP/Baj5bjPwGiXxfHPYkMXzQgghhBB/eAH1HHpl9gMQLQAAAABJRU5ErkJggg==",
+            "Короткие": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAChSURBVFhH7ZHRCcMwDEQzj/fwLs0QXaCZoUP5L8OkuFzgwJwxGOM0FO7BgWQknZCXxfwLMcasbwpqeuqG6Bl86QIhhHM4lNJeCe+ogbR3GjQ4jk+lS43JrQvgzDTTmDlj7Z2Cmv5sgdf2zlBpgLyMmXMp5DpnmMf6zFBp0BKXQr3OGeb2BYienablFzDW3mnwGi1p/XTUUKX1xhhjjDE9fAEG+n5Y5injLAAAAABJRU5ErkJggg==",
+            "Простые": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVFhH7ZHRCcMwDEQzj/fwLu0QXSCZoUPlr8MkOFzgijhqcExK8nEPDiRb1gl5GMzdSSkVKOf8ldaAeI96ve/msgHUmDnP5vmzq3bPWPs2o41xFk2WZd0Vz/iWQ9S21cRtBmCOddNUY+aMf70/jDZQ078PQMbpXaBogDzGzDkUcu3TzeP5KlA0qIlDoV77dHP5AETXTtP4BYz17WlwGzVp/emooUrrjTHGGGNa2AA2VK6I9prmIwAAAABJRU5ErkJggg==",
+            "Закрученные": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAChSURBVFhH7ZHRCcMwDEQzj/fwLs0QXaCZoUP5L8OkuFzgwJwxGOM0FO7BgWQknZCXxfwLMcasbwpqeuqG6Bl86QIhhHM4lNJeCe+ogbR3GjQ4jk+lS43JrQvgzDTTmDlj7Z2Cmv5sgdf2zlBpgLyMmXMp5DpnmMf6zFBp0BKXQr3OGeb2BYienablFzDW3mnwGi1p/XTUUKX1xhhjjDE9fAEG+n5Y5injLAAAAABJRU5ErkJggg==",
+            "Бараньи": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAChSURBVFhH7ZHRCcMwDEQzj/fwLs0QXaCZoUP5L8OkuFzgwJwxGOM0FO7BgWQknZCXxfwLMcasbwpqeuqG6Bl86QIhhHM4lNJeCe+ogbR3GjQ4jk+lS43JrQvgzDTTmDlj7Z2Cmv5sgdf2zlBpgLyMmXMp5DpnmMf6zFBp0BKXQr3OGeb2BYienablFzDW3mnwGi1p/XTUUKX1xhhjjDE9fAEG+n5Y5injLAAAAABJRU5ErkJggg=="
+          },
+          "supplemental_feature": "horn_color"
+        },
+        "frills": {
+          "name": "Перепончатые отростки на голове",
+          "icons": {
+            "Водные": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAClSURBVFhH7ZJRCoMwGIM97naIXWCeYYfybafoCZTKP8iIoRUrQn3IB4FRsjSkDoO5O4/nK4f0fI9W/y7dCszzklkcOk3frIpzlOX/bUJbQBgueI+f/28tF4IHvjPLbehegKfXabkElyp5Nfcw3QtgzpTST7XnKM0efpxrbjMIrb09C6XCrzmn6V4A6Oy4lJ/gstlr8EdWkvovRy9Uqd8YY4wx5ggrrwoM3PICXzgAAAAASUVORK5CYII=",
+            "Короткие": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACgSURBVFhH7ZLdCYAwDIQdV4dwAZ3BofrmMEolDyfH4U9RoT7cBwc1JrmQtmmM+SvDOOWQxoOU5qzSnKv6IpZlzaG263fBDP9YEedcxLVvMVUHQENWrJPN+IxvrJ3rHg1SfYBoglWiKZuxCZvC7KhePW6BAd8/DM7ENThr32KqD8AvGqtEU34PfAU4c532fYUOpdL8z1FDleYbY4wxxpSwAb90PGrkH805AAAAAElFTkSuQmCC",
+            "Простые": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACpSURBVFhH7ZLLDcIwEERTLhSRBqAGisotxQQZ7WHQ6CHHCPE7zJNGcryfWa0zTSH8I6fzpUmMFcuyNoo53qPXp8u2XZt0OM53yczjUt17LuP02OVnA2hdXG+p7t3Mz/oe1dPvgVGDjw+gppWsVaqpm7mJm47q6dfFzfz9ZdCT1+isGD12YbOvD+Ar9FWqqf8P/gQ6s65Ej5fgUBTz3w4NKeaHEEIIITzDDbIUlSBQfZHMAAAAAElFTkSuQmCC"
+          },
+          "supplemental_feature": "frill_color"
+        },
+        "body_color": {
+          "name": "Основной цвет чешуйчатого покрова",
+          "kind": "color"
+        },
+        "eye_color": {
+          "name": "Цвет глаз",
+          "kind": "color"
+        },
+        "body_markings": {
+          "name": "Особенности рисунка на теле",
+          "kind": "choice",
+          "choices": [
+            "Без рисунка",
+            "Полосатый рисунок с контрастным светлым подбрюшьем"
+          ]
+        },
+        "horn_color": {
+          "name": "Цвет видовых рогов и отростков",
+          "kind": "color"
+        },
+        "frill_color": {
+          "name": "Цвет перепончатых отростков",
+          "kind": "color"
+        }
+      },
+      "subject_ref": "preview-dna-console-species",
+      "target_ref": "draft-dna-console-species"
+    },
+    "pulseStrength": 2,
+    "pulseDuration": 1,
+    "stdDevAcc": "68-95 %",
+    "stdDevStr": 2,
+    "targetUNI": "FFF3456789ABCDEF0123456789ABCDEF012345678",
+    "targetUF": "ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678ABCDEF012345678"
+  },
+  "static_data": {},
+  "shared": {}
+}

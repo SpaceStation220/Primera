@@ -1,0 +1,110 @@
+.DnaConsoleMakeup {
+  position: relative;
+  display: grid;
+  grid-template-columns: 286px minmax(0, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  > .Section {
+    min-width: 0;
+    margin: 0;
+  }
+
+  // Anchor the catalog to the shared row so it covers the Unique panel.
+  > .DnaAppearancePanel,
+  > .DnaAppearancePanel > .Section__rest {
+    position: static;
+  }
+}
+
+.DnaAppearance {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 68px;
+  gap: 0.5rem;
+  height: 340px;
+
+  .Section {
+    margin: 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  &__subject,
+  &__catalog,
+  &__features {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  &__portrait {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 160px;
+
+    img {
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+  }
+
+  &__catalog {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 286px - 0.5rem);
+    height: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem;
+    background-color: var(--color-base);
+    box-shadow: 0 0.5em 1em hsla(0, 0%, 0%, 0.5);
+
+    > .Section,
+    > .PreferencesMenu__ChoicedSelection {
+      flex: 1;
+      min-height: 0;
+    }
+
+    > .Section:last-child:not(:first-child) {
+      flex: none;
+    }
+
+    .PreferencesMenu__ChoicedSelection {
+      width: 100%;
+      height: auto;
+      padding: 0;
+      box-shadow: none;
+
+      .Section__titleText {
+        display: block;
+        padding-right: 2rem;
+      }
+
+      .Section__buttons {
+        top: var(--space-m);
+      }
+    }
+
+    .Section__titleText {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__color {
+    min-width: 0;
+  }
+
+  &__colorPicker {
+    width: 220px;
+    margin: 0;
+    padding: 0.5rem;
+    background-color: var(--color-base);
+    box-shadow: 0 0 0 1px var(--color-primary), 0 0.25rem 1rem #000;
+  }
+}
