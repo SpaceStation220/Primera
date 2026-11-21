@@ -1,6 +1,6 @@
 /datum/song/playkey_legacy(note, acc as text, oct, atom/player)
 	if(cached_legacy_ext == "mid" && using_instrument.pcm_samples)
-		if(world.time >= last_hearcheck + SSinstruments.musician_hearcheck_mindelay)
+		if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 			do_hearcheck()
 		play_sequence_note(list("key" = note_offset_lookup[note] + oct * 12 + (accent_lookup[acc] || 0) + 12, "velocity" = 127, "channel" = 0), 0.5)
 		return
@@ -33,7 +33,7 @@
 	if(!fexists(soundfile))
 		return
 	// and play
-	if((world.time - SSinstruments.musician_hearcheck_mindelay) > last_hearcheck)
+	if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		do_hearcheck()
 	var/sound/music_played = sound(soundfile)
 	var/turf/origin = get_turf(parent)
@@ -48,7 +48,7 @@
 
 /datum/song/playkey_synth(key, atom/player)
 	key = clamp(key + note_shift, key_min, key_max)
-	if((world.time - SSinstruments.musician_hearcheck_mindelay) > last_hearcheck)
+	if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		do_hearcheck()
 	if(!length(hearing_mobs))
 		return FALSE
@@ -93,13 +93,19 @@
 		if(dead)
 			channels_playing -= channel
 			channels_idle += channel
+			music_voice_levels_sent -= channel
 			for(var/i in hearing_mobs)
 				var/mob/M = i
-				M.stop_sound_channel(channelnumber)
+				if(M.client)
+					M.stop_sound_channel(channelnumber)
 		else
+			var/level = (current_volume * 0.01) * get_output_volume(volume * using_instrument.volume_multiplier)
+			if((channel in music_voice_levels_sent) && music_voice_levels_sent[channel] == level)
+				continue
+			music_voice_levels_sent[channel] = level
 			for(var/i in hearing_mobs)
 				var/mob/M = i
-				update_music_voice_listener(M, channelnumber, (current_volume * 0.01) * get_output_volume(volume * using_instrument.volume_multiplier))
+				update_music_voice_listener(M, channelnumber, level)
 	trim_idle_channels()
 
 /// Update output gain and refresh active listener volumes.
@@ -131,6 +137,7 @@
 
 /datum/song/terminate_all_sounds(clear_channels = TRUE)
 	. = ..()
+	music_voice_levels_sent.Cut()
 	if(clear_channels)
 		voice_ends.Cut()
 		voice_levels.Cut()
@@ -139,6 +146,8 @@
 	. = ..()
 	if(isnull(.))
 		. = steal_oldest_note()
+	if(!isnull(.))
+		music_voice_levels_sent.Remove(num2text(.))
 
 /// Replace only this song's own oldest voice when channels are exhausted.
 /datum/song/proc/steal_oldest_note()
@@ -146,7 +155,8 @@
 		return null
 	var/channel = channels_playing[1]
 	for(var/mob/listener as anything in hearing_mobs)
-		listener.stop_sound_channel(text2num(channel))
+		if(listener.client)
+			listener.stop_sound_channel(text2num(channel))
 	channels_playing -= channel
 	voice_ends -= channel
 	voice_levels -= channel
@@ -163,6 +173,9 @@
 
 /// Read the listener's existing instrument volume preference.
 /datum/song/proc/get_listener_volume_multiplier(mob/listener)
+	var/list/spatial = listener_spatial[listener]
+	if(playback_mode != "file" && spatial && spatial["client"] == listener?.client)
+		return spatial["preference"]
 	var/instrument_volume = listener?.client?.prefs.read_preference(/datum/preference/numeric/volume/sound_instruments)
 	if(!instrument_volume)
 		return 0

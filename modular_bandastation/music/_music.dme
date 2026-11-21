@@ -5,7 +5,9 @@
 #include "code/playback.dm"
 #include "code/sequence.dm"
 #include "code/editor.dm"
+#include "code/native_upload.dm"
 #include "code/file_playback.dm"
+#include "code/tgui_transfer.dm"
 #include "code/legacy_samples.dm"
 #include "code/access.dm"
 #include "code/sound.dm"
@@ -14,6 +16,7 @@
 #include "code/concert_player.dm"
 #include "code/concert_speakers.dm"
 #include "code/concert_circuits.dm"
+#include "code/boombox_disks.dm"
 
 #ifdef UNIT_TESTS
 #include "code/access_tests.dm"

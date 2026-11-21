@@ -9,9 +9,17 @@
 	data["auto_repeat"] = auto_repeat
 	data["playback_mode"] = playback_mode
 	data["file_track_name"] = file_track_name
+	data["file_preparation"] = file_track ? "not_ready" : "none"
+	if(file_preparing)
+		data["file_preparation"] = length(file_failed_listeners) ? "error" : "preparing"
+		if(length(file_listeners) && length(file_ready_listeners) == length(file_listeners))
+			data["file_preparation"] = "ready"
+	else if(playing && playback_mode == "file")
+		data["file_preparation"] = file_start_deadline ? "preparing" : "ready"
 	data["file_track_length"] = file_track_length ? DisplayTimeText(file_track_length) : null
 	data["file_track_length_seconds"] = max(0, file_track_length / (1 SECONDS))
 	data["can_load_file_tracks"] = TRUE
+	data["file_upload_pending"] = file_upload_pending
 	data["preset_file_tracks"] = list()
 	data["loaded_file_tracks"] = list()
 	for(var/list/track as anything in loaded_file_tracks)
@@ -24,8 +32,11 @@
 	data["advanced_music_access"] = can_use_advanced_music(user)
 	data["using_instrument_id"] = using_instrument?.id
 	data["music_upload"] = null
+	data["music_upload_interval"] = get_music_upload_delay() * 100
 	if(music_document_upload)
 		data["music_upload"] = list("id" = music_document_upload["id"], "next" = music_document_upload["next"], "state" = music_document_upload["state"], "error" = music_document_upload["error"])
+		if(music_document_upload["user"] == WEAKREF(user))
+			data["music_upload"]["native_controls"] = music_document_upload["native_controls"]
 	data["midi_shared"] = !!sequence_master
 	data["auto_sing"] = auto_sing
 	data["singing_tts"] = singing_tts
@@ -33,7 +44,7 @@
 	data["midi_channels"] = midi_channels
 	data["sequence_offset"] = sequence_offset
 	data["sequence_length"] = sequence_master ? sequence_master.sequence_length : sequence_length
-	data["playback_seconds"] = playing ? max(0, (world.time - playback_started_at) / (1 SECONDS)) : (playback_mode == "sequence" ? sequence_offset : 0)
+	data["playback_seconds"] = playing ? (file_start_deadline ? 0 : max(0, (world.time - playback_started_at) / (1 SECONDS))) : (playback_mode == "sequence" ? sequence_offset : 0)
 	return data
 
 /datum/song/ui_static_data(mob/user)
@@ -61,11 +72,11 @@
 		return FALSE
 	switch(action)
 		if("import_file_song")
-			var/new_file = input(user, "Select an OGG file to play through this instrument.", name) as sound|null
-			if(!new_file || QDELETED(src) || QDELETED(parent) || !can_use_music_ui(ui, user) || !in_range(parent, user))
+			if(file_upload_pending)
+				to_chat(user, span_notice("An OGG upload is already in progress for this instrument."))
 				return TRUE
-			set_file_track(new_file, user)
-			update_static_data_for_all_viewers()
+			file_upload_pending = TRUE
+			INVOKE_ASYNC(src, PROC_REF(import_file_song), user, ui.state)
 			return TRUE
 		if("clear_file_song")
 			clear_file_track()
@@ -74,8 +85,10 @@
 			set_playback_mode(params["mode"])
 			return TRUE
 		if("select_loaded_file_track")
-			if(select_loaded_file_track(params["track"]) && params["play"])
-				INVOKE_ASYNC(src, PROC_REF(start_playing), user)
+			if(select_loaded_file_track(params["track"]))
+				prepare_file_playback(user)
+				if(params["play"])
+					INVOKE_ASYNC(src, PROC_REF(start_playing), user)
 			update_static_data_for_all_viewers()
 			return TRUE
 		if("set_file_track_length")
@@ -106,9 +119,13 @@
 			return TRUE
 		if("upload_music_document")
 			return receive_music_document(params, user)
+		if("begin_native_music_upload")
+			return begin_native_music_upload(params, user, ui)
+		if("read_native_music_upload")
+			return read_native_music_upload(params, user, ui)
 		if("cancel_music_upload")
 			if(music_document_upload && music_document_upload["id"] == params["id"] && music_document_upload["user"] == WEAKREF(user))
-				music_document_upload = null
+				cancel_music_document_upload()
 			return TRUE
 		if("select_music_mode")
 			select_performance_mode(params["mode"])
@@ -168,7 +185,17 @@
 			return TRUE
 	return FALSE
 
-/// Acknowledged, bounded transfers avoid raising TGUI's global payload limit.
+/// Reserve three quarters of the configured Topic budget for normal interaction.
+/datum/song/proc/get_music_upload_delay()
+	. = 1 SECONDS
+	var/second_limit = CONFIG_GET(number/second_topic_limit)
+	var/minute_limit = CONFIG_GET(number/minute_topic_limit)
+	if(second_limit > 0)
+		. = max(., (4 SECONDS) / second_limit)
+	if(minute_limit > 0)
+		. = max(., (4 MINUTES) / minute_limit)
+
+/// All chunks still pass the normal Topic limiter and instrument UI validation.
 /datum/song/proc/receive_music_document(list/params, mob/user)
 	var/id = params["id"]
 	var/index = params["index"]
@@ -176,18 +203,20 @@
 	var/part = params["part"]
 	var/kind = params["kind"]
 	var/play_action = params["play_action"]
-	if(!istext(id) || length(id) > 80 || !isnum(index) || !isnum(count) || index != round(index) || count != round(count) || count < 1 || count > 1024 || index < 0 || index >= count || !istext(part) || length(part) > 8192 || !(kind in list("sequence", "cues")))
+	if(!istext(id) || length(id) > 80 || !isnum(index) || !isnum(count) || index != round(index) || count != round(count) || count < 1 || count > 4096 || index < 0 || index >= count || !istext(part) || length(part) > 8192 || !(kind in list("sequence", "cues", "notes")))
 		return TRUE
-	if(!isnull(play_action) && play_action != "play_music")
+	if((!isnull(play_action) && play_action != "play_music") || (kind == "notes" && !isnull(play_action)))
 		return TRUE
+	var/idle_timeout = max(20 SECONDS, get_music_upload_delay() * 3)
 	if(index == 0 && music_document_upload?["id"] != id)
-		if(music_document_upload?["state"] == "receiving" && music_document_upload["expires"] > world.time)
+		if(music_document_upload?["state"] in list("preparing", "receiving"))
 			to_chat(user, span_warning("Another music upload is still in progress."))
 			return TRUE
-		music_document_upload = list("id" = id, "user" = WEAKREF(user), "kind" = kind, "count" = count, "next" = 0, "parts" = list(), "size" = 0, "state" = "receiving", "expires" = world.time + 20 SECONDS, "play_action" = play_action)
-		addtimer(CALLBACK(src, PROC_REF(expire_music_upload), id), 20 SECONDS)
+		cancel_music_document_upload()
+		music_document_upload = list("id" = id, "user" = WEAKREF(user), "kind" = kind, "count" = count, "next" = 0, "parts" = list(), "size" = 0, "state" = "receiving", "expires" = world.time + idle_timeout, "play_action" = play_action)
+		addtimer(CALLBACK(src, PROC_REF(expire_music_upload), id), idle_timeout)
 	var/list/upload = music_document_upload
-	if(!upload || upload["id"] != id || upload["user"] != WEAKREF(user) || upload["state"] != "receiving")
+	if(!upload || upload["native_controls"] || upload["id"] != id || upload["user"] != WEAKREF(user) || upload["state"] != "receiving")
 		return TRUE
 	if(index != upload["next"] || count != upload["count"] || kind != upload["kind"] || play_action != upload["play_action"] || world.time > upload["expires"] || upload["size"] + length(part) > 600000)
 		upload["state"] = "error"
@@ -198,12 +227,18 @@
 	parts += part
 	upload["size"] += length(part)
 	upload["next"]++
-	upload["expires"] = world.time + 20 SECONDS
+	upload["expires"] = world.time + idle_timeout
 	if(upload["next"] < count)
 		return TRUE
 	var/raw = parts.Join()
+	return complete_music_document_upload(upload, raw, user)
+
+/// Both transports commit through the same bounded document validation.
+/datum/song/proc/complete_music_document_upload(list/upload, raw, mob/user)
 	upload["parts"] = null
-	var/success = apply_music_document(kind == "sequence" ? "set_sequence_document" : "set_song_cues", raw, user, play_action)
+	clear_native_music_fields(upload)
+	var/kind = upload["kind"]
+	var/success = apply_music_document(kind == "notes" ? "import_notes_document" : (kind == "sequence" ? "set_sequence_document" : "set_song_cues"), raw, user, upload["play_action"])
 	upload["state"] = success ? "complete" : "error"
 	if(!success)
 		upload["error"] = "Music document rejected; playback was not started. Check the project and retry."
@@ -211,7 +246,7 @@
 
 /datum/song/proc/expire_music_upload(id)
 	var/list/upload = music_document_upload
-	if(!upload || upload["id"] != id || upload["state"] != "receiving")
+	if(!upload || upload["id"] != id || !(upload["state"] in list("preparing", "receiving")))
 		return
 	if(upload["expires"] > world.time)
 		addtimer(CALLBACK(src, PROC_REF(expire_music_upload), id), upload["expires"] - world.time)
@@ -219,15 +254,16 @@
 	upload["state"] = "error"
 	upload["error"] = "Music upload expired. Please retry."
 	upload["parts"] = null
+	clear_native_music_fields(upload)
 
 /datum/song/proc/apply_music_document(action, raw, mob/user, play_action)
-	if(!can_use_advanced_music(user))
+	if(action != "import_notes_document" && !can_use_advanced_music(user))
 		return FALSE
 	if(playing || midi_start_timer)
 		return FALSE
 	if(action == "set_sequence_document" && sequence_master)
 		return FALSE
-	if(!istext(raw) || length(raw) > 600000)
+	if(!istext(raw) || length(raw) > MUSIC_DOCUMENT_MAX_BYTES)
 		return FALSE
 	var/list/document
 	try
@@ -235,9 +271,23 @@
 	catch
 		to_chat(user, span_warning("Invalid music document."))
 		return FALSE
+	if(action == "import_notes_document")
+		if(!islist(document) || document["version"] != 1 || !istext(document["text"]) || length_char(document["text"]) > MUSIC_NOTES_MAX_CHARS || !isnull(play_action))
+			return FALSE
+		var/text = html_encode(replacetext(document["text"], ascii2text(13), ""))
+		var/list/import_lines = splittext(text, "\n")
+		if(length(import_lines) > SSinstruments.musician_maxlines)
+			return FALSE
+		for(var/line in import_lines)
+			if(length_char(line) > SSinstruments.musician_maxlinechars)
+				return FALSE
+		ParseSong(user, text)
+		set_playback_mode("midi")
+		update_static_data_for_all_viewers()
+		return TRUE
 	var/success = action == "set_sequence_document" ? load_sequence(document) : load_song_cues(document)
 	if(!success)
-		to_chat(user, span_warning("Music document rejected. Check its limits, timing and audio fingerprint."))
+		to_chat(user, span_warning("Music document rejected. Check its format, limits and timing."))
 		return FALSE
 	update_static_data_for_all_viewers()
 	piano_roll?.update_static_data_for_all_viewers()

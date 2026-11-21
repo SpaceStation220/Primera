@@ -9,7 +9,7 @@ import {
   resolveMidiInstruments,
   validateDocument,
 } from './midi';
-import { splitMusicDocument } from './upload';
+import { nativeMusicPages, splitMusicDocument } from './upload';
 
 function longMidi() {
   return new Uint8Array(
@@ -88,9 +88,9 @@ describe('large MIDI projects', () => {
         play_action: 'play_music',
       };
       expect(encodeURIComponent(JSON.stringify(payload)).length).toBeLessThan(
-        10000,
+        1600,
       );
-      expect(part.length).toBeLessThanOrEqual(8192);
+      expect(part.length).toBeLessThanOrEqual(900);
     }
   });
 
@@ -105,13 +105,66 @@ describe('large MIDI projects', () => {
     expect(JSON.parse(parts.join(''))).toEqual(doc);
     for (const part of parts) {
       expect(encodeURIComponent(JSON.stringify({ part })).length).toBeLessThan(
-        9000,
+        1200,
       );
     }
   });
 
   it('rejects oversized projects before starting a transfer', () => {
     expect(() => splitMusicDocument({ text: 'x'.repeat(600000) })).toThrow();
+  });
+
+  it('packs MIDI note fields without losing timings or changing saved projects', () => {
+    const doc = readMidi(longMidi(), 'Long composition');
+    const before = JSON.stringify(doc);
+    const packed = JSON.parse(splitMusicDocument(doc, 'sequence').join(''));
+    expect(packed.note_format).toBe('tuple-v1');
+    expect(packed.notes).toEqual(
+      doc.notes.map((n) => [
+        n.time,
+        n.duration,
+        n.key,
+        n.velocity,
+        n.channel,
+        n.track,
+      ]),
+    );
+    expect(packed.tracks).toEqual(doc.tracks);
+    expect(packed.tempos).toEqual(doc.tempos);
+    expect(JSON.stringify(packed).length).toBeLessThan(before.length * 0.65);
+    expect(JSON.stringify(doc)).toBe(before);
+  });
+
+  it('transfers the same lossless wire document through bounded native pages', () => {
+    const doc = readMidi(longMidi(), '\u041c\u0443\u0437\u044b\u043a\u0430');
+    const previous = splitMusicDocument(doc, 'sequence');
+    const pages = nativeMusicPages(doc);
+    expect(Buffer.from(pages.join(''), 'base64').toString('utf8')).toBe(
+      previous.join(''),
+    );
+    expect(pages.length).toBeLessThan(previous.length / 10);
+    for (const page of pages) expect(page.length).toBeLessThanOrEqual(32768);
+  });
+
+  it('keeps every native field URL-safe even for punctuation-heavy Unicode Base64', () => {
+    const doc: MusicDocument = {
+      version: 1,
+      title: '\uffff'.repeat(64),
+      notes: [],
+      tempos: [],
+      tracks: [{ id: 0, name: '\uffff'.repeat(64) }],
+    };
+    const pages = nativeMusicPages(doc);
+    expect(pages.join('')).not.toMatch(/[+/]/);
+    expect(Buffer.from(pages.join(''), 'base64').toString('utf8')).toBe(
+      splitMusicDocument(doc, 'sequence').join(''),
+    );
+    for (const page of pages) {
+      for (let i = 0; i < page.length; i += 1024) {
+        const query = `winset?id=mainwindow.music_upload_0123456789abcdef_31&text=${encodeURIComponent(`24:${page.slice(i, i + 1024)}`)}`;
+        expect(query.length).toBeLessThan(2048);
+      }
+    }
   });
 });
 

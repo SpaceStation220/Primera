@@ -11,6 +11,8 @@ import {
 import {
   appendCueText,
   type Cue,
+  type CueDocument,
+  parseCueDocument,
   rippleCueTime,
   shiftCues,
   validateCueInterval,
@@ -20,12 +22,8 @@ import { musicDecimal } from './format';
 import { download } from './midi';
 import type { PlayAction } from './upload';
 
-export type CueDocument = {
-  version: 1;
-  audio_hash: string | null;
-  spacing_seconds?: number;
-  cues: Cue[];
-};
+export type { CueDocument } from './cues';
+
 type Row = Cue & { id: number; selected: boolean };
 type Props = {
   document: CueDocument;
@@ -97,6 +95,16 @@ export function CueEditor({
     setRows(next);
     setMassShift(0);
   };
+  const importJson = useRef((raw: string) => {});
+  // Revalidate the current track/editability after an asynchronous file read.
+  importJson.current = (raw) => {
+    if (disabled) return;
+    const next = parseCueDocument(raw, source.audio_hash, length);
+    setRows(makeRows(next.cues));
+    setInterval(next.spacing_seconds ?? 5);
+    setMassShift(0);
+    setError('');
+  };
 
   return (
     <Section title="Auto singing" buttons={<Box>{rows.length}/200</Box>}>
@@ -141,6 +149,7 @@ export function CueEditor({
         <Stack.Item>
           <Button
             icon="save"
+            aria-label="Apply cues"
             tooltip="Apply cues"
             disabled={disabled || !source.audio_hash}
             onClick={() => commit()}
@@ -260,22 +269,32 @@ export function CueEditor({
           <Stack.Item>
             <Button
               icon="list-ol"
-              tooltip="Append text as timed lines (+T per line)"
+              aria-label="Parse mass cue"
+              tooltip="Append text (+T per line) / import JSON cue sheet"
               disabled={disabled || !source.audio_hash || !bulkText.trim()}
-              onClick={() =>
+              onClick={() => {
+                const pasted = bulkText.trim();
+                if (pasted.startsWith('{')) {
+                  try {
+                    importJson.current(pasted);
+                  } catch (err) {
+                    setError(String(err));
+                  }
+                  return;
+                }
                 mutate(() => [
                   ...rows,
                   ...makeRows(appendCueText(rows, bulkText, interval, length)),
-                ])
-              }
+                ]);
+              }}
             />
           </Stack.Item>
         </Stack>
         <TextArea
+          aria-label="Mass cue"
           fluid
           height="8em"
           value={bulkText}
-          maxLength={60200}
           disabled={disabled}
           onChange={setBulkText}
         />
@@ -292,21 +311,8 @@ export function CueEditor({
           try {
             if (uploaded.size > 300000)
               throw new Error('Cue sheet exceeds 300 KB.');
-            const next = JSON.parse(await uploaded.text()) as CueDocument;
-            if (
-              next.version !== 1 ||
-              !source.audio_hash ||
-              next.audio_hash !== source.audio_hash ||
-              !Array.isArray(next.cues)
-            )
-              throw new Error('Cue sheet does not match the loaded OGG.');
-            validateCues(next.cues, length);
-            const spacing = next.spacing_seconds ?? 5;
-            validateCueInterval(spacing);
-            setRows(makeRows([...next.cues].sort((a, b) => a.time - b.time)));
-            setInterval(spacing);
-            setMassShift(0);
-            setError('');
+            const raw = await uploaded.text();
+            importJson.current(raw);
           } catch (err) {
             setError(String(err));
           }

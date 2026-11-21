@@ -1,5 +1,5 @@
 /datum/song
-	volume = 75
+	volume = 30
 	max_volume = 100
 	max_sound_channels = 32
 
@@ -19,33 +19,47 @@
 	var/ignore_midi_start_delay = FALSE
 
 /datum/song/Destroy()
+	cancel_music_document_upload()
 	QDEL_NULL(piano_roll)
 	auto_unison_enabled = FALSE
 	. = ..()
 	STOP_PROCESSING(SSinstruments, src)
 	cleanup_music_uploads()
 	loaded_file_tracks = null
+	file_transfer_data = null
 
 /// Refresh all configured music sources and their spatial sound state.
 /datum/song/do_hearcheck()
+	if(world.time < last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
+		return
 	last_hearcheck = world.time
 	var/list/old = hearing_mobs.Copy()
 	hearing_mobs.len = 0
 	var/list/sources = get_instrument_sources()
 	for(var/turf/origin as anything in sources)
-		for(var/mob/listener in get_hearers_in_view(instrument_range, origin))
+		var/list/listeners
+		if(playback_mode == "file")
+			listeners = get_hearers_in_range(instrument_range, origin, RECURSIVE_CONTENTS_CLIENT_MOBS)
+		else
+			listeners = get_hearers_in_view(instrument_range, origin, RECURSIVE_CONTENTS_CLIENT_MOBS) | get_hearers_in_range(min(2, instrument_range), origin, RECURSIVE_CONTENTS_CLIENT_MOBS)
+		for(var/mob/listener as anything in listeners)
+			if(!listener.client || !HAS_TRAIT(listener, TRAIT_HEARING_SENSITIVE))
+				continue
 			hearing_mobs[listener] = get_dist(listener, origin)
 	var/list/exited = old - hearing_mobs
-	for(var/i in exited)
-		terminate_sound_mob(i)
 	if(playback_mode == "file")
 		update_file_listeners(sources)
 	else
+		for(var/i in exited)
+			terminate_sound_mob(i)
 		refresh_music_spatial()
 
 /// Dispatch playback engines; the base text-note start cannot initialize MIDI/OGG or exact deadlines.
 /datum/song/start_playing(atom/user)
 	if(playing)
+		return
+	if(!can_use_advanced_music(user))
+		to_chat(user, span_warning("Playing instruments requires the Musician profession."))
 		return
 	if(istype(parent, /obj/item/instrument))
 		var/obj/item/instrument/instrument = parent
@@ -75,6 +89,7 @@
 	playing = TRUE
 	//we can not afford to runtime, since we are going to be doing sound channel reservations and if we runtime it means we have a channel allocation leak.
 	//wrap the rest of the stuff to ensure stop_playing() is called.
+	last_hearcheck = world.time - MUSIC_SPATIAL_UPDATE_INTERVAL
 	do_hearcheck()
 	SEND_SIGNAL(parent, COMSIG_INSTRUMENT_START, src, user)
 	SEND_SIGNAL(user, COMSIG_ATOM_STARTING_INSTRUMENT, src)
@@ -104,11 +119,19 @@
 /datum/song/stop_playing(finished = FALSE)
 	cancel_delayed_midi_start()
 	cancel_sync_timers()
-	var/was_playing = playing
+	var/was_playing = playing || file_preparing
+	if(file_preparing && !auto_unison_enabled)
+		STOP_PROCESSING(SSinstruments, src)
+	cancel_file_preparation()
 	. = ..()
 	if(!was_playing)
 		return
+	file_start_listener = null
+	file_initiator = null
+	file_start_deadline = 0
 	file_track_finish_time = 0
+	music_player = null
+	hearing_mobs.Cut()
 	last_process_time = 0
 	next_chord_time = 0
 	voice_ends.Cut()
@@ -175,6 +198,9 @@
 
 /// Process the selected engine and preserve elapsed time for note decay.
 /datum/song/process(wait)
+	if(file_preparing)
+		process_file_preparation()
+		return
 	if(!playing)
 		if(auto_unison_enabled)
 			if(world.time >= last_unison_check + 1 SECONDS)
@@ -185,11 +211,16 @@
 	if(playback_mode == "sequence")
 		process_sequence()
 		return
+	if(!can_use_advanced_music(music_player))
+		stop_playing()
+		return
 	var/elapsed = max(0, world.time - last_process_time)
 	last_process_time = world.time
 	if(playback_mode != "file")
 		process_sequence_voices()
 		process_decay(elapsed)
+		if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
+			do_hearcheck()
 	process_song(elapsed)
 
 /// Locate a musician who can currently play this instrument.
@@ -228,6 +259,6 @@
 /datum/song/proc/set_playback_mode(new_mode)
 	if(!(new_mode in list("midi", "sequence", "file")))
 		return
-	if(playing)
+	if(playing || file_preparing)
 		stop_playing()
 	playback_mode = new_mode
