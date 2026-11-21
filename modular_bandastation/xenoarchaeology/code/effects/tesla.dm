@@ -1,0 +1,24 @@
+/datum/xenoartifact_effect/tesla
+	log_name = "Разряд Теслы"
+	type_name = XENO_EFFECT_ELECTRO
+
+/datum/xenoartifact_effect/tesla/New(atom/location)
+	. = ..()
+	release_method = XENO_EFFECT_PULSE
+	range = rand(4, 8)
+	current_charge = 0
+	maximum_charges = 30
+	activation_pulse_cost = maximum_charges
+	artifact_id = "tesla"
+
+/datum/xenoartifact_effect/tesla/do_effect_pulse(seconds_per_tick)
+	. = ..()
+	if(!.)
+		return
+	// Штатный tesla_zap ищет первую цель на две клетки дальше zap_range.
+	var/zap_range = range - 2
+	tesla_zap(source = holder, zap_range = zap_range, power = zap_range * 15000, cutoff = 10000, zap_flags = ZAP_OBJ_DAMAGE | ZAP_MOB_DAMAGE | ZAP_MOB_STUN | ZAP_GENERATES_POWER)
+	// Yep, it can be used to generate power via tesla coils.
+
+/datum/xenoartifact_effect/tesla/do_effect_destroy()
+	tesla_zap(source = holder, zap_range = 7, power = 2500000, cutoff = 10000, zap_flags = ZAP_OBJ_DAMAGE | ZAP_MOB_DAMAGE | ZAP_MOB_STUN | ZAP_GENERATES_POWER)
