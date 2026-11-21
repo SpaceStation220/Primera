@@ -9,10 +9,36 @@ CREATE TABLE `schema_revision_220` (
   PRIMARY KEY (`major`, `minor`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 5);
+INSERT INTO `schema_revision_220` (`major`, `minor`) VALUES (1, 6);
 
--- Run after the base schema, using the same deployment table prefix.
-ALTER TABLE `library` MODIFY COLUMN `content` MEDIUMTEXT NOT NULL;
+-- Paged archives are independent; no mutation of the legacy library is required.
+CREATE TABLE IF NOT EXISTS `library_paged` (
+	`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	`author` VARCHAR(45) NOT NULL,
+	`title` VARCHAR(45) NOT NULL,
+	`content` MEDIUMTEXT NOT NULL,
+	`category` ENUM('Any','Fiction','Non-Fiction','Adult','Reference','Religion') NOT NULL,
+	`ckey` VARCHAR(32) NOT NULL DEFAULT 'LEGACY',
+	`datetime` DATETIME NOT NULL,
+	`deleted` TINYINT UNSIGNED DEFAULT NULL,
+	`round_id_created` INT UNSIGNED DEFAULT NULL,
+	PRIMARY KEY (`id`),
+	KEY `deleted_idx` (`deleted`),
+	KEY `idx_lib_del_title` (`deleted`,`title`),
+	KEY `idx_lib_search` (`deleted`,`author`,`title`,`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `library_paged_action` (
+	`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	`book` INT UNSIGNED NOT NULL,
+	`reason` LONGTEXT DEFAULT NULL,
+	`ckey` VARCHAR(32) NOT NULL DEFAULT '',
+	`datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`action` VARCHAR(11) NOT NULL DEFAULT '',
+	`ip_addr` INT UNSIGNED NOT NULL,
+	PRIMARY KEY (`id`),
+	KEY `book_idx` (`book`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Token accounts are created only by an actual grant.
 CREATE TABLE IF NOT EXISTS `antag_tokens` (

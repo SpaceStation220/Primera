@@ -9,6 +9,7 @@ export type BookPage = {
   content: string;
   photo?: string | null;
   stamps: { class: string; x: number; y: number; rotation: number }[];
+  torn?: boolean | 0 | 1;
 };
 
 type MarkdownViewerData = {
@@ -19,6 +20,8 @@ type MarkdownViewerData = {
   current_page?: number;
   total_pages?: number;
   can_tear?: boolean | 0 | 1;
+  can_edit_images?: boolean | 0 | 1;
+  image_count?: number;
 };
 
 export const MarkdownViewer = (_: any) => {
@@ -39,6 +42,27 @@ export const MarkdownViewer = (_: any) => {
                     number={
                       current + side <= total ? current + side : undefined
                     }
+                    onUpload={
+                      data.can_edit_images &&
+                      !data.spread?.[side]?.torn &&
+                      current + side <= total
+                        ? () => act('upload_image', { page: current + side })
+                        : undefined
+                    }
+                    onRemove={
+                      data.can_edit_images &&
+                      !data.spread?.[side]?.torn &&
+                      data.spread?.[side]?.photo
+                        ? () => act('remove_image', { page: current + side })
+                        : undefined
+                    }
+                    onTear={
+                      data.can_tear &&
+                      !data.spread?.[side]?.torn &&
+                      current + side <= total
+                        ? () => act('tear_sheet', { page: current + side })
+                        : undefined
+                    }
                   />
                 ))}
               </div>
@@ -56,16 +80,9 @@ export const MarkdownViewer = (_: any) => {
                 </Stack.Item>
                 <Stack.Item>
                   {current} / {total}
-                </Stack.Item>
-                <Stack.Item>
-                  <Button
-                    icon="scissors"
-                    color="bad"
-                    disabled={!data.can_tear || !total}
-                    onClick={() => act('tear_sheet')}
-                  >
-                    Tear Sheet
-                  </Button>
+                  {data.can_edit_images
+                    ? ` | Pictures: ${data.image_count || 0}/10`
+                    : ''}
                 </Stack.Item>
                 <Stack.Item>
                   <Button
@@ -92,32 +109,74 @@ export const MarkdownViewer = (_: any) => {
   );
 };
 
-export function BookPageView(props: { page?: BookPage; number?: number }) {
-  const { page, number } = props;
+export function BookPageView(props: {
+  page?: BookPage;
+  number?: number;
+  onUpload?: () => void;
+  onRemove?: () => void;
+  onTear?: () => void;
+}) {
+  const { page, number, onUpload, onRemove, onTear } = props;
   return (
     <div className="Book__Sheet">
       <div className="Book__Content">
-        {page?.photo && (
+        {!page?.torn && page?.photo && (
           <img
             className="Book__Photo"
             alt="Photograph"
             src={`data:image/png;base64,${page.photo}`}
           />
         )}
-        <MarkdownRenderer content={page?.content || ''} />
+        {page?.torn ? (
+          <Box color="label" textAlign="center" mt={2}>
+            {'\u0420\u0430\u0437\u0440\u044b\u0432'}
+          </Box>
+        ) : (
+          <MarkdownRenderer content={page?.content || ''} />
+        )}
         <div className="Book__Stamps">
-          {page?.stamps.map((stamp, index) => (
-            <Stamp
-              key={index}
-              x={stamp.x}
-              y={stamp.y}
-              rotation={stamp.rotation}
-              sprite={stamp.class}
-            />
-          ))}
+          {!page?.torn &&
+            page?.stamps.map((stamp, index) => (
+              <Stamp
+                key={index}
+                x={stamp.x}
+                y={stamp.y}
+                rotation={stamp.rotation}
+                sprite={stamp.class}
+              />
+            ))}
         </div>
       </div>
-      <div className="Book__PageNumber">{number}</div>
+      <div className="Book__PageNumber">
+        {number}
+        {onTear && !page?.torn && (
+          <Button.Confirm
+            ml={1}
+            icon="scissors"
+            color="bad"
+            aria-label={`Tear page ${number}`}
+            tooltip="Tear this page"
+            onClick={onTear}
+          />
+        )}
+        {onUpload && !page?.torn && (
+          <Button
+            ml={1}
+            icon="image"
+            color="blue"
+            tooltip="Upload or replace PNG"
+            onClick={onUpload}
+          />
+        )}
+        {onRemove && !page?.torn && (
+          <Button
+            icon="trash"
+            color="bad"
+            tooltip="Remove image"
+            onClick={onRemove}
+          />
+        )}
+      </div>
     </div>
   );
 }

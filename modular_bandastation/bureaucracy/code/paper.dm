@@ -176,9 +176,12 @@
 		return stack.add_sheet(src, user) ? ITEM_INTERACT_SUCCESS : ITEM_INTERACT_BLOCKING
 	return ..()
 
-/// Only inline PNG data created by the server can become a photo page.
+/// Bound inline server-created/normalized PNG data; never accept a remote URL.
 /proc/valid_paper_photo(value)
-	if(!istext(value) || length(value) > MAX_PAPER_PHOTO_LENGTH || copytext(value, 1, 12) != "iVBORw0KGgo")
+	if(!istext(value) || length(value) % 4 || length(value) > MAX_PAPER_PHOTO_LENGTH || copytext(value, 1, 12) != "iVBORw0KGgo")
 		return FALSE
 	var/static/regex/base64 = regex(@"^[A-Za-z0-9+/]*={0,2}$")
-	return !!base64.Find(value)
+	if(!base64.Find(value))
+		return FALSE
+	var/bytes = length(value) / 4 * 3 - (endswith(value, "==") ? 2 : (endswith(value, "=") ? 1 : 0))
+	return bytes <= MAX_BOOK_PNG_BYTES

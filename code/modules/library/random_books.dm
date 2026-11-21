@@ -70,7 +70,7 @@
 		category = null
 	var/datum/db_query/query_get_random_books = SSdbcore.NewQuery({"
 		SELECT title, author, content
-		FROM [format_table_name("library")]
+		FROM [SSlibrary.archive_source(include_content = TRUE)]
 		WHERE isnull(deleted) AND (:category IS NULL OR category = :category)
 		ORDER BY rand() LIMIT :limit
 	"}, list("category" = category, "limit" = amount))

@@ -100,7 +100,7 @@
 		balloon_alert(user, "book is carved out!")
 		return FALSE
 
-	if(!book_data.has_content())
+	if(!book_data.has_content() && !can_edit_images(user))
 		balloon_alert(user, "book is blank!")
 		return FALSE
 

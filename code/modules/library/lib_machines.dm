@@ -199,13 +199,13 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 	search_page = clamp(search_page, 0, page_count)
 	var/datum/db_query/query_library_list_books = SSdbcore.NewQuery({"
 		SELECT author, title, category, id
-		FROM [format_table_name("library")]
+		FROM [SSlibrary.archive_source()]
 		WHERE isnull(deleted)
 			AND author LIKE CONCAT('%',:author,'%')
 			AND title LIKE CONCAT('%',:title,'%')
 			AND (:category = 'Any' OR category = :category)
 			[book_id ? "AND id LIKE CONCAT('%', :book_id, '%')" : ""]
-		ORDER BY id DESC
+		ORDER BY datetime DESC, ABS(id) DESC
 		LIMIT :skip, :take
 	"}, list("author" = author, "title" = title, "book_id" = book_id, "category" = category, "skip" = BOOKS_PER_PAGE * search_page, "take" = BOOKS_PER_PAGE))
 
@@ -227,7 +227,7 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 /obj/machinery/computer/libraryconsole/proc/update_page_count()
 	var/bookcount = 0
 	var/datum/db_query/query_library_count_books = SSdbcore.NewQuery({"
-		SELECT COUNT(id) FROM [format_table_name("library")]
+		SELECT COUNT(id) FROM [SSlibrary.archive_source()]
 		WHERE isnull(deleted)
 			AND author LIKE CONCAT('%',:author,'%')
 			AND title LIKE CONCAT('%',:title,'%')
@@ -611,18 +611,14 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 	if(!book.author)
 		say("No author detected. Aborting")
 		return
-	if(!book.has_content())
+	if(!book.content)
 		say("No content detected. Aborting")
 		return
 	var/msg = "has uploaded the book titled [book.title], [length(book.content)] signs"
-	var/archived_content = book.to_archive()
-	if(length(archived_content) > MAX_BOOK_ARCHIVE_LENGTH)
-		say("This book exceeds the archive size limit. Aborting.")
-		return
 	var/datum/db_query/query_library_upload = SSdbcore.NewQuery({"
 		INSERT INTO [format_table_name("library")] (author, title, content, category, ckey, datetime, round_id_created)
 		VALUES (:author, :title, :content, :category, :ckey, Now(), :round_id)
-	"}, list("title" = book.title, "author" = book.author, "content" = archived_content, "category" = upload_category, "ckey" = usr.ckey, "round_id" = GLOB.round_id))
+	"}, list("title" = book.title, "author" = book.author, "content" = book.content, "category" = upload_category, "ckey" = usr.ckey, "round_id" = GLOB.round_id))
 	if(!query_library_upload.Execute())
 		qdel(query_library_upload)
 		say("Database error encountered uploading to Archive")
@@ -660,14 +656,18 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 	new /obj/item/poster(loc, new poster_type)
 
 /obj/machinery/computer/libraryconsole/bookmanagement/proc/print_book(id)
+	var/record_id = SSlibrary.archive_record_id(id)
+	var/archive_table = SSlibrary.archive_table(id)
+	if(!record_id || !archive_table)
+		return
 	if (!SSdbcore.Connect())
 		say("Connection to Archive has been severed. Aborting.")
 		can_connect = FALSE
 		return
 
 	var/datum/db_query/query_library_print = SSdbcore.NewQuery(
-		"SELECT * FROM [format_table_name("library")] WHERE id=:id AND isnull(deleted)",
-		list("id" = id)
+		"SELECT * FROM [archive_table] WHERE id=:id AND isnull(deleted)",
+		list("id" = record_id)
 	)
 	if(!query_library_print.Execute())
 		qdel(query_library_print)
@@ -866,7 +866,7 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 	if(!bound_book.book_data.set_content_from_sheets(sheets))
 		qdel(bound_book)
 		draw_from.forceMove(drop_location())
-		say("The sheets are blank or exceed the book size limit. Binding aborted.")
+		say("The sheets are blank, contain more than 10 pictures, or exceed 2 MiB. Binding aborted.")
 		return
 	visible_message(span_notice("[src] whirs as it prints and binds a new book."))
 	bound_book.book_data.set_author(author_name, trusted = FALSE)

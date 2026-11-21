@@ -66,3 +66,22 @@ SUBSYSTEM_DEF(library)
 	var/list/additional_areas = SSmapping.current_map.library_areas
 	if(additional_areas)
 		library_areas += additional_areas
+
+/// SQL source for catalogue/random-book reads; modules can combine independent archives.
+/datum/controller/subsystem/library/proc/archive_source(include_content = FALSE)
+	return format_table_name("library")
+
+/// Physical archive/history table; null id means a new publication.
+/datum/controller/subsystem/library/proc/archive_table(id = null, history = FALSE)
+	return format_table_name(history ? "library_action" : "library")
+
+/// Validate an external catalogue ID without losing large integer strings to DM float rounding.
+/datum/controller/subsystem/library/proc/archive_record_id(id)
+	if(isnum(id))
+		id = num2text(id, 20)
+	if(!istext(id))
+		return null
+	var/static/regex/valid_id = regex(@"^-?[1-9][0-9]{0,9}$")
+	if(!valid_id.Find(id))
+		return null
+	return copytext(id, 1, 2) == "-" ? copytext(id, 2) : id
