@@ -3,6 +3,8 @@
 #define MUSIC_TRANSFER_WINDOW 8
 #define MUSIC_TRANSFER_INTERVAL (0.1 SECONDS)
 #define MUSIC_TRANSFER_TIMEOUT (20 SECONDS)
+/// Share outbound capacity fairly instead of multiplying the full rate by audience size.
+#define MUSIC_TRANSFER_GLOBAL_PACKETS 8
 /// A sparse clock correction keeps cached playback aligned without resending unchanged gain.
 #define MUSIC_PLAYBACK_SYNC_INTERVAL (5 SECONDS)
 
@@ -87,7 +89,13 @@
 	var/list/instrument_transfer
 	var/instrument_transfer_timer
 	var/instrument_transfer_serial = 0
+	/// Reject late requests even after their completed transfer has been released.
+	var/instrument_transfer_request = 0
 	var/next_instrument_audio_warning = 0
+	/// Pending panels rotate after each packet and are removed on every cancellation path.
+	var/static/list/instrument_transfer_queue = list()
+	var/static/instrument_transfer_budget = MUSIC_TRANSFER_GLOBAL_PACKETS
+	var/static/instrument_transfer_budget_at = 0
 
 /** Resolve only a currently audible source registered by the server. */
 /datum/tgui_panel/proc/get_instrument_song(id, token, hash)
@@ -100,13 +108,27 @@
 	return song
 
 /** Stop the owned timer and notify the browser so a cancelled queue cannot remain stuck. */
-/datum/tgui_panel/proc/cancel_instrument_transfer(notify = TRUE)
+/datum/tgui_panel/proc/cancel_instrument_transfer(notify = TRUE, reason = "cancelled")
+	instrument_transfer_queue -= src
 	if(instrument_transfer_timer)
 		deltimer(instrument_transfer_timer)
 		instrument_transfer_timer = null
 	if(instrument_transfer && notify)
-		window?.send_message("audio/instrumentAbort", list("transfer" = instrument_transfer["transfer"], "hash" = instrument_transfer["hash"]))
+		window?.send_message("audio/instrumentAbort", list("transfer" = instrument_transfer["transfer"], "request" = instrument_transfer["request"], "hash" = instrument_transfer["hash"], "reason" = reason))
 	instrument_transfer = null
+
+/** An accepted request and its duplicate receive the same explicit transfer header. */
+/datum/tgui_panel/proc/send_instrument_transfer_begin()
+	window.send_message("audio/instrumentBegin", list(
+		"transfer" = instrument_transfer["transfer"],
+		"request" = instrument_transfer["request"],
+		"hash" = instrument_transfer["hash"],
+		"size" = instrument_transfer["size"],
+		"bytes" = instrument_transfer["bytes"],
+		"offset" = instrument_transfer["start"],
+		"chunkSize" = MUSIC_TRANSFER_CHARS,
+		"window" = MUSIC_TRANSFER_WINDOW,
+	))
 
 /** One small output per timer invocation; acknowledgments bound the native connection backlog. */
 /datum/tgui_panel/proc/pump_instrument_transfer()
@@ -120,15 +142,30 @@
 		var/datum/song/candidate = source_ref?.resolve()
 		if(candidate && get_instrument_song(id, candidate.file_transfer_token, transfer["hash"]))
 			source = candidate
-			break
+			if(IS_WEAKREF_OF(client?.mob, candidate.file_start_listener))
+				break
 	if(!is_ready() || !source || world.time >= transfer["deadline"])
-		cancel_instrument_transfer()
+		var/reason = !is_ready() ? "panel_not_ready" : (!source ? "source_unavailable" : "ack_timeout")
+		log_admin("OGG transfer aborted: listener=[key_name(client)], reason=[reason], sent=[transfer["sent"]]/[transfer["size"]], acknowledged=[transfer["acked"]], recording_hash=[transfer["hash"]].")
+		cancel_instrument_transfer(reason = reason)
 		return
 	var/sent = transfer["sent"]
 	if(sent < length(source.file_transfer_data) && sent - transfer["acked"] < MUSIC_TRANSFER_CHARS * MUSIC_TRANSFER_WINDOW)
-		var/chunk = copytext(source.file_transfer_data, sent + 1, sent + MUSIC_TRANSFER_CHARS + 1)
-		transfer["sent"] += length(chunk)
-		window.send_message("audio/instrumentChunk", list("transfer" = transfer["transfer"], "offset" = sent, "data" = chunk))
+		instrument_transfer_queue |= src
+		if(world.time >= instrument_transfer_budget_at + MUSIC_TRANSFER_INTERVAL)
+			instrument_transfer_budget_at = world.time
+			instrument_transfer_budget = MUSIC_TRANSFER_GLOBAL_PACKETS
+		if(instrument_transfer_budget > 0 && instrument_transfer_queue[1] == src)
+			instrument_transfer_queue.Cut(1, 2)
+			instrument_transfer_budget--
+			var/chunk = copytext(source.file_transfer_data, sent + 1, sent + MUSIC_TRANSFER_CHARS + 1)
+			transfer["sent"] += length(chunk)
+			window.send_message("audio/instrumentChunk", list("transfer" = transfer["transfer"], "offset" = sent, "data" = chunk))
+			// A large audience may outlive the startup deadline while still making progress.
+			if(source.file_start_deadline && IS_WEAKREF_OF(client?.mob, source.file_start_listener))
+				source.file_start_deadline = max(source.file_start_deadline, world.time + 45 SECONDS)
+	else
+		instrument_transfer_queue -= src
 	instrument_transfer_timer = addtimer(CALLBACK(src, PROC_REF(pump_instrument_transfer)), MUSIC_TRANSFER_INTERVAL, TIMER_STOPPABLE)
 
 /** Clear old-body voices and pending downloads without affecting admin music. */
@@ -162,6 +199,7 @@
 	. = ..()
 	if(type == "ready")
 		cancel_instrument_transfer(FALSE)
+		instrument_transfer_request = 0
 		instrument_audio_states.Cut()
 		return TRUE
 	if(.)
@@ -173,38 +211,46 @@
 				song?.begin_file_timeline(client.mob)
 			return TRUE
 		if("audio/instrumentRequest")
-			if(!islist(payload) || instrument_transfer || !is_ready())
+			if(!islist(payload))
+				return TRUE
+			var/request_id = payload["request"]
+			if(!isnum(request_id) || request_id < 1 || request_id > 1e9 || request_id != round(request_id))
 				return TRUE
 			var/datum/song/song = get_instrument_song(payload["id"], payload["token"], payload["hash"])
-			var/request_id = payload["request"]
-			if(!song?.file_transfer_data || !isnum(request_id) || request_id < 1 || request_id != round(request_id))
+			if(!song?.file_transfer_data || !is_ready())
+				window.send_message("audio/instrumentAbort", list("request" = request_id, "reason" = "source_unavailable"))
 				return TRUE
+			var/offset = isnull(payload["offset"]) ? 0 : payload["offset"]
+			if(!isnum(offset) || offset < 0 || offset >= length(song.file_transfer_data) || offset != round(offset) || offset % MUSIC_TRANSFER_CHARS)
+				window.send_message("audio/instrumentAbort", list("request" = request_id, "reason" = "invalid_offset"))
+				return TRUE
+			if(request_id <= instrument_transfer_request)
+				if(instrument_transfer && instrument_transfer["request"] == request_id && instrument_transfer["hash"] == song.file_transfer_hash && instrument_transfer["start"] == offset)
+					send_instrument_transfer_begin()
+					return TRUE
+				window.send_message("audio/instrumentAbort", list("request" = request_id, "reason" = "stale_request"))
+				return TRUE
+			instrument_transfer_request = request_id
+			cancel_instrument_transfer(FALSE)
 			instrument_transfer = list(
 				"transfer" = "[++instrument_transfer_serial]",
 				"request" = request_id,
 				"hash" = song.file_transfer_hash,
-				"sent" = 0,
-				"acked" = 0,
+				"start" = offset,
+				"sent" = offset,
+				"acked" = offset,
 				"size" = length(song.file_transfer_data),
 				"bytes" = song.file_transfer_bytes,
 				"deadline" = world.time + MUSIC_TRANSFER_TIMEOUT,
 			)
-			window.send_message("audio/instrumentBegin", list(
-				"transfer" = instrument_transfer["transfer"],
-				"request" = request_id,
-				"hash" = song.file_transfer_hash,
-				"size" = length(song.file_transfer_data),
-				"bytes" = song.file_transfer_bytes,
-				"chunkSize" = MUSIC_TRANSFER_CHARS,
-				"window" = MUSIC_TRANSFER_WINDOW,
-			))
+			send_instrument_transfer_begin()
 			instrument_transfer_timer = addtimer(CALLBACK(src, PROC_REF(pump_instrument_transfer)), MUSIC_TRANSFER_INTERVAL, TIMER_STOPPABLE)
 			return TRUE
 		if("audio/instrumentAck")
 			if(!islist(payload) || !instrument_transfer || payload["transfer"] != instrument_transfer["transfer"])
 				return TRUE
 			var/received = payload["received"]
-			if(!isnum(received) || received != round(received) || received <= instrument_transfer["acked"] || received > instrument_transfer["sent"])
+			if(!isnum(received) || received != round(received) || received <= instrument_transfer["acked"] || received > instrument_transfer["sent"] || (received != instrument_transfer["size"] && received % MUSIC_TRANSFER_CHARS))
 				return TRUE
 			instrument_transfer["acked"] = received
 			instrument_transfer["deadline"] = world.time + MUSIC_TRANSFER_TIMEOUT
@@ -224,23 +270,31 @@
 			var/mob/initiator = song.file_initiator?.resolve()
 			var/datum/tgui_panel/initiator_panel = initiator?.client?.tgui_panel
 			var/reason = payload["reason"]
+			if(!(reason in list("transfer", "decode", "blocked", "playback")))
+				return TRUE
+			var/detail = payload["detail"]
+			if(!(detail in list("timeout", "invalid_header", "invalid_chunk", "invalid_ogg", "incomplete", "server_abort", "ack_timeout", "panel_not_ready", "source_unavailable", "invalid_offset", "stale_request", "cancelled")))
+				detail = "unspecified"
+			if(client.mob in song.file_failed_listeners)
+				return TRUE
+			log_admin("OGG browser failure: listener=[key_name(client)], initiator=[key_name(initiator)], source=[song.parent] ([AREACOORD(song.parent)]), channel=[song.last_channel_played], reason=[reason], detail=[detail], preparing=[song.file_preparing], playing=[song.playing].")
 			song.file_failed_listeners |= client.mob
 			song.file_ready_listeners -= client.mob
 			SStgui.update_uis(song)
-			if(!song.playing || (!song.file_start_deadline && world.time > song.file_start_error_until))
+			if((!song.playing && !song.file_preparing) || (!song.file_start_deadline && world.time > song.file_start_error_until))
 				return TRUE
 			if(reason != "blocked" && IS_WEAKREF_OF(client?.mob, song.file_start_listener))
 				song.stop_playing()
-			if(initiator_panel && world.time >= initiator_panel.next_instrument_audio_warning)
+			if(client.mob == initiator && initiator_panel && world.time >= initiator_panel.next_instrument_audio_warning)
 				initiator_panel.next_instrument_audio_warning = world.time + 10 SECONDS
 				var/message = "Instrument music could not be played. Stop and restart it to retry."
 				switch(reason)
 					if("blocked")
-						message = "A listening browser blocked automatic music playback. That listener needs to click the chat window to enable it."
+						message = "Your browser blocked automatic music playback. Click the chat window to enable it."
 					if("transfer")
-						message = "The recording could not be transferred to a listening browser. Stop and restart it to retry."
+						message = "The recording could not be transferred to your browser. Stop and restart it to retry."
 					if("decode")
-						message = "A listening browser could not decode the OGG recording. Check its codec and try another recording."
+						message = "Your browser could not decode the OGG recording. Check its codec and try another recording."
 				to_chat(initiator, span_warning(message))
 			return TRUE
 
@@ -248,4 +302,5 @@
 #undef MUSIC_TRANSFER_WINDOW
 #undef MUSIC_TRANSFER_INTERVAL
 #undef MUSIC_TRANSFER_TIMEOUT
+#undef MUSIC_TRANSFER_GLOBAL_PACKETS
 #undef MUSIC_PLAYBACK_SYNC_INTERVAL

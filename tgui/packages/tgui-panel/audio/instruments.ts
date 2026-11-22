@@ -5,6 +5,8 @@ const MAX_FILE_BYTES = 3 * 1024 * 1024;
 const MAX_CACHE_BYTES = 40 * 1024 * 1024;
 const MAX_VOICES = 32;
 const TRANSFER_TIMEOUT_MS = 25_000;
+const MAX_TRANSFER_RETRIES = 3;
+const TRANSFER_RETRY_DELAY_MS = 2_000;
 
 type Packet = {
   id: string;
@@ -36,9 +38,12 @@ type Transfer = {
   bytes: number;
   chunkSize: number;
   window: number;
+  startOffset: number;
   received: number;
   decoded: number;
   chunks: Uint8Array<ArrayBuffer>[];
+  retries: number;
+  retryPending: boolean;
   timer?: ReturnType<typeof setTimeout>;
 };
 
@@ -62,12 +67,12 @@ function dispose(voice: Voice) {
   audio.load();
 }
 
-function failHash(hash: string) {
+function failHash(hash: string, detail: string) {
   for (const voice of voices.values()) {
-    if (voice.packet.hash !== hash) continue;
+    if (voice.packet.hash !== hash || voice.failed || voice.disposed) continue;
     dispose(voice);
     voice.failed = true;
-    reportVoiceError(voice, 'transfer');
+    reportVoiceError(voice, 'transfer', detail);
   }
   logger.warn('instrument transfer failed', hash);
 }
@@ -75,9 +80,10 @@ function failHash(hash: string) {
 function reportVoiceError(
   voice: Voice,
   reason: 'transfer' | 'decode' | 'blocked' | 'playback',
+  detail?: string,
 ) {
   const { id, token, hash } = voice.packet;
-  Byond.sendMessage('audio/instrumentError', { id, token, hash, reason });
+  Byond.sendMessage('audio/instrumentError', { id, token, hash, reason, detail });
 }
 
 function clearTransfer(cancel: boolean) {
@@ -96,10 +102,53 @@ function armTimeout(transfer: Transfer) {
   clearTimeout(transfer.timer);
   transfer.timer = setTimeout(() => {
     if (active !== transfer) return;
-    clearTransfer(true);
-    failHash(transfer.hash);
-    requestNext();
+    retryTransfer(transfer, 'timeout');
   }, TRANSFER_TIMEOUT_MS);
+}
+
+function requestTransfer(transfer: Transfer) {
+  if (active !== transfer) return;
+  const voice = [...voices.values()].find(
+    (voice) =>
+      voice.packet.hash === transfer.hash && !voice.failed && !voice.disposed,
+  );
+  if (!voice) {
+    clearTransfer(true);
+    requestNext();
+    return;
+  }
+  transfer.retryPending = false;
+  armTimeout(transfer);
+  Byond.sendMessage('audio/instrumentRequest', {
+    request: transfer.request,
+    id: voice.packet.id,
+    token: voice.packet.token,
+    hash: transfer.hash,
+    offset: transfer.received,
+  });
+}
+
+function retryTransfer(transfer: Transfer, detail: string) {
+  if (active !== transfer || transfer.retryPending) return;
+  if (transfer.retries >= MAX_TRANSFER_RETRIES) {
+    clearTransfer(true);
+    failHash(transfer.hash, detail);
+    requestNext();
+    return;
+  }
+  clearTimeout(transfer.timer);
+  Byond.sendMessage('audio/instrumentCancel', {
+    request: transfer.request,
+    hash: transfer.hash,
+  });
+  transfer.transfer = undefined;
+  transfer.request = ++requestSerial;
+  transfer.retryPending = true;
+  transfer.retries++;
+  transfer.timer = setTimeout(
+    () => requestTransfer(transfer),
+    TRANSFER_RETRY_DELAY_MS * transfer.retries,
+  );
 }
 
 function requestNext() {
@@ -114,17 +163,14 @@ function requestNext() {
       bytes: 0,
       chunkSize: 0,
       window: 0,
+      startOffset: 0,
       received: 0,
       decoded: 0,
       chunks: [],
+      retries: 0,
+      retryPending: false,
     };
-    armTimeout(active);
-    Byond.sendMessage('audio/instrumentRequest', {
-      request: active.request,
-      id: packet.id,
-      token: packet.token,
-      hash: packet.hash,
-    });
+    requestTransfer(active);
     return;
   }
 }
@@ -312,6 +358,7 @@ export function beginInstrumentTransfer(packet: {
   bytes: number;
   chunkSize: number;
   window: number;
+  offset?: number;
 }) {
   const transfer = active;
   if (
@@ -322,8 +369,9 @@ export function beginInstrumentTransfer(packet: {
   )
     return;
   if (
-    transfer.transfer ||
+    (transfer.transfer && transfer.transfer !== packet.transfer) ||
     typeof packet.transfer !== 'string' ||
+    !packet.transfer.length ||
     !Number.isInteger(packet.bytes) ||
     packet.bytes < 4 ||
     packet.bytes > MAX_FILE_BYTES ||
@@ -335,14 +383,28 @@ export function beginInstrumentTransfer(packet: {
     !Number.isInteger(packet.window) ||
     packet.window < 1 ||
     packet.window > 8 ||
+    (packet.offset ?? 0) !==
+      (transfer.transfer ? transfer.startOffset : transfer.received) ||
+    (transfer.size !== 0 &&
+      (packet.size !== transfer.size ||
+        packet.bytes !== transfer.bytes ||
+        packet.chunkSize !== transfer.chunkSize)) ||
     !makeRoom(packet.bytes)
   ) {
     clearTransfer(true);
-    failHash(packet.hash);
+    failHash(packet.hash, 'invalid_header');
     requestNext();
     return;
   }
+  if (transfer.transfer) {
+    Byond.sendMessage('audio/instrumentAck', {
+      transfer: transfer.transfer,
+      received: transfer.received,
+    });
+    return;
+  }
   Object.assign(transfer, packet);
+  transfer.startOffset = packet.offset ?? 0;
   armTimeout(transfer);
 }
 
@@ -353,14 +415,29 @@ export function receiveInstrumentChunk(packet: {
 }) {
   const transfer = active;
   if (!transfer?.transfer || packet?.transfer !== transfer.transfer) return;
+  let detail = 'invalid_chunk';
   try {
     if (
-      packet.offset !== transfer.received ||
+      !Number.isInteger(packet.offset) ||
+      packet.offset < 0 ||
+      packet.offset >= transfer.size ||
+      packet.offset % transfer.chunkSize !== 0 ||
       typeof packet.data !== 'string' ||
       packet.data.length !==
-        Math.min(transfer.chunkSize, transfer.size - transfer.received)
+        Math.min(transfer.chunkSize, transfer.size - packet.offset)
     ) {
       throw new Error('Unexpected chunk offset or length');
+    }
+    if (packet.offset < transfer.received) {
+      Byond.sendMessage('audio/instrumentAck', {
+        transfer: transfer.transfer,
+        received: transfer.received,
+      });
+      return;
+    }
+    if (packet.offset > transfer.received) {
+      retryTransfer(transfer, 'invalid_chunk');
+      return;
     }
     const decoded = atob(packet.data);
     const bytes = new Uint8Array(decoded.length);
@@ -372,6 +449,7 @@ export function receiveInstrumentChunk(packet: {
         bytes[2] !== 103 ||
         bytes[3] !== 83)
     ) {
+      detail = 'invalid_ogg';
       throw new Error('Not an OGG recording');
     }
     transfer.chunks.push(bytes);
@@ -380,6 +458,7 @@ export function receiveInstrumentChunk(packet: {
     armTimeout(transfer);
     if (transfer.received === transfer.size) {
       if (transfer.decoded !== transfer.bytes) {
+        detail = 'incomplete';
         throw new Error('Incomplete recording');
       }
       const blob = new Blob(transfer.chunks, { type: 'audio/ogg' });
@@ -404,18 +483,36 @@ export function receiveInstrumentChunk(packet: {
   } catch (error) {
     logger.warn('invalid instrument transfer', error);
     clearTransfer(true);
-    failHash(transfer.hash);
+    failHash(transfer.hash, detail);
     requestNext();
   }
 }
 
 export function abortInstrumentTransfer(packet: {
-  transfer: string;
-  hash: string;
+  transfer?: string;
+  hash?: string;
+  request?: number;
+  reason?: string;
 }) {
-  if (!active || packet?.transfer !== active.transfer) return;
+  if (
+    !active ||
+    !packet ||
+    (packet.hash !== undefined && packet.hash !== active.hash) ||
+    (packet.request !== undefined
+      ? packet.request !== active.request
+      : !packet.transfer || packet.transfer !== active.transfer)
+  )
+    return;
+  if (
+    packet.reason === 'ack_timeout' ||
+    packet.reason === 'panel_not_ready'
+  ) {
+    retryTransfer(active, packet.reason);
+    return;
+  }
+  const hash = active.hash;
   clearTransfer(false);
-  failHash(packet.hash);
+  failHash(hash, packet.reason ?? 'server_abort');
   requestNext();
 }
 

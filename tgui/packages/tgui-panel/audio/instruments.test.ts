@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import {
+  abortInstrumentTransfer,
   beginInstrumentTransfer,
   playInstrumentMusic,
   receiveInstrumentChunk,
@@ -72,31 +73,62 @@ function recording(length = 70013) {
   return bytes;
 }
 
-function begin(bytes: Uint8Array, trackHash = hash) {
+function begin(bytes: Uint8Array, trackHash = hash, offset = 0, transfer = '1') {
   const encoded = Buffer.from(bytes).toString('base64');
   beginInstrumentTransfer({
     request: Number(
       messages.filter((m) => m.type === 'audio/instrumentRequest').at(-1)
         ?.payload.request,
     ),
-    transfer: '1',
+    transfer,
     hash: trackHash,
     size: encoded.length,
     bytes: bytes.length,
     chunkSize: 16384,
     window: 8,
+    offset,
   });
   return encoded;
 }
 
-function deliver(encoded: string) {
-  for (let offset = 0; offset < encoded.length; offset += 16384) {
+function deliver(encoded: string, start = 0, transfer = '1') {
+  for (let offset = start; offset < encoded.length; offset += 16384) {
     receiveInstrumentChunk({
-      transfer: '1',
+      transfer,
       offset,
       data: encoded.slice(offset, offset + 16384),
     });
   }
+}
+
+function transferClock() {
+  let serial = 0;
+  const pending = new Map<number, { callback: () => void; delay: number }>();
+  const timer = spyOn(globalThis, 'setTimeout').mockImplementation(((
+    callback: () => void,
+    delay: number,
+  ) => {
+    const id = ++serial;
+    pending.set(id, { callback, delay });
+    return id;
+  }) as typeof setTimeout);
+  const clear = spyOn(globalThis, 'clearTimeout').mockImplementation(((
+    id: number,
+  ) => pending.delete(id)) as typeof clearTimeout);
+  return {
+    run(delay: number) {
+      expect(pending.size).toBe(1);
+      const [id, next] = [...pending][0];
+      expect(next.delay).toBe(delay);
+      pending.delete(id);
+      next.callback();
+    },
+    restore() {
+      resetInstrumentMusic();
+      timer.mockRestore();
+      clear.mockRestore();
+    },
+  };
 }
 
 test('reassembles exact binary bytes, acknowledges bounded windows, then reuses one Blob', async () => {
@@ -167,21 +199,108 @@ test('stop all suppresses periodic updates and late chunks until a new playback 
   ).toHaveLength(2);
 });
 
-test('rejects out of order chunks instead of playing damaged data', () => {
-  playInstrumentMusic(packet);
-  const encoded = begin(recording());
-  receiveInstrumentChunk({
-    transfer: '1',
-    offset: 16384,
-    data: encoded.slice(16384, 32768),
-  });
-  expect(blobs).toHaveLength(0);
-  expect(messages.some((m) => m.type === 'audio/instrumentCancel')).toBe(true);
-  expect(messages.some((m) => m.type === 'audio/instrumentError')).toBe(true);
-  playInstrumentMusic(packet);
-  expect(
-    messages.filter((m) => m.type === 'audio/instrumentRequest'),
-  ).toHaveLength(1);
+test('resumes a gap without discarding earlier bytes or appending duplicates', async () => {
+  const clock = transferClock();
+  try {
+    const original = recording(150013);
+    playInstrumentMusic(packet);
+    const encoded = begin(original);
+    const first = { transfer: '1', offset: 0, data: encoded.slice(0, 16384) };
+    receiveInstrumentChunk(first);
+    receiveInstrumentChunk(first);
+    expect(messages.at(-1)?.payload.received).toBe(16384);
+    receiveInstrumentChunk({
+      transfer: '1',
+      offset: 32768,
+      data: encoded.slice(32768, 49152),
+    });
+    expect(blobs).toHaveLength(0);
+    expect(messages.some((m) => m.type === 'audio/instrumentError')).toBe(false);
+    clock.run(2000);
+    expect(messages.at(-1)?.payload.offset).toBe(16384);
+    begin(original, hash, 16384, '2');
+    receiveInstrumentChunk(first);
+    deliver(encoded, 16384, '2');
+    expect(blobs).toHaveLength(1);
+    expect(new Uint8Array(await blobs[0].arrayBuffer())).toEqual(original);
+  } finally {
+    clock.restore();
+  }
+});
+
+test('retries a stalled request only three times with increasing pauses', () => {
+  const clock = transferClock();
+  try {
+    playInstrumentMusic(packet);
+    for (const delay of [2000, 4000, 6000]) {
+      clock.run(25000);
+      expect(messages.some((m) => m.type === 'audio/instrumentError')).toBe(false);
+      clock.run(delay);
+    }
+    clock.run(25000);
+    expect(
+      messages.filter((m) => m.type === 'audio/instrumentRequest'),
+    ).toHaveLength(4);
+    expect(messages.at(-1)?.payload.detail).toBe('timeout');
+    playInstrumentMusic(packet);
+    expect(
+      messages.filter((m) => m.type === 'audio/instrumentRequest'),
+    ).toHaveLength(4);
+  } finally {
+    clock.restore();
+  }
+});
+
+test('recovers a server acknowledgment timeout and ignores stale aborts', () => {
+  const clock = transferClock();
+  try {
+    const original = recording();
+    playInstrumentMusic(packet);
+    const encoded = begin(original);
+    const oldRequest = Number(messages[0].payload.request);
+    receiveInstrumentChunk({
+      transfer: '1',
+      offset: 0,
+      data: encoded.slice(0, 16384),
+    });
+    abortInstrumentTransfer({
+      request: oldRequest,
+      transfer: '1',
+      hash,
+      reason: 'ack_timeout',
+    });
+    clock.run(2000);
+    const currentRequest = Number(messages.at(-1)?.payload.request);
+    expect(currentRequest).toBeGreaterThan(oldRequest);
+    abortInstrumentTransfer({ request: oldRequest, hash, reason: 'cancelled' });
+    begin(original, hash, 16384, '2');
+    begin(original, hash, 16384, '2');
+    deliver(encoded, 16384, '2');
+    expect(blobs).toHaveLength(1);
+    expect(messages.some((m) => m.type === 'audio/instrumentError')).toBe(false);
+  } finally {
+    clock.restore();
+  }
+});
+
+test('stop discards partial data and cancels a scheduled retry', () => {
+  const clock = transferClock();
+  try {
+    playInstrumentMusic(packet);
+    begin(recording());
+    clock.run(25000);
+    stopInstrumentMusic({ id: packet.id, token: packet.token });
+    playInstrumentMusic({ ...packet, token: 'new-performance' });
+    expect(messages.at(-1)?.payload.offset).toBe(0);
+    expect(messages.at(-1)?.payload.token).toBe('new-performance');
+    begin(recording(), hash, 0, '2');
+    clock.run(25000);
+    clock.run(2000);
+    expect(messages.at(-1)?.payload.token).toBe('new-performance');
+    expect(messages.some((m) => m.type === 'audio/instrumentError')).toBe(false);
+  } finally {
+    clock.restore();
+  }
 });
 
 test('enforces the file bound before retaining chunks', () => {
@@ -196,6 +315,46 @@ test('enforces the file bound before retaining chunks', () => {
     window: 8,
   });
   expect(messages.at(-1)?.type).toBe('audio/instrumentError');
+  expect(messages.at(-1)?.payload.detail).toBe('invalid_header');
+  expect(blobs).toHaveLength(0);
+});
+
+test('reports a server abort once without blaming OGG decoding', () => {
+  playInstrumentMusic(packet);
+  begin(recording());
+  abortInstrumentTransfer({ transfer: '1', hash });
+  abortInstrumentTransfer({ transfer: '1', hash });
+  playInstrumentMusic(packet);
+  const errors = messages.filter((m) => m.type === 'audio/instrumentError');
+  expect(errors).toHaveLength(1);
+  expect(errors[0].payload).toMatchObject({
+    id: packet.id,
+    token: packet.token,
+    reason: 'transfer',
+    detail: 'server_abort',
+  });
+});
+
+test('handles a rejected initial request without waiting for a transfer id', () => {
+  playInstrumentMusic(packet);
+  abortInstrumentTransfer({
+    request: Number(messages[0].payload.request),
+    reason: 'invalid_offset',
+  });
+  expect(messages.at(-1)?.payload.detail).toBe('invalid_offset');
+  expect(blobs).toHaveLength(0);
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentRequest'),
+  ).toHaveLength(1);
+});
+
+test('reports an invalid OGG signature separately from chunk ordering', () => {
+  playInstrumentMusic(packet);
+  const bytes = recording();
+  bytes[0] = 0;
+  const encoded = begin(bytes);
+  deliver(encoded);
+  expect(messages.at(-1)?.payload.detail).toBe('invalid_ogg');
   expect(blobs).toHaveLength(0);
 });
 
