@@ -4,11 +4,11 @@
 	"assets": [
 		{
 			"path": "modular_bandastation/space_overmap/icons/ship_hatch.dmi",
-			"sha256": "b344bad20f4cf02c0e1b041585b35b79cd6e6338adc4165ce89638a70add62b4",
+			"sha256": "8cc9fea11d84f00199253b8d529ffb1bbb7324f4a5debf91f6294f817e826397",
 			"license": "CC-BY-SA-3.0",
 			"authors": ["BandaStation contributors (art direction and original pixel artwork)"],
 			"source": null,
-			"changes": "Original ship-side docking hatch in the station steel palette, with sliding leaves, a divided viewport, and directional service overlays."
+			"changes": "Original ship-side docking hatch in the station steel palette, with sliding leaves, a divided viewport, and fixed-facing service overlays."
 		},
 		{
 			"path": "modular_bandastation/space_overmap/icons/dock_wall.dmi",
