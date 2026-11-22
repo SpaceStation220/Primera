@@ -58,8 +58,8 @@
 /datum/song/start_playing(atom/user)
 	if(playing)
 		return
-	if(!can_use_advanced_music(user))
-		to_chat(user, span_warning("Playing instruments requires the Musician profession."))
+	if(playback_mode != "midi" && !can_use_advanced_music(user))
+		to_chat(user, span_warning("MIDI and OGG playback require the Musician profession."))
 		return
 	if(istype(parent, /obj/item/instrument))
 		var/obj/item/instrument/instrument = parent
@@ -211,7 +211,7 @@
 	if(playback_mode == "sequence")
 		process_sequence()
 		return
-	if(!can_use_advanced_music(music_player))
+	if(playback_mode != "midi" && !can_use_advanced_music(music_player))
 		stop_playing()
 		return
 	var/elapsed = max(0, world.time - last_process_time)

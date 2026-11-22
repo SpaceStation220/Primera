@@ -306,7 +306,9 @@ export function TopBar(props: TopBarProps) {
               <Button
                 icon={playing || midi_start_pending ? 'stop' : 'play'}
                 color={playing || midi_start_pending ? 'average' : 'good'}
-                disabled={uploading || !data.advanced_music_access}
+                disabled={
+                  uploading || (mode !== 'midi' && !data.advanced_music_access)
+                }
                 onClick={() => onPlay('play_music')}
               >
                 {playing || midi_start_pending ? 'Stop' : 'Start'}
