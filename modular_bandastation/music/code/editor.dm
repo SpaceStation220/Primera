@@ -3,6 +3,7 @@
 	/// Separate TGUI source so the piano roll does not replace the track manager.
 	var/datum/music_piano_roll/piano_roll
 
+/// Compose editor state with initiator readiness separate from the changing audience.
 /datum/song/proc/music_ui_data(list/data, mob/user)
 	data["midi_start_delay_ticks"] = midi_start_delay_ticks
 	data["midi_start_pending"] = !!midi_start_timer
@@ -10,12 +11,22 @@
 	data["playback_mode"] = playback_mode
 	data["file_track_name"] = file_track_name
 	data["file_preparation"] = file_track ? "not_ready" : "none"
-	if(file_preparing)
-		data["file_preparation"] = length(file_failed_listeners) ? "error" : "preparing"
-		if(length(file_listeners) && length(file_ready_listeners) == length(file_listeners))
-			data["file_preparation"] = "ready"
-	else if(playing && playback_mode == "file")
-		data["file_preparation"] = file_start_deadline ? "preparing" : "ready"
+	var/mob/initiator = file_initiator?.resolve()
+	if(file_preparing || (playing && playback_mode == "file"))
+		if(initiator in file_failed_listeners)
+			data["file_preparation"] = "error"
+		else
+			data["file_preparation"] = (initiator in file_ready_listeners) || (!file_preparing && !file_start_deadline) ? "ready" : "preparing"
+	var/listeners_ready = 0
+	var/listeners_total = 0
+	for(var/mob/listener as anything in file_listeners)
+		if(listener == initiator || !listener.client || file_listeners[listener] == SOUND_MUTE)
+			continue
+		listeners_total++
+		if(listener in file_ready_listeners)
+			listeners_ready++
+	data["file_listeners_ready"] = listeners_ready
+	data["file_listeners_total"] = listeners_total
 	data["file_track_length"] = file_track_length ? DisplayTimeText(file_track_length) : null
 	data["file_track_length_seconds"] = max(0, file_track_length / (1 SECONDS))
 	data["can_load_file_tracks"] = TRUE

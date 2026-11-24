@@ -49,6 +49,40 @@
 		Fail("OGG unison started an instrument inside a bag.", __FILE__, __LINE__)
 	leader.stop_playing()
 
+/// Audience arrival or failure must not reset the initiator's preparation indicator.
+/datum/unit_test/music_ogg_preparation_status
+
+/datum/unit_test/music_ogg_preparation_status/Run()
+	var/obj/item/instrument/guitar/instrument = allocate(/obj/item/instrument/guitar, run_loc_floor_bottom_left)
+	var/datum/song/song = instrument.song
+	var/mob/living/carbon/human/consistent/initiator = allocate(/mob/living/carbon/human/consistent)
+	var/mob/living/carbon/human/consistent/listener = allocate(/mob/living/carbon/human/consistent)
+	song.file_track = 'sound/items/bikehorn.ogg'
+	song.file_preparing = TRUE
+	song.file_initiator = WEAKREF(initiator)
+	song.file_listeners[initiator] = NONE
+	var/list/data = song.ui_data(initiator)
+	if(data["file_preparation"] != "preparing")
+		Fail("The unprepared initiator was reported ready.", __FILE__, __LINE__)
+	song.file_ready_listeners |= initiator
+	data = song.ui_data(initiator)
+	if(data["file_preparation"] != "ready")
+		Fail("The prepared initiator was not reported ready.", __FILE__, __LINE__)
+	song.file_listeners[listener] = NONE
+	data = song.ui_data(initiator)
+	if(data["file_preparation"] != "ready")
+		Fail("A newly arriving listener reset the initiator's preparation indicator.", __FILE__, __LINE__)
+	song.file_failed_listeners |= listener
+	data = song.ui_data(initiator)
+	if(data["file_preparation"] != "ready")
+		Fail("A listener failure replaced the initiator's ready state.", __FILE__, __LINE__)
+	song.file_ready_listeners -= initiator
+	song.file_failed_listeners |= initiator
+	data = song.ui_data(initiator)
+	if(data["file_preparation"] != "error")
+		Fail("The initiator's own preparation failure was hidden.", __FILE__, __LINE__)
+	song.stop_playing()
+
 /// MIDI attacks between two server ticks must not lose their entire note duration.
 /datum/unit_test/music_midi_tick_window
 	parent_type = /datum/unit_test/music_with_test_minds

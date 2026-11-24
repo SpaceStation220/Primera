@@ -178,7 +178,7 @@
 	if(world.time < last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		return
 	var/mob/user = file_initiator?.resolve()
-	if(!user?.client || !can_use_advanced_music(user) || !in_range(parent, user) || world.time >= file_start_deadline)
+	if(!user?.client || !can_use_advanced_music(user) || !in_range(parent, user) || (world.time >= file_start_deadline && !(user in file_ready_listeners)))
 		stop_playing()
 		return
 	do_hearcheck()
@@ -193,12 +193,13 @@
 			fdel(path)
 			music_uploads -= path
 
+/// Reuse the initiator's silent preparation before committing the shared OGG timeline.
 /datum/song/proc/start_file_playing(atom/player, mob/initiator)
 	if(!can_use_advanced_music(player))
 		return
 	if(!file_track)
 		return FALSE
-	if(file_preparing && (length(file_failed_listeners) || !IS_WEAKREF_OF(player, file_initiator)))
+	if(file_preparing && ((player in file_failed_listeners) || !IS_WEAKREF_OF(player, file_initiator)))
 		stop_playing()
 	if(!prepare_file_transfer())
 		to_chat(player, span_warning("The recording could not be prepared for playback."))
@@ -237,16 +238,16 @@
 		sync_play()
 	return TRUE
 
-/** Record a browser's warm-up and commit a shared future start for the initial audience. */
+/** Record browser readiness; only the initial barrier may commit a shared future start. */
 /datum/song/proc/begin_file_timeline(mob/listener)
-	if((!playing && !file_preparing) || !file_start_deadline || !(listener in file_listeners) || !listener?.client)
+	if((!playing && !file_preparing) || !(listener in file_listeners) || !listener?.client)
 		return FALSE
 	var/new_ready = !(listener in file_ready_listeners)
 	file_ready_listeners |= listener
 	file_failed_listeners -= listener
 	if(new_ready)
 		SStgui.update_uis(src)
-	if(file_preparing)
+	if(file_preparing || !file_start_deadline)
 		return TRUE
 	var/mob/initiator = file_start_listener?.resolve()
 	if(world.time >= file_start_deadline || !initiator?.client || should_stop_playing(music_player) == STOP_PLAYING || !can_use_advanced_music(music_player))

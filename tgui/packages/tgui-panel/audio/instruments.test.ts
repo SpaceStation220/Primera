@@ -419,7 +419,19 @@ test('warms a cold initiator silently, stops at zero, then accepts a fresh share
       token: packet.token,
       hash,
     });
-    now.mockReturnValue(92_000);
+    // Spatial refreshes and a long wait must not repeat the transfer or silent warm-up.
+    now.mockReturnValue(301_000);
+    playInstrumentMusic({ ...packet, waiting: true, prepare: true });
+    audio.dispatchEvent(new Event('canplay'));
+    await Promise.resolve();
+    expect(audio.play).toHaveBeenCalledTimes(1);
+    expect(
+      messages.filter((m) => m.type === 'audio/instrumentReady'),
+    ).toHaveLength(1);
+    expect(
+      messages.filter((m) => m.type === 'audio/instrumentRequest'),
+    ).toHaveLength(1);
+    now.mockReturnValue(302_000);
     playInstrumentMusic({ ...packet, waiting: false });
     expect(audio.play).toHaveBeenCalledTimes(2);
     expect(audio.muted).toBe(false);
@@ -452,7 +464,7 @@ test('cached restarts still acknowledge readiness without downloading again', as
   expect(audio.muted).toBe(true);
 });
 
-test('other listeners cannot release the start and late listeners keep the shared position', () => {
+test('a late listener acknowledges readiness at the shared position without a new transfer', async () => {
   playInstrumentMusic({ ...packet, waiting: true, prepare: false });
   deliver(begin(recording()));
   const audio = audios[0];
@@ -463,8 +475,15 @@ test('other listeners cannot release the start and late listeners keep the share
   ).toHaveLength(0);
   expect(audio.play).not.toHaveBeenCalled();
   playInstrumentMusic({ ...packet, waiting: false, position: 42 });
+  await Promise.resolve();
   expect(audio.currentTime).toBeGreaterThanOrEqual(42);
   expect(audio.play).toHaveBeenCalledTimes(1);
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentReady'),
+  ).toHaveLength(1);
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentRequest'),
+  ).toHaveLength(1);
 });
 
 test('stop while preparing ignores later readiness and playback errors identify the performance', () => {
@@ -642,5 +661,7 @@ test('a late silent warm-up joins the current position instead of pausing the re
   expect(play).toHaveBeenCalledTimes(2);
   expect(audio.currentTime).toBeGreaterThanOrEqual(42);
   expect(audio.muted).toBe(false);
-  expect(messages.some((m) => m.type === 'audio/instrumentReady')).toBe(false);
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentReady'),
+  ).toHaveLength(1);
 });

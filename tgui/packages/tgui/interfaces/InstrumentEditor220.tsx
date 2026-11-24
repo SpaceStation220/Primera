@@ -83,6 +83,8 @@ export type Data = {
   playback_mode: string;
   file_track_name?: string | null;
   file_preparation?: 'none' | 'not_ready' | 'preparing' | 'ready' | 'error';
+  file_listeners_ready?: number;
+  file_listeners_total?: number;
   file_track_length?: string | null;
   file_track_length_seconds: number;
   can_load_file_tracks: BooleanLike;
@@ -553,6 +555,10 @@ const LibraryPanel = () => {
                       : data.file_preparation === 'error'
                         ? 'Preparation failed'
                         : 'Not prepared'}
+                </Box>
+                <Box mt={0.5} color="label">
+                  Nearby listeners prepared: {data.file_listeners_ready ?? 0} /{' '}
+                  {data.file_listeners_total ?? 0}
                 </Box>
                 <Box mt={0.5} color="label">
                   Detected: {file_track_length}

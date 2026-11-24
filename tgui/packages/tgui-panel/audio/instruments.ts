@@ -218,6 +218,13 @@ function playVoice(voice: Voice, onPlayed?: () => void) {
   );
 }
 
+function reportReady(voice: Voice) {
+  if (voice.readySent) return;
+  voice.readySent = true;
+  const { id, token, hash } = voice.packet;
+  Byond.sendMessage('audio/instrumentReady', { id, token, hash });
+}
+
 function synchronize(voice: Voice, force = false, userGesture = false) {
   const audio = voice.audio;
   if (!audio || voice.failed || voice.disposed) return;
@@ -235,11 +242,8 @@ function synchronize(voice: Voice, force = false, userGesture = false) {
       playVoice(voice, () => {
         audio.pause();
         audio.currentTime = 0;
-        voice.readySent = true;
-        if (voice.packet.waiting) {
-          const { id, token, hash } = voice.packet;
-          Byond.sendMessage('audio/instrumentReady', { id, token, hash });
-        } else {
+        reportReady(voice);
+        if (!voice.packet.waiting) {
           synchronize(voice, true);
         }
       });
@@ -269,7 +273,7 @@ function synchronize(voice: Voice, force = false, userGesture = false) {
       logger.warn('seek failed', error);
     }
   }
-  if (audio.paused && !voice.pending) playVoice(voice);
+  if (audio.paused && !voice.pending) playVoice(voice, () => reportReady(voice));
 }
 
 function retryBlockedVoices() {
