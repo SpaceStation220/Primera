@@ -199,13 +199,13 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 	search_page = clamp(search_page, 0, page_count)
 	var/datum/db_query/query_library_list_books = SSdbcore.NewQuery({"
 		SELECT author, title, category, id
-		FROM [format_table_name("library")]
+		FROM [SSlibrary.archive_source()]
 		WHERE isnull(deleted)
 			AND author LIKE CONCAT('%',:author,'%')
 			AND title LIKE CONCAT('%',:title,'%')
 			AND (:category = 'Any' OR category = :category)
 			[book_id ? "AND id LIKE CONCAT('%', :book_id, '%')" : ""]
-		ORDER BY id DESC
+		ORDER BY datetime DESC, ABS(id) DESC
 		LIMIT :skip, :take
 	"}, list("author" = author, "title" = title, "book_id" = book_id, "category" = category, "skip" = BOOKS_PER_PAGE * search_page, "take" = BOOKS_PER_PAGE))
 
@@ -227,7 +227,7 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 /obj/machinery/computer/libraryconsole/proc/update_page_count()
 	var/bookcount = 0
 	var/datum/db_query/query_library_count_books = SSdbcore.NewQuery({"
-		SELECT COUNT(id) FROM [format_table_name("library")]
+		SELECT COUNT(id) FROM [SSlibrary.archive_source()]
 		WHERE isnull(deleted)
 			AND author LIKE CONCAT('%',:author,'%')
 			AND title LIKE CONCAT('%',:title,'%')
@@ -392,6 +392,7 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 				data["cache_title"] = scan.cache.get_title()
 				data["cache_author"] = scan.cache.get_author()
 				data["cache_content"] = scan.cache.get_content()
+				data["cache_pages"] = scan.cache.get_pages_ui()
 
 		if(LIBRARY_PRINT)
 			data["deity"] = GLOB.deity || DEFAULT_DEITY
@@ -655,14 +656,18 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 	new /obj/item/poster(loc, new poster_type)
 
 /obj/machinery/computer/libraryconsole/bookmanagement/proc/print_book(id)
+	var/record_id = SSlibrary.archive_record_id(id)
+	var/archive_table = SSlibrary.archive_table(id)
+	if(!record_id || !archive_table)
+		return
 	if (!SSdbcore.Connect())
 		say("Connection to Archive has been severed. Aborting.")
 		can_connect = FALSE
 		return
 
 	var/datum/db_query/query_library_print = SSdbcore.NewQuery(
-		"SELECT * FROM [format_table_name("library")] WHERE id=:id AND isnull(deleted)",
-		list("id" = id)
+		"SELECT * FROM [archive_table] WHERE id=:id AND isnull(deleted)",
+		list("id" = record_id)
 	)
 	if(!query_library_print.Execute())
 		qdel(query_library_print)
@@ -676,11 +681,13 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 		if(!QDELETED(src))
 			var/obj/item/book/printed_book = new(get_turf(src))
 			printed_book.name = "Book: [title]"
-			printed_book.book_data = new()
 			var/datum/book_info/fill = printed_book.book_data
 			fill.set_title(title, trusted = TRUE)
 			fill.set_author(author, trusted = TRUE)
-			fill.set_content(content, trusted = TRUE)
+			if(!fill.load_archive(content))
+				qdel(printed_book)
+				say("Unsupported or damaged book data. Printing aborted.")
+				break
 			printed_book.gen_random_icon_state()
 			visible_message(span_notice("[src]'s printer hums as it produces a completely bound book. How did it do that?"))
 			log_paper("[key_name(usr)] has printed \"[title]\" (id: [id]) by [author] from a book management console.")
@@ -714,14 +721,15 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 
 /obj/machinery/libraryscanner/Destroy()
 	held_book = null
-	cache = null
+	QDEL_NULL(cache)
 	return ..()
 
 /obj/machinery/libraryscanner/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
 	if(!istype(tool, /obj/item/book))
 		return NONE
 
-	user.transferItemToLoc(tool, src)
+	if(!user.transferItemToLoc(tool, src))
+		return ITEM_INTERACT_BLOCKING
 	if(held_book)
 		user.put_in_hands(held_book)
 	held_book = tool
@@ -757,15 +765,18 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 		return
 	switch(action)
 		if("scan")
+			if(!held_book || held_book.loc != src || held_book.unique || held_book.carved)
+				return TRUE
 			if(cache?.compare(held_book.book_data))
 				say("This book is already in my internal cache")
 				return
+			QDEL_NULL(cache)
 			cache = held_book.book_data.return_copy()
 			flick("bigscanner1", src)
 			playsound(src, 'sound/machines/scanner/scanner.ogg', vol = 50, vary = TRUE)
 			return TRUE
 		if("clear")
-			cache = null
+			QDEL_NULL(cache)
 			return TRUE
 		if("eject")
 			ui.user.put_in_hands(held_book)
@@ -801,7 +812,7 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 	icon_state = panel_open ? "[base_icon_state]2" : base_icon_state
 
 /obj/machinery/bookbinder/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
-	if(istype(tool, /obj/item/paper))
+	if(istype(tool, /obj/item/paper) || istype(tool, /obj/item/paper_stack))
 		prebind_book(user, tool)
 		return ITEM_INTERACT_SUCCESS
 
@@ -813,7 +824,7 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 
 	return NONE
 
-/obj/machinery/bookbinder/proc/prebind_book(mob/user, obj/item/paper/draw_from)
+/obj/machinery/bookbinder/proc/prebind_book(mob/user, obj/item/draw_from)
 	if(machine_stat)
 		return
 
@@ -834,21 +845,31 @@ GLOBAL_VAR_INIT(library_table_modified, 0)
 	busy = TRUE
 	playsound(src, 'sound/machines/printer.ogg', 50)
 	flick("binder1", src)
-	addtimer(CALLBACK(src, PROC_REF(bind_book), draw_from), 4.1 SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(bind_book), draw_from, scanned_name), 4.1 SECONDS)
 
-/obj/machinery/bookbinder/proc/bind_book(obj/item/paper/draw_from)
+/obj/machinery/bookbinder/proc/bind_book(obj/item/draw_from, author_name = scanned_name)
 	busy = FALSE
-	if(!draw_from) //What the fuck did you do
+	if(QDELETED(draw_from) || draw_from.loc != src)
 		return
 
 	if(machine_stat)
 		draw_from.forceMove(drop_location())
 		return
 
+	var/list/sheets
+	if(istype(draw_from, /obj/item/paper_stack))
+		var/obj/item/paper_stack/stack = draw_from
+		sheets = stack.sheets.Copy()
+	else if(istype(draw_from, /obj/item/paper))
+		sheets = list(draw_from)
+	var/obj/item/book/bound_book = new(drop_location())
+	if(!bound_book.book_data.set_content_from_sheets(sheets))
+		qdel(bound_book)
+		draw_from.forceMove(drop_location())
+		say("The sheets are blank, contain more than 10 pictures, or exceed 2 MiB. Binding aborted.")
+		return
 	visible_message(span_notice("[src] whirs as it prints and binds a new book."))
-	var/obj/item/book/bound_book = new(loc)
-	bound_book.book_data.set_content_using_paper(draw_from)
-	bound_book.book_data.set_author(scanned_name, trusted = FALSE)
+	bound_book.book_data.set_author(author_name, trusted = FALSE)
 	bound_book.name = "Print Job #" + "[rand(100, 999)]"
 	bound_book.gen_random_icon_state()
 	scanned_name = null
