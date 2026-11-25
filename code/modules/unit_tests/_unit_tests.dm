@@ -110,6 +110,7 @@
 // BANDASTATION ADDITION - Fork regression tests in the sorted include block.
 // BANDASTATION ADDITION - Lighting regression tests in the sorted include block
 // BEGIN_INCLUDE
+#include "../../../modular_bandastation/augmentation_preferences/code/tests/cosmetic_extremity_tests.dm"
 #include "../../../modular_bandastation/augmentation_preferences/code/tests/robotic_eyes_tests.dm"
 #include "../../../modular_bandastation/species/code/tests/ipc_appearance_tests.dm"
 #include "../../../modular_bandastation/species/code/tests/ipc_cleaning_tests.dm"

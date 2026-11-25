@@ -182,6 +182,7 @@ export type PreferencesMenuData = {
   sierra_antagonist?: AntagonistBackground; // BANDASTATION ADDITION - Private background
   sierra_background: BackgroundPreference[]; // BANDASTATION ADDITION - Sierra background
   character_preview_view: string;
+  show_cosmetic_extremities?: BooleanLike;
   character_profiles: (string | null)[];
 
   character_preferences: CharacterPreferencesData;

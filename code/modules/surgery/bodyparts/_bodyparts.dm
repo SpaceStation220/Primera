@@ -73,6 +73,8 @@
 	var/plaintext_zone
 	var/aux_zone // used for hands
 	var/aux_layer
+	/// Cosmetic hand or foot model, independent of the limb's material.
+	var/cosmetic_extremity_style
 	/// bitflag used to check which clothes cover this bodypart
 	var/body_part
 	/// List of obj/item's embedded inside us. Managed by embedded components, do not modify directly
@@ -1359,6 +1361,23 @@
 	// This is the MEAT of limb icon code
 	var/used_icon = (should_draw_greyscale && icon_greyscale) || icon_static
 	var/used_state = "[limb_id]_[body_zone][is_dimorphic ? "_[limb_gender]" : ""]"
+	var/ipc_cosmetic = limb_id == SPECIES_IPC
+	var/cosmetic_icon = 'modular_bandastation/augmentation_preferences/icons/cosmetic_extremities.dmi'
+	if(ipc_cosmetic)
+		cosmetic_icon = 'modular_bandastation/augmentation_preferences/icons/ipc_cosmetic_extremities.dmi'
+	var/cosmetic_zone
+	var/native_limb = ipc_cosmetic || (limb_id == SPECIES_HUMAN && used_icon == DEFAULT_BODYPART_ICON_ORGANIC)
+	if(cosmetic_extremity_style && native_limb && !is_dimorphic && !is_husked && !is_emissive)
+		switch(body_zone)
+			if(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM)
+				cosmetic_zone = aux_zone
+			if(BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+				cosmetic_zone = body_zone == BODY_ZONE_L_LEG ? BODY_ZONE_PRECISE_L_FOOT : BODY_ZONE_PRECISE_R_FOOT
+				// Both native leg layouts include feet. Use a cut base for the replacement.
+				if(ipc_cosmetic)
+					used_state += "_base"
+				else
+					used_icon = cosmetic_icon
 
 	var/image/limb = image(used_icon, used_state, -BODYPARTS_LAYER, dir = image_dir)
 	var/image/aux = null
@@ -1367,7 +1386,10 @@
 
 	.[limb] = LIMB_OVERLAY_TEXTURED|LIMB_OVERLAY_CORE
 
-	if(aux_zone) //Hand shit
+	if(cosmetic_zone)
+		aux = image(cosmetic_icon, "[lowertext(cosmetic_extremity_style)]_[cosmetic_zone]", aux_zone ? -aux_layer : -BODYPARTS_LAYER, dir = image_dir)
+		.[aux] = LIMB_OVERLAY_CORE
+	else if(aux_zone)
 		aux = image(limb.icon, "[limb_id]_[aux_zone]", -aux_layer, dir = image_dir)
 		.[aux] = LIMB_OVERLAY_TEXTURED|LIMB_OVERLAY_CORE
 
@@ -1391,7 +1413,7 @@
 			limb_em_block = image(limb_em_block, dir = SOUTH)
 		.[limb_em_block] = LIMB_OVERLAY_META
 
-		if(aux_zone)
+		if(aux)
 			var/mutable_appearance/aux_em_block = emissive_blocker(aux.icon, aux.icon_state, location, layer = aux.layer, alpha = aux.alpha)
 			if (dropped)
 				aux_em_block = image(aux_em_block, dir = SOUTH)
@@ -1421,7 +1443,7 @@
 
 	if(draw_color)
 		limb.color = "[draw_color]"
-		if(aux_zone)
+		if(aux && !cosmetic_zone)
 			aux.color = "[draw_color]"
 
 	// No need to handle leg layering if dropped, we only face south anyways

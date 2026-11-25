@@ -17,7 +17,10 @@ import { capitalize, createSearch } from 'tgui-core/string';
 import { CharacterPreview } from '../../common/CharacterPreview';
 import { Preference } from '../components/Preference';
 import { RandomizationButton } from '../components/RandomizationButton';
-import { BodyModificationsPage } from '../preferences/BodyModificationsPage';
+import {
+  BodyModificationsPage,
+  cosmeticExtremityPreferences,
+} from '../preferences/BodyModificationsPage';
 import { features } from '../preferences/features';
 import {
   type FeatureChoicedServerData,
@@ -376,8 +379,11 @@ export function MainPage(props: MainPageProps) {
   const currentSpeciesData =
     serverData?.species[data.character_preferences.misc.species];
 
-  const contextualPreferences =
-    data.character_preferences.secondary_features || [];
+  const contextualPreferences = Object.fromEntries(
+    Object.entries(data.character_preferences.secondary_features ?? {}).filter(
+      ([id]) => !cosmeticExtremityPreferences.includes(id),
+    ),
+  );
 
   const mainFeatures = [
     ...Object.entries(data.character_preferences.clothing ?? {}),
