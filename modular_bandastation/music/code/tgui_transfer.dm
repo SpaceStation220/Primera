@@ -63,7 +63,7 @@
 		"token" = file_transfer_token,
 		"hash" = file_transfer_hash,
 		"volume" = output_gain,
-		"position" = file_start_deadline ? 0 : (world.time - playback_started_at) / (1 SECONDS),
+		"position" = file_start_deadline ? 0 : (REALTIMEOFDAY - playback_started_at) / (1 SECONDS),
 		"waiting" = waiting,
 		"prepare" = prepare,
 	))
@@ -163,7 +163,7 @@
 			window.send_message("audio/instrumentChunk", list("transfer" = transfer["transfer"], "offset" = sent, "data" = chunk))
 			// A large audience may outlive the startup deadline while still making progress.
 			if(source.file_start_deadline && IS_WEAKREF_OF(client?.mob, source.file_start_listener))
-				source.file_start_deadline = max(source.file_start_deadline, world.time + 45 SECONDS)
+				source.file_start_deadline = max(source.file_start_deadline, REALTIMEOFDAY + 45 SECONDS)
 	else
 		instrument_transfer_queue -= src
 	instrument_transfer_timer = addtimer(CALLBACK(src, PROC_REF(pump_instrument_transfer)), MUSIC_TRANSFER_INTERVAL, TIMER_STOPPABLE)
@@ -281,7 +281,7 @@
 			song.file_failed_listeners |= client.mob
 			song.file_ready_listeners -= client.mob
 			SStgui.update_uis(song)
-			if((!song.playing && !song.file_preparing) || (!song.file_start_deadline && world.time > song.file_start_error_until))
+			if((!song.playing && !song.file_preparing) || (!song.file_start_deadline && REALTIMEOFDAY > song.file_start_error_until))
 				return TRUE
 			if(reason != "blocked" && IS_WEAKREF_OF(client?.mob, song.file_start_listener))
 				song.stop_playing()

@@ -51,10 +51,7 @@
 
 /** Only a master installed in this player's circuit may provide external sources. */
 /obj/machinery/concert_player/proc/get_receivers()
-	var/obj/item/concert_remote/remote = master_component?.remote
-	if(remote?.get_player() == src)
-		return remote.receivers
-	return list()
+	return song.get_concert_receivers()
 
 /** Public start entry point, also used by circuits; it cannot write media. */
 /obj/machinery/concert_player/proc/play_music(mob/initiator)

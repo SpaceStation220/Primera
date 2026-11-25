@@ -5,12 +5,13 @@
 	var/file_track_name
 	/// Selected resource duration in deciseconds.
 	var/file_track_length = 0
-	/// Absolute end time of the current OGG cycle.
+	/// REALTIMEOFDAY end of the current OGG cycle, in deciseconds.
 	var/file_track_finish_time = 0
 	/// Initial human-triggered playback stays at zero until this listener can play it.
 	var/datum/weakref/file_start_listener
 	/// Receives playback errors for this performance, including after the preparation barrier.
 	var/datum/weakref/file_initiator
+	/// REALTIMEOFDAY deadline for the initiating browser to become ready.
 	var/file_start_deadline = 0
 	/// A selected file can be transferred and decoded without starting its timeline.
 	var/file_preparing = FALSE
@@ -18,10 +19,11 @@
 	var/list/file_failed_listeners = list()
 	/// Snapshot of the initial audience; late arrivals do not hold an existing start.
 	var/list/file_start_audience = list()
+	/// REALTIMEOFDAY limit for the initial audience's shared start barrier.
 	var/file_audience_deadline = 0
-	/// Startup failures are reported only around an explicit launch, never for later listeners.
+	/// REALTIMEOFDAY startup error window; later listeners never notify the initiator.
 	var/file_start_error_until = 0
-	/// One-shot common start supplied by OGG unison.
+	/// One-shot REALTIMEOFDAY start supplied by OGG unison.
 	var/file_sync_start_at
 	/// OGG resources retained by this instrument.
 	var/list/loaded_file_tracks = list()
@@ -46,6 +48,10 @@
 	var/turf/origin = get_turf(parent)
 	if(origin)
 		sources[origin] = 1
+	for(var/obj/item/circuit_component/concert_listener/receiver as anything in get_concert_receivers())
+		var/turf/speaker_origin = get_turf(receiver.get_source())
+		if(speaker_origin)
+			sources[speaker_origin] = max(sources[speaker_origin] || 0, receiver.gain.value / 100)
 	return sources
 
 /datum/song/proc/cleanup_music_uploads()
@@ -148,7 +154,7 @@
 	music_player = user
 	file_initiator = WEAKREF(user)
 	file_start_listener = WEAKREF(user)
-	file_start_deadline = world.time + 3 MINUTES
+	file_start_deadline = REALTIMEOFDAY + 3 MINUTES
 	file_preparing = TRUE
 	if(!play_file_to_current_listeners(user))
 		stop_playing()
@@ -178,7 +184,7 @@
 	if(world.time < last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		return
 	var/mob/user = file_initiator?.resolve()
-	if(!user?.client || !can_use_advanced_music(user) || !in_range(parent, user) || (world.time >= file_start_deadline && !(user in file_ready_listeners)))
+	if(!user?.client || !can_use_advanced_music(user) || !in_range(parent, user) || (REALTIMEOFDAY >= file_start_deadline && !(user in file_ready_listeners)))
 		stop_playing()
 		return
 	do_hearcheck()
@@ -215,8 +221,8 @@
 	file_start_deadline = 0
 	if(initiator?.client && !sync_starting)
 		file_start_listener = WEAKREF(initiator)
-		file_start_deadline = world.time + 3 MINUTES
-	playback_started_at = isnull(file_sync_start_at) ? world.time : file_sync_start_at
+		file_start_deadline = REALTIMEOFDAY + 3 MINUTES
+	playback_started_at = isnull(file_sync_start_at) ? REALTIMEOFDAY : file_sync_start_at
 	file_sync_start_at = null
 	file_start_error_until = playback_started_at + MUSIC_START_AUDIENCE_WAIT
 	file_track_finish_time = playback_started_at + file_track_length
@@ -250,21 +256,21 @@
 	if(file_preparing || !file_start_deadline)
 		return TRUE
 	var/mob/initiator = file_start_listener?.resolve()
-	if(world.time >= file_start_deadline || !initiator?.client || should_stop_playing(music_player) == STOP_PLAYING || !can_use_advanced_music(music_player))
+	if(REALTIMEOFDAY >= file_start_deadline || !initiator?.client || should_stop_playing(music_player) == STOP_PLAYING || !can_use_advanced_music(music_player))
 		stop_playing()
 		return FALSE
 	if(!(initiator in file_ready_listeners))
 		return TRUE
 	if(!file_audience_deadline)
-		file_audience_deadline = world.time + MUSIC_START_AUDIENCE_WAIT
+		file_audience_deadline = REALTIMEOFDAY + MUSIC_START_AUDIENCE_WAIT
 	for(var/mob/member as anything in file_start_audience)
-		if(member.client && (member in file_listeners) && file_listeners[member] != SOUND_MUTE && !(member in file_ready_listeners) && !(member in file_failed_listeners) && world.time < file_audience_deadline)
+		if(member.client && (member in file_listeners) && file_listeners[member] != SOUND_MUTE && !(member in file_ready_listeners) && !(member in file_failed_listeners) && REALTIMEOFDAY < file_audience_deadline)
 			return TRUE
 	file_start_listener = null
 	file_start_deadline = 0
 	file_start_audience.Cut()
 	file_audience_deadline = 0
-	playback_started_at = world.time + MUSIC_START_LEAD
+	playback_started_at = REALTIMEOFDAY + MUSIC_START_LEAD
 	file_start_error_until = playback_started_at + MUSIC_START_AUDIENCE_WAIT
 	file_track_finish_time = playback_started_at + file_track_length
 	next_cue = 1
@@ -310,7 +316,7 @@
 				continue
 			var/distance = get_dist_euclidean(destination, origin)
 			nearest_distance = min(nearest_distance, distance)
-			var/source_gain = get_file_source_gain(distance, sources[origin])
+			var/source_gain = get_file_source_gain(distance, sources[origin], origin)
 			if(source_gain > strongest_gain)
 				strongest_gain = source_gain
 				loudest = origin
@@ -354,21 +360,22 @@
 	if(listener in file_listeners)
 		track.status = SOUND_UPDATE
 	else
-		track.offset = max(0, (world.time - playback_started_at) / (1 SECONDS))
+		track.offset = max(0, (REALTIMEOFDAY - playback_started_at) / (1 SECONDS))
 	file_listeners[listener] = NONE
 	return track
 
 /// Compare source gains after distance falloff, not merely their proximity.
-/datum/song/proc/get_file_source_gain(distance, gain = 1)
+/datum/song/proc/get_file_source_gain(distance, gain = 1, turf/origin)
 	if(distance > instrument_range)
 		return 0
-	if(distance <= get_sound_falloff_distance())
+	var/falloff = get_source_falloff_distance(origin)
+	if(distance <= falloff)
 		return max(0, gain)
-	return max(0, gain * (1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)))
+	return max(0, gain * (1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, falloff, INSTRUMENT_FALLOFF_EXPONENT)))
 
 /** OGG distance affects volume only; native channel mode never changes while walking. */
 /datum/song/proc/configure_file_sound(sound/track, turf/origin, turf/destination, distance, multiplier, gain = 1)
-	track.volume = max(0, get_file_output_volume() * multiplier * get_file_source_gain(distance, gain))
+	track.volume = max(0, get_file_output_volume() * multiplier * get_file_source_gain(distance, gain, origin))
 	track.x = 0
 	track.z = 0
 	track.y = 0
@@ -376,6 +383,7 @@
 	track.environment = SOUND_ENVIRONMENT_NONE
 	return TRUE
 
+/// Follow the real audio clock and skip complete expired cycles without replaying their backlog.
 /datum/song/proc/process_file_playing()
 	if(should_stop_playing(music_player) == STOP_PLAYING)
 		stop_playing()
@@ -388,26 +396,30 @@
 		return
 	if(file_start_deadline)
 		var/mob/initiator = file_start_listener?.resolve()
-		if(!initiator?.client || world.time >= file_start_deadline)
+		if(!initiator?.client || REALTIMEOFDAY >= file_start_deadline)
 			to_chat(initiator, span_warning("Music preparation was interrupted. Start it again to retry."))
 			stop_playing()
-		else if((initiator in file_ready_listeners) && (refreshed || (file_audience_deadline && world.time >= file_audience_deadline)))
+		else if((initiator in file_ready_listeners) && (refreshed || (file_audience_deadline && REALTIMEOFDAY >= file_audience_deadline)))
 			begin_file_timeline(initiator)
 		return
-	process_song_cues()
-	if(world.time < file_track_finish_time)
-		return
-	if(repeat > 0 || auto_repeat)
+	var/now = REALTIMEOFDAY
+	if(now >= file_track_finish_time)
+		if(file_track_length <= 0 || (!repeat && !auto_repeat))
+			stop_playing(TRUE)
+			return
+		var/cycles_passed = FLOOR((now - file_track_finish_time) / file_track_length, 1) + 1
+		if(!auto_repeat && cycles_passed > repeat)
+			stop_playing(TRUE)
+			return
 		if(!auto_repeat)
-			repeat--
+			repeat -= cycles_passed
 		terminate_all_sounds()
-		playback_started_at = file_track_finish_time
-		file_track_finish_time += file_track_length
+		playback_started_at = file_track_finish_time + (cycles_passed - 1) * file_track_length
+		file_track_finish_time += cycles_passed * file_track_length
 		next_cue = 1
 		play_file_to_current_listeners(music_player)
 		SEND_SIGNAL(parent, COMSIG_INSTRUMENT_REPEAT, TRUE)
-		return
-	stop_playing(TRUE)
+	process_song_cues()
 
 /// Import timed lyrics for the selected OGG, ignoring bracketed performance annotations.
 /datum/song/proc/load_song_cues(list/document)
@@ -442,11 +454,12 @@
 	next_cue = 1
 	return TRUE
 
+/// Emit only current real-time lyrics, discarding stale lines after a server stall.
 /datum/song/proc/process_song_cues()
 	if(!isliving(music_player))
 		return
 	var/mob/living/singer = music_player
-	var/elapsed = (world.time - playback_started_at) / (1 SECONDS)
+	var/elapsed = (REALTIMEOFDAY - playback_started_at) / (1 SECONDS)
 	var/emitted = 0
 	while(next_cue <= length(song_cues))
 		var/list/cue = song_cues[next_cue]

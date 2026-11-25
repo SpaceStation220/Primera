@@ -11,6 +11,7 @@
 	var/sequence_length = 0
 	var/sequence_cursor = 1
 	var/sequence_offset = 0
+	/// Engine origin: world.time for MIDI sequences, REALTIMEOFDAY for OGG.
 	var/playback_started_at = 0
 	var/list/voice_ends = list()
 	var/list/voice_levels = list()
@@ -216,12 +217,13 @@
 	voice_levels[text_channel] = instrument.volume_multiplier * note["velocity"] / 127
 	var/sound/voice = sound(sample)
 	voice.frequency = frequency
-	var/turf/origin = get_turf(parent)
 	var/output_volume = get_output_volume(volume * voice_levels[text_channel])
 	for(var/mob/listener as anything in hearing_mobs)
 		if(!listener.client)
 			continue
-		listener.playsound_local(origin, null, output_volume * get_listener_volume_multiplier(listener), frequency = frequency, sound_to_use = voice, channel = channel, pressure_affected = FALSE, max_distance = instrument_range, falloff_distance = get_sound_falloff_distance(), falloff_exponent = INSTRUMENT_FALLOFF_EXPONENT)
+		var/list/spatial = listener_spatial[listener]
+		var/turf/origin = spatial?["stereo"] ? get_turf(listener) : (spatial?["origin"] || get_turf(parent))
+		listener.playsound_local(origin, null, output_volume * get_listener_volume_multiplier(listener) * (spatial?["source_gain"] || 1), frequency = frequency, sound_to_use = voice, channel = channel, pressure_affected = FALSE, max_distance = instrument_range, falloff_distance = get_source_falloff_distance(origin), falloff_exponent = INSTRUMENT_FALLOFF_EXPONENT)
 
 /// Unison follows the leader's notes but keeps the follower's own timbre.
 /datum/song/proc/get_sequence_instrument(track)
@@ -264,9 +266,10 @@
 /datum/song/proc/refresh_music_spatial()
 	var/list/previous_spatial = listener_spatial
 	listener_spatial = list()
-	var/turf/source = get_turf(parent)
-	if(!source)
+	var/turf/parent_source = get_turf(parent)
+	if(!parent_source)
 		return
+	var/list/sources = get_instrument_sources()
 	var/list/changed_listeners = list()
 	for(var/mob/listener as anything in hearing_mobs)
 		if(!listener.client)
@@ -274,15 +277,22 @@
 		var/turf/destination = get_turf(listener)
 		if(!destination)
 			continue
+		var/turf/source = music_listener_sources[listener] || parent_source
+		if(!(source in sources))
+			continue
 		var/distance = get_dist_euclidean(source, destination)
-		var/x = source.x - destination.x
-		var/z = source.y - destination.y
+		var/stereo = source != parent_source && distance <= CONCERT_STEREO_RADIUS
+		var/x = stereo ? 0 : source.x - destination.x
+		var/z = stereo ? 0 : source.y - destination.y
 		var/preference = (listener.client.prefs.read_preference(/datum/preference/numeric/volume/sound_instruments) || 0) / 100
-		var/gain = max(0, 1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)) * preference
+		var/gain = get_file_source_gain(distance, sources[source], source) * preference
 		var/list/spatial = previous_spatial[listener]
 		if(!spatial || spatial["client"] != listener.client || spatial["x"] != x || spatial["z"] != z || spatial["gain"] != gain || spatial["range"] != instrument_range)
 			spatial = list("client" = listener.client, "x" = x, "z" = z, "gain" = gain, "range" = instrument_range, "preference" = preference)
 			changed_listeners += listener
+		spatial["origin"] = source
+		spatial["source_gain"] = sources[source]
+		spatial["stereo"] = stereo
 		listener_spatial[listener] = spatial
 	for(var/channel in channels_playing)
 		var/level = voice_levels[channel] ? get_output_volume(volume * voice_levels[channel]) : (channels_playing[channel] * 0.01 * get_output_volume(volume * using_instrument.volume_multiplier))

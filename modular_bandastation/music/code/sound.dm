@@ -36,14 +36,15 @@
 	if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		do_hearcheck()
 	var/sound/music_played = sound(soundfile)
-	var/turf/origin = get_turf(parent)
 	var/output_volume = get_output_volume(volume * using_instrument.volume_multiplier)
 	for(var/i in hearing_mobs)
 		var/mob/M = i
 		var/listener_volume = get_listener_volume_multiplier(M)
 		if(!listener_volume)
 			continue
-		M.playsound_local(origin, null, output_volume * listener_volume, sound_to_use = music_played, pressure_affected = FALSE, max_distance = instrument_range, falloff_distance = get_sound_falloff_distance(), falloff_exponent = INSTRUMENT_FALLOFF_EXPONENT)
+		var/list/spatial = listener_spatial[M]
+		var/turf/origin = spatial?["stereo"] ? get_turf(M) : (spatial?["origin"] || get_turf(parent))
+		M.playsound_local(origin, null, output_volume * listener_volume * (spatial?["source_gain"] || 1), sound_to_use = music_played, pressure_affected = FALSE, max_distance = instrument_range, falloff_distance = get_source_falloff_distance(origin), falloff_exponent = INSTRUMENT_FALLOFF_EXPONENT)
 		// Could do environment and echo later but not for now
 
 /datum/song/playkey_synth(key, atom/player)
@@ -64,13 +65,14 @@
 	var/channel_text = num2text(channel)
 	channels_playing[channel_text] = 100
 	last_channel_played = channel_text
-	var/turf/origin = get_turf(parent)
 	for(var/i in hearing_mobs)
 		var/mob/M = i
 		var/listener_volume = get_listener_volume_multiplier(M)
 		if(!listener_volume)
 			continue
-		M.playsound_local(origin, null, volume * listener_volume, FALSE, K.frequency, INSTRUMENT_FALLOFF_EXPONENT, channel, FALSE, copy, instrument_range, get_sound_falloff_distance())
+		var/list/spatial = listener_spatial[M]
+		var/turf/origin = spatial?["stereo"] ? get_turf(M) : (spatial?["origin"] || get_turf(parent))
+		M.playsound_local(origin, null, volume * listener_volume * (spatial?["source_gain"] || 1), FALSE, K.frequency, INSTRUMENT_FALLOFF_EXPONENT, channel, FALSE, copy, instrument_range, get_source_falloff_distance(origin))
 		// Could do environment and echo later but not for now
 
 /datum/song/process_decay(wait_ds)

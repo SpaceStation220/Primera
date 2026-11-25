@@ -49,6 +49,74 @@
 		Fail("OGG unison started an instrument inside a bag.", __FILE__, __LINE__)
 	leader.stop_playing()
 
+/// Capture lyric delivery without invoking chat or external TTS in clock tests.
+/datum/song/handheld/music_clock_test
+	/// Text dispatched by the real OGG cue scheduler.
+	var/list/emitted_cues = list()
+
+/datum/song/handheld/music_clock_test/emit_song_cue(mob/living/singer, text, use_tts)
+	emitted_cues += text
+
+/// Real audio time must drive lyrics, listener positions and repeat catch-up after a server stall.
+/datum/unit_test/music_ogg_realtime
+	parent_type = /datum/unit_test/music_with_test_minds
+
+/datum/unit_test/music_ogg_realtime/Run()
+	var/mob/living/carbon/human/consistent/player = allocate_player()
+	player.mind.assigned_role = allocate(/datum/job/donor/musician)
+	var/obj/item/instrument/guitar/instrument = allocate(/obj/item/instrument/guitar, run_loc_floor_bottom_left)
+	if(!player.put_in_active_hand(instrument))
+		return Fail("The real-time fixture could not hold its instrument.", __FILE__, __LINE__)
+	var/datum/song/handheld/music_clock_test/song = allocate(/datum/song/handheld/music_clock_test, instrument, list("cshbassgt"))
+	song.auto_unison_enabled = FALSE
+	song.playback_mode = "file"
+	song.file_track = 'sound/items/bikehorn.ogg'
+	song.file_track_length = 20 SECONDS
+	song.auto_sing = TRUE
+	if(!song.load_song_cues(list("version" = 1, "cues" = list(list("time" = 1, "text" = "Stale"), list("time" = 11, "text" = "Current"), list("time" = 16, "text" = "Future")))))
+		return Fail("The real-time cue sheet was rejected.", __FILE__, __LINE__)
+	song.start_playing(player)
+	if(!song.playing)
+		return Fail("The OGG fixture did not start.", __FILE__, __LINE__)
+	// Move the audio origin back without advancing BYOND's game clock.
+	song.playback_started_at = REALTIMEOFDAY - 12 SECONDS
+	song.file_track_finish_time = song.playback_started_at + song.file_track_length
+	var/sound/packet = song.make_file_sound(player, get_turf(instrument), 0, 1)
+	if(packet.offset < 12)
+		return Fail("An OGG listener position used game time instead of the real audio clock.", __FILE__, __LINE__)
+	var/list/data = song.ui_data(player)
+	if(data["playback_seconds"] < 12)
+		return Fail("OGG UI progress did not use the real audio clock.", __FILE__, __LINE__)
+	song.process_file_playing()
+	if(length(song.emitted_cues) != 1 || song.emitted_cues[1] != "Current")
+		return Fail("A lag recovery replayed stale lyrics or delayed the current phrase.", __FILE__, __LINE__)
+	song.stop_playing()
+
+	song.emitted_cues.Cut()
+	song.repeat = 5
+	song.start_playing(player)
+	if(!song.playing)
+		return Fail("The repeat fixture did not start.", __FILE__, __LINE__)
+	song.playback_started_at = REALTIMEOFDAY - 72 SECONDS
+	song.file_track_finish_time = song.playback_started_at + song.file_track_length
+	song.process_file_playing()
+	if(!song.playing || song.repeat != 2)
+		return Fail("A stall spanning three cycles was not handled in one bounded repeat step.", __FILE__, __LINE__)
+	if(length(song.emitted_cues) != 1 || song.emitted_cues[1] != "Current")
+		return Fail("Repeat catch-up did not use the current cycle's lyrics.", __FILE__, __LINE__)
+	if(song.using_sound_channels != 1)
+		return Fail("Repeat catch-up leaked or multiplied OGG channels.", __FILE__, __LINE__)
+	song.stop_playing()
+
+	song.emitted_cues.Cut()
+	song.repeat = 1
+	song.start_playing(player)
+	song.playback_started_at = REALTIMEOFDAY - 72 SECONDS
+	song.file_track_finish_time = song.playback_started_at + song.file_track_length
+	song.process_file_playing()
+	if(song.playing || song.using_sound_channels || length(song.emitted_cues))
+		return Fail("A stall past the final repeat did not stop without replaying expired cycles.", __FILE__, __LINE__)
+
 /// Audience arrival or failure must not reset the initiator's preparation indicator.
 /datum/unit_test/music_ogg_preparation_status
 

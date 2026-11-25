@@ -19,6 +19,8 @@
 	var/ignore_midi_start_delay = FALSE
 
 /datum/song/Destroy()
+	concert_master?.disconnect_player()
+	music_listener_sources.Cut()
 	cancel_music_document_upload()
 	QDEL_NULL(piano_roll)
 	auto_unison_enabled = FALSE
@@ -35,6 +37,7 @@
 	last_hearcheck = world.time
 	var/list/old = hearing_mobs.Copy()
 	hearing_mobs.len = 0
+	music_listener_sources.Cut()
 	var/list/sources = get_instrument_sources()
 	for(var/turf/origin as anything in sources)
 		var/list/listeners
@@ -45,6 +48,10 @@
 		for(var/mob/listener as anything in listeners)
 			if(!listener.client || !HAS_TRAIT(listener, TRAIT_HEARING_SENSITIVE))
 				continue
+			var/turf/previous_origin = music_listener_sources[listener]
+			if(previous_origin && get_file_source_gain(get_dist_euclidean(listener, previous_origin), sources[previous_origin], previous_origin) >= get_file_source_gain(get_dist_euclidean(listener, origin), sources[origin], origin))
+				continue
+			music_listener_sources[listener] = origin
 			hearing_mobs[listener] = get_dist(listener, origin)
 	var/list/exited = old - hearing_mobs
 	if(playback_mode == "file")
@@ -137,6 +144,7 @@
 	voice_ends.Cut()
 	voice_levels.Cut()
 	listener_spatial.Cut()
+	music_listener_sources.Cut()
 	for(var/datum/song/follower as anything in sequence_followers.Copy())
 		if(!QDELETED(follower) && follower.sequence_master == src)
 			follower.stop_playing()

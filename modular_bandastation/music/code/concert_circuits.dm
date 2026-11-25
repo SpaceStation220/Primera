@@ -1,10 +1,10 @@
 /** A manually installed master owns the remote and the stage's transport interface. */
 /obj/item/circuit_component/concert_master
 	display_name = "Concert Master"
-	desc = "Controls a concert player's recorded disk and reports playback state."
+	desc = "Links a concert player or musical instrument to stage speakers and reports playback state."
 	category = "Action"
 	circuit_flags = CIRCUIT_NO_DUPLICATES|CIRCUIT_FLAG_REFUSE_MODULE
-	required_shells = list(/obj/machinery/concert_player)
+	required_shells = list(/obj/machinery/concert_player, /obj/item/instrument, /obj/structure/musician)
 	/// Physical linking remote supplied inside this component.
 	var/obj/item/concert_remote/remote
 	/// Explicit transport inputs, separate from volume and selection updates.
@@ -21,6 +21,8 @@
 	var/datum/port/output/stopped_playing
 	/// Player hosting this component, valid only while the circuit is installed.
 	var/obj/machinery/concert_player/player
+	/// Playback engine borrowed from the installed shell; never owned by the circuit.
+	var/datum/song/source_song
 	/// Signal source retained until unregister_shell, even during component deletion.
 	var/obj/item/integrated_circuit/registered_circuit
 	/// COMSIG_CIRCUIT_SET_ON precedes assignment to the circuit's on field.
@@ -63,21 +65,31 @@
 
 /obj/item/circuit_component/concert_master/register_shell(atom/movable/shell)
 	. = ..()
-	if(!istype(shell, /obj/machinery/concert_player))
+	var/datum/song/new_song
+	if(istype(shell, /obj/machinery/concert_player))
+		player = shell
+		new_song = player.song
+	else if(istype(shell, /obj/item/instrument))
+		var/obj/item/instrument/instrument = shell
+		new_song = instrument.song
+	else if(istype(shell, /obj/structure/musician))
+		var/obj/structure/musician/instrument = shell
+		new_song = instrument.song
+	if(!new_song || (new_song.concert_master && new_song.concert_master != src))
+		player = null
 		return
-	var/obj/machinery/concert_player/new_player = shell
-	if(new_player.master_component && new_player.master_component != src)
-		return
-	player = new_player
-	player.master_component = src
+	source_song = new_song
+	source_song.concert_master = src
+	if(player)
+		player.master_component = src
 	registered_circuit = parent
 	circuit_enabled = parent.on
 	RegisterSignal(registered_circuit, COMSIG_CIRCUIT_SET_ON, PROC_REF(on_power_changed))
-	RegisterSignal(player, COMSIG_INSTRUMENT_START, PROC_REF(on_started))
-	RegisterSignal(player, COMSIG_INSTRUMENT_END, PROC_REF(on_stopped))
+	RegisterSignal(shell, COMSIG_INSTRUMENT_START, PROC_REF(on_started))
+	RegisterSignal(shell, COMSIG_INSTRUMENT_END, PROC_REF(on_stopped))
 	update_outputs()
 	remote?.refresh_receivers()
-	player.update_appearance()
+	player?.update_appearance()
 
 /obj/item/circuit_component/concert_master/unregister_shell(atom/movable/shell)
 	disconnect_player()
@@ -90,34 +102,44 @@
 	registered_circuit = null
 	circuit_enabled = FALSE
 	var/obj/machinery/concert_player/old_player = player
+	var/datum/song/old_song = source_song
+	if(source_song)
+		UnregisterSignal(source_song.parent, list(COMSIG_INSTRUMENT_START, COMSIG_INSTRUMENT_END))
+		if(source_song.concert_master == src)
+			source_song.concert_master = null
 	if(player)
-		UnregisterSignal(player, list(COMSIG_INSTRUMENT_START, COMSIG_INSTRUMENT_END))
 		if(player.master_component == src)
 			player.master_component = null
 	player = null
+	source_song = null
 	remote?.refresh_receivers()
 	update_outputs()
-	if(!QDELETED(old_player))
-		old_player.refresh_sources()
-		old_player.update_appearance()
+	if(!QDELETED(old_song))
+		old_song.refresh_concert_sources()
+	old_player?.update_appearance()
 
 /obj/item/circuit_component/concert_master/input_received(datum/port/input/port)
-	if(QDELETED(player))
+	if(QDELETED(source_song) || source_song.concert_master != src || registered_circuit?.shell != source_song.parent || !circuit_enabled)
 		return
 	if(COMPONENT_TRIGGERED_BY(stop, port))
-		player.stop_music()
+		source_song.stop_playing()
 		return
 	if(CONFIG_GET(flag/disallow_circuit_sounds))
 		return
 	if(port == volume && isnum(volume.value))
-		player.song.set_volume(volume.value)
-	if(port == track_number && isnum(track_number.value))
+		source_song.set_volume(volume.value)
+	if(player && port == track_number && isnum(track_number.value))
 		var/index = round(track_number.value)
 		if(index >= 1 && index <= length(player.inserted_disk?.tracks))
 			player.stop_music()
 			player.selected_track = player.inserted_disk.tracks[index]
 	if(COMPONENT_TRIGGERED_BY(start, port))
-		player.play_music()
+		if(player)
+			player.play_music()
+		else
+			var/atom/performer = source_song.find_sync_player()
+			if(performer)
+				source_song.start_playing(performer)
 	update_outputs()
 
 /obj/item/circuit_component/concert_master/proc/on_power_changed(datum/source, new_value)
@@ -139,13 +161,18 @@
 
 /** Publish state without restarting or mutating the recording. */
 /obj/item/circuit_component/concert_master/proc/update_outputs()
-	track_name.set_output(player?.selected_track?.song_name)
-	is_playing.set_output(!!player?.song?.playing)
+	var/title = source_song?.name
+	if(source_song?.playback_mode == "file")
+		title = source_song.file_track_name
+	else if(source_song?.playback_mode == "sequence")
+		title = source_song.midi_title
+	track_name.set_output(player ? player.selected_track?.song_name : title)
+	is_playing.set_output(!!source_song?.playing)
 
 /** A receiver created by its remote in an editable integrated circuit. */
 /obj/item/circuit_component/concert_listener
 	display_name = "Concert Speaker Receiver"
-	desc = "Receives a linked concert player's audio and transport signals."
+	desc = "Receives a linked concert player or instrument's audio and transport signals."
 	category = "Action"
 	circuit_flags = CIRCUIT_NO_DUPLICATES|CIRCUIT_FLAG_REFUSE_MODULE
 	/// Per-source attenuation, never amplification above transmitter volume.
@@ -212,8 +239,8 @@
 /** Resolve the transmitter through the owning remote and its installed master. */
 /obj/item/circuit_component/concert_listener/proc/get_source()
 	var/obj/item/concert_remote/remote = remote_ref?.resolve()
-	var/obj/machinery/concert_player/player = remote?.get_player()
-	if(!player || QDELETED(receiver_shell) || !circuit_enabled || parent?.shell != receiver_shell || gain.value <= 0)
+	var/datum/song/song = remote?.get_song()
+	if(!song || QDELETED(receiver_shell) || !circuit_enabled || parent?.shell != receiver_shell || gain.value <= 0)
 		return null
 	if(istype(receiver_shell, /obj/structure/concertspeaker) && !receiver_shell.anchored)
 		return null
@@ -221,7 +248,7 @@
 		var/mob/living/holder = receiver_shell.loc
 		if(!istype(holder) || !holder.is_holding(receiver_shell))
 			return null
-	if(!get_turf(player) || !get_turf(receiver_shell))
+	if(!get_turf(song.parent) || !get_turf(receiver_shell))
 		return null
 	return receiver_shell
 
@@ -232,18 +259,18 @@
 		return TRUE
 	if(new_remote && (QDELETED(new_remote) || length(new_remote.receivers) >= CONCERT_MAX_RECEIVERS))
 		return FALSE
-	var/obj/machinery/concert_player/old_player = old_remote?.get_player()
+	var/datum/song/old_song = old_remote?.get_song()
 	if(old_remote)
 		old_remote.receivers -= src
 	remote_ref = new_remote ? WEAKREF(new_remote) : null
 	if(new_remote)
 		new_remote.receivers |= src
 	update_state()
-	if(!QDELETED(old_player))
-		old_player.refresh_sources()
-	var/obj/machinery/concert_player/new_player = new_remote?.get_player()
-	if(new_player && new_player != old_player)
-		new_player.refresh_sources()
+	if(!QDELETED(old_song))
+		old_song.refresh_concert_sources()
+	var/datum/song/new_song = new_remote?.get_song()
+	if(new_song && new_song != old_song)
+		new_song.refresh_concert_sources()
 	return TRUE
 
 /obj/item/circuit_component/concert_listener/proc/on_power_changed(datum/source, new_value)
@@ -255,14 +282,14 @@
 	SIGNAL_HANDLER
 	update_state()
 	var/obj/item/concert_remote/remote = remote_ref?.resolve()
-	var/obj/machinery/concert_player/player = remote?.get_player()
-	player?.refresh_sources()
+	var/datum/song/song = remote?.get_song()
+	song?.refresh_concert_sources()
 
 /** Update shell visuals and emit only actual transport transitions. */
 /obj/item/circuit_component/concert_listener/proc/update_state()
 	var/obj/item/concert_remote/remote = remote_ref?.resolve()
-	var/obj/machinery/concert_player/player = remote?.get_player()
-	var/new_state = !!player?.song?.playing && !!get_source()
+	var/datum/song/song = remote?.get_song()
+	var/new_state = !!song?.playing && !!get_source()
 	if(playing != new_state)
 		playing = new_state
 		is_playing.set_output(playing)
@@ -273,7 +300,7 @@
 	if(istype(receiver_shell, /obj/structure/concertspeaker))
 		var/obj/structure/concertspeaker/speaker = receiver_shell
 		speaker.active = playing
-		speaker.is_synced = !!player
+		speaker.is_synced = !!song
 		speaker.update_appearance()
 
 /** Physical remote owned by one master component, as in the source concert system. */
@@ -299,26 +326,26 @@
 	var/obj/item/circuit_component/concert_master/owner = owner_ref?.resolve()
 	if(owner?.remote == src)
 		owner.remote = null
-	owner?.player?.refresh_sources()
+	owner?.source_song?.refresh_concert_sources()
 	owner_ref = null
 	return ..()
 
 /** A loose or powered-off master cannot relay, but it retains its saved receiver links. */
-/obj/item/concert_remote/proc/get_player()
+/obj/item/concert_remote/proc/get_song()
 	var/obj/item/circuit_component/concert_master/owner = owner_ref?.resolve()
-	var/obj/machinery/concert_player/player = owner?.player
-	if(QDELETED(src) || QDELETED(owner) || owner.remote != src || QDELETED(player))
+	var/datum/song/song = owner?.source_song
+	if(QDELETED(src) || QDELETED(owner) || owner.remote != src || QDELETED(song) || QDELETED(song.parent))
 		return null
-	if(player.master_component != owner || owner.registered_circuit?.shell != player || !owner.circuit_enabled)
+	if(song.concert_master != owner || owner.registered_circuit?.shell != song.parent || !owner.circuit_enabled)
 		return null
-	return player
+	return song
 
 /** Push transport state to receivers and immediately refresh the player's audible sources. */
 /obj/item/concert_remote/proc/refresh_receivers()
 	for(var/obj/item/circuit_component/concert_listener/receiver as anything in receivers)
 		receiver.update_state()
 	var/obj/item/circuit_component/concert_master/owner = owner_ref?.resolve()
-	owner?.player?.refresh_sources()
+	owner?.source_song?.refresh_concert_sources()
 
 /obj/item/concert_remote/interact_with_atom(atom/target, mob/living/user, list/modifiers)
 	if(istype(target, /obj/item/circuit_component/concert_master))

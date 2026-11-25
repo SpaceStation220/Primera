@@ -239,6 +239,100 @@
 	if(returned_module)
 		allocated += returned_module
 
+/** Instrument shells share their real playback engine with the existing concert circuits. */
+/datum/unit_test/concert_instrument_circuits
+	parent_type = /datum/unit_test/music_with_test_minds
+
+/datum/unit_test/concert_instrument_circuits/Run()
+	var/mob/living/carbon/human/consistent/performer = allocate_player()
+	var/datum/job/musician = allocate(/datum/job/donor/musician)
+	performer.mind.assigned_role = musician
+	var/turf/speaker_turf = get_step(run_loc_floor_bottom_left, EAST)
+	for(var/instrument_type in list(/obj/item/instrument/soundhand_metal_guitar, /obj/structure/musician/drumskit, /obj/structure/musician/piano, /obj/item/instrument/piano_synth))
+		var/atom/movable/instrument = allocate(instrument_type, run_loc_floor_bottom_left)
+		if(!isitem(instrument))
+			instrument.set_anchored(TRUE)
+		var/datum/component/shell/instrument_shell = instrument.GetComponent(/datum/component/shell)
+		if(!instrument_shell || instrument_shell.attached_circuit)
+			return Fail("[instrument_type] did not provide an empty circuit shell.", __FILE__, __LINE__)
+		var/obj/item/integrated_circuit/board = allocate(/obj/item/integrated_circuit, run_loc_floor_bottom_left)
+		board.cell = allocate(/obj/item/stock_parts/power_store/cell/high, board)
+		var/obj/item/circuit_component/concert_master/master = allocate(/obj/item/circuit_component/concert_master, run_loc_floor_bottom_left)
+		if(!performer.put_in_inactive_hand(master))
+			return Fail("Could not hold the master for circuit insertion.", __FILE__, __LINE__)
+		master.attack_self(performer)
+		if(master.remote.loc == performer)
+			performer.dropItemToGround(master.remote)
+		if(!board.add_component_manually(master, performer) || !performer.put_in_inactive_hand(board))
+			return Fail("Could not prepare the instrument's master circuit.", __FILE__, __LINE__)
+		if(SEND_SIGNAL(instrument, COMSIG_ATOM_ITEM_INTERACTION, performer, board, list()) != ITEM_INTERACT_SUCCESS || instrument_shell.attached_circuit != board)
+			return Fail("[instrument_type] rejected insertion through the shell's item interaction.", __FILE__, __LINE__)
+		if(!performer.put_in_inactive_hand(master.remote))
+			return Fail("Could not hold the linking remote.", __FILE__, __LINE__)
+		var/datum/song/song = master.source_song
+		if(!song || song.parent != instrument || song.concert_master != master)
+			return Fail("The master was not bound to the instrument's own song.", __FILE__, __LINE__)
+		var/obj/structure/concertspeaker/speaker = allocate(/obj/structure/concertspeaker, speaker_turf)
+		speaker.set_anchored(TRUE)
+		var/datum/component/shell/speaker_shell = speaker.GetComponent(/datum/component/shell)
+		var/obj/item/integrated_circuit/receiver_board = allocate(/obj/item/integrated_circuit, run_loc_floor_bottom_left)
+		receiver_board.cell = allocate(/obj/item/stock_parts/power_store/cell/high, receiver_board)
+		speaker_shell.attach_circuit(receiver_board)
+		master.remote.interact_with_atom(receiver_board, performer, list())
+		var/obj/item/circuit_component/concert_listener/receiver = locate() in receiver_board.attached_components
+		if(!receiver || !(speaker_turf in song.get_instrument_sources()))
+			return Fail("The instrument's remote did not link an external speaker.", __FILE__, __LINE__)
+		performer.dropItemToGround(master.remote)
+		receiver.gain.set_input(25)
+		if(song.get_file_source_gain(5, 0.25, speaker_turf) != 0.25 || song.get_file_source_gain(6, 0.25, speaker_turf) >= 0.25)
+			return Fail("The external instrument source lost its five-tile volume plateau.", __FILE__, __LINE__)
+		song.lines = list("C4,D4")
+		if(!song.load_sequence(list("version" = 1, "title" = "Stage", "notes" = list(list("time" = 0, "duration" = 1, "key" = 60, "velocity" = 100, "channel" = 0, "track" = 0)), "tempos" = list(list("time" = 0, "bpm" = 120)), "tracks" = list(list("id" = 0, "name" = "Stage")))))
+			return Fail("Could not prepare the instrument's MIDI fixture.", __FILE__, __LINE__)
+		song.file_track = 'sound/items/bikehorn.ogg'
+		song.file_track_length = 60 SECONDS
+		// Soundhand guitars occupy both hands; finish circuit assembly before picking one up.
+		if(isitem(instrument) && !performer.put_in_active_hand(instrument))
+			return Fail("Could not hold the configured instrument circuit fixture.", __FILE__, __LINE__)
+		for(var/mode in list("midi", "sequence", "file"))
+			song.set_playback_mode(mode)
+			master.start.set_input(COMPONENT_SIGNAL)
+			if(!song.playing || !master.is_playing.value || !receiver.playing || !speaker.active)
+				return Fail("[instrument_type] did not relay its [mode] playback through the installed master.", __FILE__, __LINE__)
+			board.set_on(FALSE)
+			if(receiver.playing || (speaker_turf in song.get_instrument_sources()) || !song.playing)
+				return Fail("Disabling the master did not isolate external audio from local playback.", __FILE__, __LINE__)
+			board.set_on(TRUE)
+			if(!receiver.playing || !(speaker_turf in song.get_instrument_sources()))
+				return Fail("Re-enabling the master did not restore its existing receiver link.", __FILE__, __LINE__)
+			master.stop.set_input(COMPONENT_SIGNAL)
+			if(song.playing || receiver.playing || speaker.active || song.using_sound_channels)
+				return Fail("Stopping the instrument retained stage playback or sound channels.", __FILE__, __LINE__)
+		performer.mind.assigned_role = null
+		master.start.set_input(COMPONENT_SIGNAL)
+		if(song.playing)
+			return Fail("The master bypassed Musician authorization for instrument OGG.", __FILE__, __LINE__)
+		performer.mind.assigned_role = musician
+		master.start.set_input(COMPONENT_SIGNAL)
+		instrument_shell.remove_circuit()
+		if(master.source_song || song.concert_master || receiver.playing || (speaker_turf in song.get_instrument_sources()) || !song.playing)
+			return Fail("Removing the instrument's board leaked a stage reference or stopped local playback.", __FILE__, __LINE__)
+		instrument_shell.attach_circuit(board)
+		if(istype(instrument, /obj/structure/musician/drumskit))
+			var/obj/structure/musician/drumskit/kit = instrument
+			kit.pack_to_item(performer)
+			var/obj/item/instrument/drumskit_folded/folded = locate() in performer.held_items
+			if(!folded || folded.linked != kit || song.playing || board.shell != kit)
+				return Fail("Folding the drums lost the installed circuit or retained playback.", __FILE__, __LINE__)
+			var/obj/item/wrench/wrench = allocate(/obj/item/wrench, run_loc_floor_bottom_left)
+			folded.tool_act(performer, wrench, list())
+			if(QDELETED(kit) || kit.loc != run_loc_floor_bottom_left || board.shell != kit || master.source_song != song)
+				return Fail("Unfolding the drums replaced the connected kit or its circuit.", __FILE__, __LINE__)
+		qdel(instrument)
+		if(master.source_song || receiver.playing || receiver.remote_ref || speaker.active)
+			return Fail("Deleting the instrument retained its transmitter or receiver state.", __FILE__, __LINE__)
+		qdel(speaker)
+
 /** Walking across the volume plateau updates the same non-positional channel. */
 /datum/unit_test/concert_stereo_radius/Run()
 	var/obj/machinery/concert_player/player = allocate(/obj/machinery/concert_player, run_loc_floor_bottom_left)
@@ -254,7 +348,7 @@
 		return Fail("Could not start the concert packet fixture.", __FILE__, __LINE__)
 	var/datum/song/concert/song = player.song
 	song.set_volume(80)
-	song.playback_started_at = world.time - 3 SECONDS
+	song.playback_started_at = REALTIMEOFDAY - 3 SECONDS
 	var/turf/origin = get_turf(player)
 	var/turf/nearby = locate(origin.x + 5, origin.y, origin.z)
 	var/turf/distant = locate(origin.x + 6, origin.y, origin.z)

@@ -55,7 +55,10 @@
 	data["midi_channels"] = midi_channels
 	data["sequence_offset"] = sequence_offset
 	data["sequence_length"] = sequence_master ? sequence_master.sequence_length : sequence_length
-	data["playback_seconds"] = playing ? (file_start_deadline ? 0 : max(0, (world.time - playback_started_at) / (1 SECONDS))) : (playback_mode == "sequence" ? sequence_offset : 0)
+	data["playback_seconds"] = playback_mode == "sequence" ? sequence_offset : 0
+	if(playing && !file_start_deadline)
+		var/now = playback_mode == "file" ? REALTIMEOFDAY : world.time
+		data["playback_seconds"] = max(0, (now - playback_started_at) / (1 SECONDS))
 	return data
 
 /datum/song/ui_static_data(mob/user)
