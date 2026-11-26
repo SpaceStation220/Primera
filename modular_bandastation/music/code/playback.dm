@@ -42,7 +42,7 @@
 	for(var/turf/origin as anything in sources)
 		var/list/listeners
 		if(playback_mode == "file")
-			listeners = get_hearers_in_range(instrument_range, origin, RECURSIVE_CONTENTS_CLIENT_MOBS)
+			listeners = get_hearers_in_range(instrument_range + INSTRUMENT_FILE_PRELOAD_MARGIN, origin, RECURSIVE_CONTENTS_CLIENT_MOBS)
 		else
 			listeners = get_hearers_in_view(instrument_range, origin, RECURSIVE_CONTENTS_CLIENT_MOBS) | get_hearers_in_range(min(2, instrument_range), origin, RECURSIVE_CONTENTS_CLIENT_MOBS)
 		for(var/mob/listener as anything in listeners)

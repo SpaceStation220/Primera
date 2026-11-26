@@ -230,11 +230,9 @@ function synchronize(voice: Voice, force = false, userGesture = false) {
   if (!audio || voice.failed || voice.disposed) return;
   clearTimeout(voice.startTimer);
   if (voice.autoplayBlocked && !userGesture) return;
-  if (voice.packet.waiting) {
+  if (voice.packet.prepare && !voice.readySent) {
     if (
-      voice.packet.prepare &&
       audio.readyState >= 3 &&
-      !voice.readySent &&
       !voice.pending
     ) {
       audio.muted = true;
@@ -250,6 +248,7 @@ function synchronize(voice: Voice, force = false, userGesture = false) {
     }
     return;
   }
+  if (voice.packet.waiting) return;
   // A late warm-up must finish silently before joining an already started timeline.
   if (voice.pending && audio.muted && !voice.readySent) return;
   if (!audio.readyState || audio.ended) return;

@@ -5,6 +5,8 @@
 #define MUSIC_TRANSFER_TIMEOUT (20 SECONDS)
 /// Share outbound capacity fairly instead of multiplying the full rate by audience size.
 #define MUSIC_TRANSFER_GLOBAL_PACKETS 8
+/// Half of each shared budget may bypass the audience queue for waiting initiators.
+#define MUSIC_TRANSFER_PRIORITY_PACKETS 4
 /// A sparse clock correction keeps cached playback aligned without resending unchanged gain.
 #define MUSIC_PLAYBACK_SYNC_INTERVAL (5 SECONDS)
 
@@ -54,7 +56,7 @@
 	file_listeners[listener] = NONE
 	var/output_gain = clamp(output_volume / 100, 0, 1)
 	var/waiting = !!file_start_deadline
-	var/prepare = waiting && !(listener in file_failed_listeners)
+	var/prepare = !(listener in file_failed_listeners)
 	var/list/previous = panel.instrument_audio_states[last_channel_played]
 	if(previous && previous["token"] == file_transfer_token && previous["hash"] == file_transfer_hash && previous["volume"] == output_gain && previous["waiting"] == waiting && previous["prepare"] == prepare && world.time < previous["sent_at"] + MUSIC_PLAYBACK_SYNC_INTERVAL)
 		return
@@ -94,7 +96,10 @@
 	var/next_instrument_audio_warning = 0
 	/// Pending panels rotate after each packet and are removed on every cancellation path.
 	var/static/list/instrument_transfer_queue = list()
+	/// Subset of the pending queue, avoiding an audience scan on every packet timer.
+	var/static/list/instrument_priority_queue = list()
 	var/static/instrument_transfer_budget = MUSIC_TRANSFER_GLOBAL_PACKETS
+	var/static/instrument_transfer_priority_budget = MUSIC_TRANSFER_PRIORITY_PACKETS
 	var/static/instrument_transfer_budget_at = 0
 
 /** Resolve only a currently audible source registered by the server. */
@@ -110,6 +115,7 @@
 /** Stop the owned timer and notify the browser so a cancelled queue cannot remain stuck. */
 /datum/tgui_panel/proc/cancel_instrument_transfer(notify = TRUE, reason = "cancelled")
 	instrument_transfer_queue -= src
+	instrument_priority_queue -= src
 	if(instrument_transfer_timer)
 		deltimer(instrument_transfer_timer)
 		instrument_transfer_timer = null
@@ -150,14 +156,26 @@
 		cancel_instrument_transfer(reason = reason)
 		return
 	var/sent = transfer["sent"]
+	var/priority = source.file_start_deadline && IS_WEAKREF_OF(client?.mob, source.file_start_listener) && !(client.mob in source.file_ready_listeners)
 	if(sent < length(source.file_transfer_data) && sent - transfer["acked"] < MUSIC_TRANSFER_CHARS * MUSIC_TRANSFER_WINDOW)
 		instrument_transfer_queue |= src
+		if(priority)
+			instrument_priority_queue |= src
+		else
+			instrument_priority_queue -= src
 		if(world.time >= instrument_transfer_budget_at + MUSIC_TRANSFER_INTERVAL)
 			instrument_transfer_budget_at = world.time
 			instrument_transfer_budget = MUSIC_TRANSFER_GLOBAL_PACKETS
-		if(instrument_transfer_budget > 0 && instrument_transfer_queue[1] == src)
-			instrument_transfer_queue.Cut(1, 2)
+			instrument_transfer_priority_budget = MUSIC_TRANSFER_PRIORITY_PACKETS
+		var/datum/tgui_panel/next_panel = instrument_transfer_queue[1]
+		if(instrument_transfer_priority_budget > 0 && length(instrument_priority_queue))
+			next_panel = instrument_priority_queue[1]
+		if(instrument_transfer_budget > 0 && next_panel == src)
+			instrument_transfer_queue -= src
+			instrument_priority_queue -= src
 			instrument_transfer_budget--
+			if(priority)
+				instrument_transfer_priority_budget = max(0, instrument_transfer_priority_budget - 1)
 			var/chunk = copytext(source.file_transfer_data, sent + 1, sent + MUSIC_TRANSFER_CHARS + 1)
 			transfer["sent"] += length(chunk)
 			window.send_message("audio/instrumentChunk", list("transfer" = transfer["transfer"], "offset" = sent, "data" = chunk))
@@ -166,6 +184,7 @@
 				source.file_start_deadline = max(source.file_start_deadline, REALTIMEOFDAY + 45 SECONDS)
 	else
 		instrument_transfer_queue -= src
+		instrument_priority_queue -= src
 	instrument_transfer_timer = addtimer(CALLBACK(src, PROC_REF(pump_instrument_transfer)), MUSIC_TRANSFER_INTERVAL, TIMER_STOPPABLE)
 
 /** Clear old-body voices and pending downloads without affecting admin music. */
@@ -278,7 +297,9 @@
 			if(client.mob in song.file_failed_listeners)
 				return TRUE
 			log_admin("OGG browser failure: listener=[key_name(client)], initiator=[key_name(initiator)], source=[song.parent] ([AREACOORD(song.parent)]), channel=[song.last_channel_played], reason=[reason], detail=[detail], preparing=[song.file_preparing], playing=[song.playing].")
-			song.file_failed_listeners |= client.mob
+			// A browser gesture can recover autoplay; keep its silent preparation enabled.
+			if(reason != "blocked")
+				song.file_failed_listeners |= client.mob
 			song.file_ready_listeners -= client.mob
 			SStgui.update_uis(song)
 			if((!song.playing && !song.file_preparing) || (!song.file_start_deadline && REALTIMEOFDAY > song.file_start_error_until))
@@ -303,4 +324,5 @@
 #undef MUSIC_TRANSFER_INTERVAL
 #undef MUSIC_TRANSFER_TIMEOUT
 #undef MUSIC_TRANSFER_GLOBAL_PACKETS
+#undef MUSIC_TRANSFER_PRIORITY_PACKETS
 #undef MUSIC_PLAYBACK_SYNC_INTERVAL

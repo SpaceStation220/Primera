@@ -244,7 +244,7 @@
 		sync_play()
 	return TRUE
 
-/** Record browser readiness; only the initial barrier may commit a shared future start. */
+/** Await the initiator, then allow a bounded wait for the fixed initial audience. */
 /datum/song/proc/begin_file_timeline(mob/listener)
 	if((!playing && !file_preparing) || !(listener in file_listeners) || !listener?.client)
 		return FALSE
@@ -253,6 +253,9 @@
 	file_failed_listeners -= listener
 	if(new_ready)
 		SStgui.update_uis(src)
+		if(IS_WEAKREF_OF(listener, file_start_listener))
+			last_hearcheck = world.time - MUSIC_SPATIAL_UPDATE_INTERVAL
+			do_hearcheck()
 	if(file_preparing || !file_start_deadline)
 		return TRUE
 	var/mob/initiator = file_start_listener?.resolve()
@@ -321,14 +324,22 @@
 				strongest_gain = source_gain
 				loudest = origin
 		var/multiplier = get_listener_volume_multiplier(listener)
-		if(nearest_distance > instrument_range + INSTRUMENT_FILE_RETENTION_MARGIN)
+		if(nearest_distance > instrument_range + INSTRUMENT_FILE_PRELOAD_MARGIN)
 			if(listener in file_listeners)
+				// Finish only the download already authorized while this listener was nearby.
+				if(!(listener in file_ready_listeners) && !(listener in file_failed_listeners))
+					mute_file_listener(listener)
+					continue
 				terminate_sound_mob(listener)
 				file_listeners -= listener
 				file_ready_listeners -= listener
 				file_failed_listeners -= listener
 			continue
-		if(!(listener in hearing_mobs) || !loudest || !multiplier || HAS_TRAIT(listener, TRAIT_DEAF))
+		if(!multiplier || HAS_TRAIT(listener, TRAIT_DEAF))
+			if(listener in file_listeners)
+				mute_file_listener(listener)
+			continue
+		if(!(listener in hearing_mobs) || !loudest)
 			mute_file_listener(listener)
 			continue
 		send_browser_file_listener(listener, get_file_output_volume() * multiplier * strongest_gain)
@@ -339,10 +350,10 @@
 
 /// Keep a nearby stream alive silently so crossing a range edge does not seek again.
 /datum/song/proc/mute_file_listener(mob/listener)
-	if(!(listener in file_listeners) || file_listeners[listener] == SOUND_MUTE)
-		return
+	// The sender coalesces updates and retries registration after a panel reload.
 	send_browser_file_listener(listener, 0)
-	file_listeners[listener] = SOUND_MUTE
+	if(listener in file_listeners)
+		file_listeners[listener] = SOUND_MUTE
 
 /// Stop retained muted listeners too, before the shared channel is released or reused.
 /datum/song/terminate_all_sounds(clear_channels = TRUE)
@@ -399,7 +410,7 @@
 		if(!initiator?.client || REALTIMEOFDAY >= file_start_deadline)
 			to_chat(initiator, span_warning("Music preparation was interrupted. Start it again to retry."))
 			stop_playing()
-		else if((initiator in file_ready_listeners) && (refreshed || (file_audience_deadline && REALTIMEOFDAY >= file_audience_deadline)))
+		else if(initiator in file_ready_listeners)
 			begin_file_timeline(initiator)
 		return
 	var/now = REALTIMEOFDAY

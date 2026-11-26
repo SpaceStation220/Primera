@@ -638,6 +638,63 @@ test('accepts a full 3 MiB recording in bounded chunks', () => {
   expect(messages.at(-1)?.payload.bytes).toBe(3 * 1024 * 1024);
 });
 
+test('silent prefetch keeps partial bytes and a completed cache survives leaving the source', async () => {
+  const prefetch = { ...packet, waiting: false, prepare: true, volume: 0 };
+  playInstrumentMusic(prefetch);
+  const encoded = begin(recording());
+  receiveInstrumentChunk({ transfer: '1', offset: 0, data: encoded.slice(0, 16384) });
+  playInstrumentMusic({ ...prefetch, position: 10 });
+  deliver(encoded, 16384);
+  const audio = audios[0];
+  Object.defineProperty(audio, 'readyState', { value: 4 });
+  audio.dispatchEvent(new Event('canplay'));
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(audio.volume).toBe(0);
+  expect(blobs).toHaveLength(1);
+  stopInstrumentMusic({ id: packet.id, token: packet.token });
+  playInstrumentMusic({ ...packet, waiting: false, prepare: true, position: 35 });
+  const returning = audios[1];
+  Object.defineProperty(returning, 'readyState', { value: 4 });
+  returning.dispatchEvent(new Event('canplay'));
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(returning.currentTime).toBeGreaterThanOrEqual(35);
+  expect(returning.volume).toBe(packet.volume);
+  expect(messages.some((m) => m.type === 'audio/instrumentCancel')).toBe(false);
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentRequest'),
+  ).toHaveLength(1);
+});
+
+test('late and returning listeners prepare silently before joining without a startup barrier', async () => {
+  const join = { ...packet, waiting: false, prepare: true, position: 42 };
+  playInstrumentMusic(join);
+  deliver(begin(recording()));
+  for (let visit = 0; visit < 2; visit++) {
+    if (visit) playInstrumentMusic({ ...join, position: 60 });
+    const audio = audios[visit];
+    const muted: boolean[] = [];
+    const play = spyOn(audio, 'play').mockImplementation(() => {
+      muted.push(audio.muted);
+      return Promise.resolve();
+    });
+    Object.defineProperty(audio, 'readyState', { value: 4 });
+    audio.dispatchEvent(new Event('canplay'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(muted).toEqual([true, false]);
+    expect(audio.currentTime).toBeGreaterThanOrEqual(visit ? 60 : 42);
+    expect(
+      messages.filter((m) => m.type === 'audio/instrumentReady'),
+    ).toHaveLength(visit + 1);
+    stopInstrumentMusic({ id: packet.id, token: packet.token });
+  }
+  expect(
+    messages.filter((m) => m.type === 'audio/instrumentRequest'),
+  ).toHaveLength(1);
+});
+
 test('a late silent warm-up joins the current position instead of pausing the real performance', async () => {
   playInstrumentMusic({ ...packet, waiting: true, prepare: true });
   deliver(begin(recording()));

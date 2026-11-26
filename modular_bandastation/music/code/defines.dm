@@ -5,13 +5,14 @@
 #define MUSIC_NATIVE_PAGE_CHARS (MUSIC_NATIVE_FIELDS * MUSIC_NATIVE_FIELD_CHARS)
 #define MUSIC_DOCUMENT_MAX_BYTES 600000
 #define MUSIC_NATIVE_MAX_CHARS 800000
-#define INSTRUMENT_FILE_RETENTION_MARGIN 2
+/// Start silent OGG downloads before the listener reaches the audible boundary.
+#define INSTRUMENT_FILE_PRELOAD_MARGIN 5
 #define INSTRUMENT_FILE_OUTPUT_GAIN 3
 #define INSTRUMENT_FALLOFF_DISTANCE 4
 #define INSTRUMENT_FALLOFF_EXPONENT 3
 /// Local audibility is refreshed independently of note scheduling and envelopes.
 #define MUSIC_SPATIAL_UPDATE_INTERVAL (1 SECONDS)
-/// Bound the initial audience wait after the starter is ready, then schedule a shared lead-in.
+/// Bound the fixed initial audience wait and startup error notifications.
 #define MUSIC_START_AUDIENCE_WAIT (5 SECONDS)
 #define MUSIC_START_LEAD (0.5 SECONDS)
 /// Release sampled MIDI voices instead of cutting the waveform at note-off.
