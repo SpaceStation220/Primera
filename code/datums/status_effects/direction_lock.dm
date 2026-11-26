@@ -29,8 +29,8 @@
 /datum/status_effect/direction_lock
 	id = ALERT_DIRECTION_LOCK
 	duration = STATUS_EFFECT_PERMANENT
-	tick_interval = 0.4 SECONDS
-	processing_speed = STATUS_EFFECT_FAST_PROCESS
+	tick_interval = STATUS_EFFECT_AUTO_TICK
+	processing_speed = STATUS_EFFECT_NORMAL_PROCESS
 	status_type = STATUS_EFFECT_UNIQUE
 	on_remove_on_mob_delete = TRUE
 	remove_on_fullheal = TRUE
@@ -114,16 +114,12 @@
 	qdel(src)
 
 /**
- * Re-applies the locked direction or updates tracked facing after movement.
+ * Restores owner.dir to the current locked direction if BYOND step() overrode it.
  */
-/datum/status_effect/direction_lock/proc/enforce_direction()
+/datum/status_effect/direction_lock/proc/restore_locked_dir()
 	if(QDELETED(src) || QDELETED(owner))
 		return
-	if(target_ref)
-		update_tracked_direction()
-		return
-	if(owner.dir != locked_dir)
-		set_owner_dir(locked_dir)
+	set_owner_dir(locked_dir)
 
 /// Updates owner.dir through setDir while temporarily bypassing our own dir-change block.
 /datum/status_effect/direction_lock/proc/set_owner_dir(new_dir)
@@ -159,7 +155,15 @@
 		return FALSE
 	if(!isturf(target.loc) || target.z != owner.z)
 		return FALSE
-	return (target in view(owner.client?.view || world.view, owner))
+	var/view_range = owner.client?.view || world.view
+	var/list/view_size = getviewsize(view_range)
+	if(abs(target.x - owner.x) * 2 > view_size[1] || abs(target.y - owner.y) * 2 > view_size[2])
+		return FALSE
+	// Typed mob iteration avoids collecting turfs and /obj lists from view().
+	for(var/mob/living/seen in view(view_range, owner))
+		if(seen == target)
+			return TRUE
+	return FALSE
 
 /// Recomputes facing toward the tracked target or cancels if visibility is lost.
 /datum/status_effect/direction_lock/proc/update_tracked_direction()
@@ -172,7 +176,7 @@
 	var/new_dir = owner.get_cardinal_dir_to(target)
 	if(new_dir in GLOB.cardinals)
 		set_owner_dir(new_dir)
-	else if(owner.dir != locked_dir)
+	else
 		set_owner_dir(locked_dir)
 
 /datum/status_effect/direction_lock/proc/on_pre_dir_change(datum/source, old_dir, new_dir)
@@ -186,7 +190,10 @@
 	if(!isturf(owner.loc))
 		cancel_lock("фиксация взгляда снята")
 		return
-	enforce_direction()
+	if(target_ref)
+		update_tracked_direction()
+		return
+	restore_locked_dir()
 
 /datum/status_effect/direction_lock/proc/on_owner_statchange(datum/source, new_stat, old_stat)
 	SIGNAL_HANDLER

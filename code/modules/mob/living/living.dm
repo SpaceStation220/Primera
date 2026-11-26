@@ -1062,9 +1062,9 @@ GAME_VERB_PROC(/mob/living, mob_sleep, "Sleep", null)
 
 	. = ..()
 
-	var/datum/status_effect/direction_lock/direction_lock = has_status_effect(/datum/status_effect/direction_lock)
-	if(direction_lock)
-		direction_lock.enforce_direction()
+	if(!. && status_effects)
+		var/datum/status_effect/direction_lock/direction_lock = has_status_effect(/datum/status_effect/direction_lock)
+		direction_lock?.restore_locked_dir()
 
 	if(moving_diagonally != FIRST_DIAG_STEP && isliving(pulledby))
 		var/mob/living/puller = pulledby
