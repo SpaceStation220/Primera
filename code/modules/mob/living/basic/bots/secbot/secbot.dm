@@ -183,6 +183,8 @@
 	update_bot_mode(new_mode = BOT_PREP_ARREST)
 
 /mob/living/basic/bot/secbot/explode()
+	var/datum/ipc_cyberlink_pilot/neural_pilot = ipc_neural_pilot?.resolve()
+	neural_pilot?.destroyed(src)
 	var/atom/drop_location = drop_location()
 	retrieve_secbot_drops(drop_location)
 	new /obj/effect/decal/cleanable/blood/oil(loc)
@@ -198,6 +200,8 @@
 
 /mob/living/basic/bot/secbot/proc/on_entered(datum/source, atom/movable/to_be_tripped)
 	SIGNAL_HANDLER
+	if(ipc_neural_pilot?.resolve())
+		return
 	var/mob/living/possible_target = ai_controller.blackboard[BB_CURRENT_TARGET]
 	if(!has_gravity() || !ismob(to_be_tripped) || !possible_target)
 		return

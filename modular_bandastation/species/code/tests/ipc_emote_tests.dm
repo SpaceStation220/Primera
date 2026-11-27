@@ -96,6 +96,15 @@
 	voicebox.Insert(ipc)
 	TEST_ASSERT(beep.can_run_emote(ipc), "Reinstalling the voicebox did not restore machine emotes.")
 
+/// Delayed emotes can retain a reference to a human after destruction.
+/datum/unit_test/ipc_emote_deleted_user/Run()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human/consistent)
+	var/datum/emote/living/yawn/yawn = allocate(/datum/emote/living/yawn)
+	TEST_ASSERT(yawn.can_run_emote(human), "The test human could not yawn before deletion.")
+	qdel(human)
+	TEST_ASSERT(human && QDELETED(human), "The delayed callback fixture did not retain the deleted human.")
+	TEST_ASSERT(!yawn.can_run_emote(human), "The emote check accepted a deleted human.")
+
 /// A reused panel and verb list must follow transformations without adding an extra HUD action.
 /datum/unit_test/ipc_emote_panel/Run()
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human/consistent)

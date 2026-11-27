@@ -14,14 +14,14 @@
 		"remove_quirk" = PROC_REF(remove_quirk),
 	)
 /datum/preference_middleware/quirks/pre_set_preference(mob/user, preference, value)
-	if(preference != "species")
+	if(preference != "species" && preference != FEATURE_IPC_GENERATION)
 		return
 	var/list/incompatible_quirks
-	var/selected_species_type = GLOB.species_list[value]
+	var/selected_species_type = preference == "species" ? GLOB.species_list[value] : preferences.read_preference(/datum/preference/choiced/species)
 	for(var/quirk_name in preferences.all_quirks)
 		var/quirk_path = SSquirks.quirks[quirk_name]
 		var/datum/quirk/quirk_prototype = SSquirks.quirk_prototypes[quirk_path]
-		if(!quirk_prototype.is_species_appropriate(selected_species_type))
+		if(!preferences.can_select_generation_quirk(quirk_prototype, selected_species_type, preference == FEATURE_IPC_GENERATION ? value : null))
 			LAZYADD(incompatible_quirks, quirk_name)
 	if(!LAZYLEN(incompatible_quirks))
 		return
@@ -35,7 +35,7 @@
 		return TRUE
 
 /datum/preference_middleware/quirks/post_set_preference(mob/user, preference, value)
-	if(preference != "species" || value == previous_species_value)
+	if(preference != FEATURE_IPC_GENERATION && (preference != "species" || value == previous_species_value))
 		return
 
 	tainted = TRUE
@@ -46,7 +46,7 @@
 	var/list/species_blacklist = list()
 	var/datum/species/mob_species = preferences.read_preference(/datum/preference/choiced/species)
 	for(var/datum/quirk/quirk_type as anything in SSquirks.quirk_prototypes)
-		if(!SSquirks.quirk_prototypes[quirk_type].is_species_appropriate(mob_species))
+		if(!preferences.can_select_generation_quirk(SSquirks.quirk_prototypes[quirk_type], mob_species))
 			species_blacklist += quirk_type::name
 	return species_blacklist
 
@@ -114,7 +114,7 @@
 	preferences.validate_quirks()
 	var/list/new_quirks = preferences.all_quirks | quirk_name
 	var/datum/species/selected_species = GLOB.species_prototypes[preferences.read_preference(/datum/preference/choiced/species)]
-	if (!selected_species.can_have_quirks || SSquirks.filter_invalid_quirks(new_quirks) != new_quirks)
+	if (!preferences.can_select_generation_quirk(SSquirks.quirk_prototypes[SSquirks.quirks[quirk_name]], selected_species.type) || SSquirks.filter_invalid_quirks(new_quirks) != new_quirks)
 		// If the client is sending an invalid give_quirk, that means that
 		// something went wrong with the client prediction, so we should
 		// catch it back up to speed.

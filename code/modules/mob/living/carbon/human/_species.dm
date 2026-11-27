@@ -1083,7 +1083,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
  */
 /datum/species/proc/body_temperature_core(mob/living/carbon/human/humi, seconds_per_tick)
 	var/natural_change = get_temp_change_amount(humi.get_body_temp_normal() - humi.coretemperature, BODYTEMP_CORE_CHANGE_RATE * seconds_per_tick)
-	humi.adjust_coretemperature(humi.metabolism_efficiency * natural_change)
+	humi.adjust_coretemperature(humi.metabolism_efficiency * natural_change, apply_ipc_heat = FALSE)
 
 /**
  * Used to normalize the skin temperature on living mobs
@@ -1102,7 +1102,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 	// change rate of slightly below area to skin change rate and still having a solid curve
 	var/skin_core_change = get_temp_change_amount(skin_core_diff, BODYTEMP_SKIN_CORE_CHANGE_RATE * seconds_per_tick)
 
-	humi.adjust_coretemperature(skin_core_change)
+	humi.adjust_coretemperature(skin_core_change, apply_ipc_heat = FALSE)
 
 	// get the enviroment details of where the mob is standing
 	var/datum/gas_mixture/environment = humi.loc?.return_air()
@@ -1146,7 +1146,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 		else
 			core_skin_change = max(core_skin_change, core_skin_diff)
 
-		humi.adjust_bodytemperature(core_skin_change)
+		humi.adjust_bodytemperature(core_skin_change, apply_ipc_heat = FALSE)
 
 
 /**

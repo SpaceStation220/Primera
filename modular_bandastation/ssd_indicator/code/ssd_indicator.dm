@@ -43,7 +43,7 @@ GLOBAL_VAR_INIT(ssd_indicator_overlay, mutable_appearance('modular_bandastation/
 /datum/element/ssd/proc/on_mob_logout(mob/living/source)
 	SIGNAL_HANDLER
 
-	if(source.stat != DEAD)
+	if(source.stat != DEAD && !HAS_TRAIT(source, TRAIT_IPC_REMOTE_PILOT_BODY))
 		source.add_overlay(GLOB.ssd_indicator_overlay)
 	source.player_logged = FALSE
 
@@ -95,7 +95,9 @@ GLOBAL_VAR_INIT(ssd_indicator_overlay, mutable_appearance('modular_bandastation/
 	handle_detach(source)
 
 /mob/living/Logout()
-	if(!QDELETED(src))
+	// Returning an autonomous bot to its controller is not a player disconnect from a persistent body.
+	var/loaned_bot = istype(src, /mob/living/basic/bot) && ipc_neural_pilot?.resolve()
+	if(!QDELETED(src) && !loaned_bot)
 		AddElement(/datum/element/ssd)
 	. = ..()
 

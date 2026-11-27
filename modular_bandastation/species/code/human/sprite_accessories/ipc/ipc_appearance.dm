@@ -20,136 +20,164 @@ GLOBAL_LIST_INIT(ipc_antennae, init_ipc_appearance_choices(/datum/sprite_accesso
 	var/has_body = TRUE
 	var/has_head = TRUE
 	var/is_monitor = FALSE
+	var/manufacturer
 
 /datum/ipc_chassis/bishop
+	manufacturer = "Bishop Cybernetics"
 	name = "Bishop Cybernetics"
 	icon = 'modular_bandastation/species/icons/ipc/bishop.dmi'
 
 /datum/ipc_chassis/bishop_alt1
+	manufacturer = "Bishop Cybernetics"
 	name = "Bishop Cybernetics alt."
 	icon = 'modular_bandastation/species/icons/ipc/bishop_alt1.dmi'
 	has_body = FALSE
 
 /datum/ipc_chassis/bishop_monitor
+	manufacturer = "Bishop Cybernetics"
 	name = "Bishop Cybernetics mtr."
 	icon = 'modular_bandastation/species/icons/ipc/bishop_monitor.dmi'
 	has_body = FALSE
 	is_monitor = TRUE
 
 /datum/ipc_chassis/hephaestus
+	manufacturer = "Hephaestus Industries"
 	name = "Hephaestus Industries"
 	icon = 'modular_bandastation/species/icons/ipc/hephaestus.dmi'
 
 /datum/ipc_chassis/hephaestus_alt1
+	manufacturer = "Hephaestus Industries"
 	name = "Hephaestus Industries alt."
 	icon = 'modular_bandastation/species/icons/ipc/hephaestus_alt1.dmi'
 	has_body = FALSE
 	is_monitor = TRUE
 
 /datum/ipc_chassis/hephaestus_monitor
+	manufacturer = "Hephaestus Industries"
 	name = "Hephaestus Industries mtr."
 	icon = 'modular_bandastation/species/icons/ipc/hephaestus_monitor.dmi'
 	has_body = FALSE
 	is_monitor = TRUE
 
 /datum/ipc_chassis/morpheus
+	manufacturer = "Morpheus Cyberkinetics"
 	name = "Morpheus Cyberkinetics"
 	icon = 'modular_bandastation/species/icons/ipc/morpheus.dmi'
 	is_monitor = TRUE
 
 /datum/ipc_chassis/morpheus_alt1
+	manufacturer = "Morpheus Cyberkinetics"
 	name = "Morpheus Cyberkinetics alt."
 	icon = 'modular_bandastation/species/icons/ipc/morpheus_alt1.dmi'
 	has_body = FALSE
 
 /datum/ipc_chassis/wardtakahashi
+	manufacturer = "Ward-Takahashi"
 	name = "Ward-Takahashi"
 	icon = 'modular_bandastation/species/icons/ipc/wardtakahashi.dmi'
 
 /datum/ipc_chassis/wardtakahashi_alt1
+	manufacturer = "Ward-Takahashi"
 	name = "Ward-Takahashi alt."
 	icon = 'modular_bandastation/species/icons/ipc/wardtakahashi_alt1.dmi'
 	has_body = FALSE
 
 /datum/ipc_chassis/wardtakahashi_monitor
+	manufacturer = "Ward-Takahashi"
 	name = "Ward-Takahashi mtr."
 	icon = 'modular_bandastation/species/icons/ipc/wardtakahashi_monitor.dmi'
 	has_body = FALSE
 	is_monitor = TRUE
 
 /datum/ipc_chassis/yangcompany
+	manufacturer = "Yang Company"
 	name = "Yang Company"
 	icon = 'modular_bandastation/species/icons/ipc/yangcompany.dmi'
 	has_head = TRUE
 	has_body = TRUE
 
 /datum/ipc_chassis/xion
+	manufacturer = "Xion Manufacturing Group"
 	name = "Xion Manufacturing Group"
 	icon = 'modular_bandastation/species/icons/ipc/xion.dmi'
 
 /datum/ipc_chassis/xion_alt1
+	manufacturer = "Xion Manufacturing Group"
 	name = "Xion Manufacturing Group alt."
 	icon = 'modular_bandastation/species/icons/ipc/xion_alt1.dmi'
 	has_body = FALSE
 
 /datum/ipc_chassis/xion_monitor
+	manufacturer = "Xion Manufacturing Group"
 	name = "Xion Manufacturing Group mtr."
 	icon = 'modular_bandastation/species/icons/ipc/xion_monitor.dmi'
 	has_body = FALSE
 	is_monitor = TRUE
 
 /datum/ipc_chassis/zenghu
+	manufacturer = "Zeng-Hu Pharmaceuticals"
 	name = "Zeng-Hu Pharmaceuticals"
 	icon = 'modular_bandastation/species/icons/ipc/zenghu.dmi'
 
 /datum/ipc_chassis/shellguard
+	manufacturer = "Shellguard Munitions"
 	name = "Shellguard Munitions Standard Series"
 	icon = 'modular_bandastation/species/icons/ipc/shellguard.dmi'
 
 /datum/ipc_chassis/shellguard_alt1
+	manufacturer = "Shellguard Munitions"
 	name = "Shellguard Munitions Elite Series"
 	icon = 'modular_bandastation/species/icons/ipc/shellguard_alt1.dmi'
 	has_body = FALSE
 
 /datum/ipc_chassis/shellguard_monitor
+	manufacturer = "Shellguard Munitions"
 	name = "Shellguard Munitions Monitor Series"
 	icon = 'modular_bandastation/species/icons/ipc/shellguard_monitor.dmi'
 	has_body = FALSE
 	is_monitor = TRUE
 
 /datum/ipc_chassis/etaminindustry
+	manufacturer = "Etamin Industry"
 	name = "Etamin Industry Gold On Black"
 	icon = 'modular_bandastation/species/icons/ipc/etaminindustry.dmi'
 
 /datum/ipc_chassis/etaminindustry_etaminindustry_alt1
+	manufacturer = "Etamin Industry"
 	name = "Etamin Industry Elite Series"
 	icon = 'modular_bandastation/species/icons/ipc/etaminindustry_etaminindustry_alt1.dmi'
 	has_body = FALSE
 
 /datum/ipc_chassis/etaminindustry_etaminindustry_alt2
+	manufacturer = "Etamin Industry"
 	name = "Etamin Industry SharpShooter Series"
 	icon = 'modular_bandastation/species/icons/ipc/etaminindustry_etaminindustry_alt2.dmi'
 	has_body = FALSE
 
 /datum/ipc_chassis/etaminindustry_etaminindustry_alt3
+	manufacturer = "Etamin Industry"
 	name = "Etamin Industry King Series"
 	icon = 'modular_bandastation/species/icons/ipc/etaminindustry_etaminindustry_alt3.dmi'
 	has_body = FALSE
 
 /datum/ipc_chassis/cybersun
+	manufacturer = "Cybersun Industries"
 	name = "Cybersun Industries"
 	icon = 'modular_bandastation/species/icons/ipc/cybersun.dmi'
 
 /datum/ipc_chassis/cybersun_cybersun_redheavy
+	manufacturer = "Cybersun Industries"
 	name = "Cybersun Industries Heavy"
 	icon = 'modular_bandastation/species/icons/ipc/cybersun_cybersun_redheavy.dmi'
 	has_head = FALSE
 
 /datum/ipc_chassis/cybersun_cybersun_blacklight
+	manufacturer = "Cybersun Industries"
 	name = "Cybersun Industries Black"
 	icon = 'modular_bandastation/species/icons/ipc/cybersun_cybersun_blacklight.dmi'
 
 /datum/ipc_chassis/cybersun_cybersun_blackheavy
+	manufacturer = "Cybersun Industries"
 	name = "Cybersun Industries Black Heavy"
 	icon = 'modular_bandastation/species/icons/ipc/cybersun_cybersun_blackheavy.dmi'
 	has_head = FALSE

@@ -44,6 +44,7 @@ export type TechwebNode = {
   enqueued_by_user: BooleanLike;
   have_experiments_done: BooleanLike;
   discount_boosted: BooleanLike;
+  reverse_engineered?: BooleanLike;
   path: string;
   is_free: BooleanLike;
   tier: number;
@@ -70,6 +71,7 @@ export enum NodeFlag {
   ExperimentsDone = 1 << 2,
   QueuedByViewer = 1 << 3,
   Boosted = 1 << 4,
+  ReverseEngineered = 1 << 5,
 }
 
 /** The data we get sent, with nodes, designs and experiments all referenced by catalogue id */

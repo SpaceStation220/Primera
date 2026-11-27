@@ -33,7 +33,7 @@
 	if(!modifier)
 		return
 	syncing_speed = TRUE
-	var/base_delay = os.host.cached_multiplicative_slowdown - modifier.get_rp_speed()
+	var/base_delay = os.host.cached_multiplicative_slowdown * os.host.ipc_movement_rate() - modifier.get_rp_speed()
 	// OverClock applies its percentage after this penalty; exclude it to prevent feedback between both modifiers.
 	var/datum/movespeed_modifier/ipc_os_overclock/overclock = os.host.has_movespeed_modifier(/datum/movespeed_modifier/ipc_os_overclock)
 	if(overclock && !(os.host.movement_type & (FLYING|FLOATING)))

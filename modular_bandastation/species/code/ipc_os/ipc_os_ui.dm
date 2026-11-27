@@ -21,14 +21,26 @@
 		var/datum/ipc_os_program/program = programs[id]
 		if(!program.available())
 			continue
-		catalog += list(list("id" = id, "name" = program.name, "description" = program.description, "icon" = program.icon, "size" = program.size, "illegal" = program.illegal, "installed" = program.installed, "running" = program.running, "passive" = program.passive, "ready" = program.ready))
+		catalog += list(list("id" = id, "name" = program.name, "description" = program.description, "icon" = program.icon, "size" = program.size, "illegal" = program.illegal, "builtin" = program.builtin, "installed" = program.installed, "running" = program.running, "passive" = program.passive, "ready" = program.ready))
 	var/datum/ipc_os_program/signal_boost/signaler = programs["signal_boost"]
 	var/datum/ipc_os_program/id_spoof/spoofer = programs["id_spoof"]
-	var/list/data = list("programs" = catalog, "used" = used_storage(), "capacity" = capacity(), "charge" = round(100 * host.nutrition / NUTRITION_LEVEL_FULL, 0.1), "temperature" = round(host.coretemperature - T0C, 0.1), "error" = error_message, "frequency" = signaler.frequency, "code" = signaler.code, "minFrequency" = MIN_FREE_FREQ, "maxFrequency" = MAX_FREE_FREQ, "spoof_name" = spoofer.spoof_name, "spoof_job" = spoofer.spoof_job, "stunned" = !!host.IsStun())
+	var/list/data = list("programs" = catalog, "used" = used_storage(), "capacity" = capacity(), "charge" = round(100 * host.nutrition / host.ipc_charge_capacity(), 0.1), "battery_capacity" = round(100 * host.ipc_charge_capacity() / NUTRITION_LEVEL_FULL), "temperature" = round(host.coretemperature - T0C, 0.1), "error" = error_message, "frequency" = signaler.frequency, "code" = signaler.code, "minFrequency" = MIN_FREE_FREQ, "maxFrequency" = MAX_FREE_FREQ, "spoof_name" = spoofer.spoof_name, "spoof_job" = spoofer.spoof_job, "stunned" = !!host.IsStun())
 	data["malware"] = list()
+	var/datum/ipc_os_program/factory/drinks/drinks = programs["factory_drinks"]
+	data["drink_selection"] = drinks.selected_drink
+	data["brewing"] = !!drinks.vessel
+	var/datum/ipc_os_program/factory/calibration/calibration = programs["factory_calibration"]
+	data["calibration_mode"] = calibration.mode
+	data["calibration_cable"] = !!calibration.cable
+	data["calibrating"] = calibration.calibrating
+	var/datum/ipc_os_program/factory/jaws/jaws = programs["factory_jaws"]
+	data["jaws_mode"] = jaws.mode
+	data["jaws_patient"] = jaws.patient?.name
 	data["can_manage"] = !!can_use(user)
 	data["neural_available"] = !!can_neural_crack()
 	data["neural_cooldown"] = ceil(COOLDOWN_TIMELEFT(src, neural_crack_cooldown) / (1 SECONDS))
+	var/datum/ipc_os_program/cyberlink/cyberlink = programs["cyberlink"]
+	data["cyberlink_emp_left"] = cyberlink.emp_seconds_left()
 	data["download_id"] = downloading?.id
 	data["download_progress"] = downloading ? min(1, download_elapsed / max(2, downloading.size)) : 0
 	for(var/id in infections)
@@ -65,6 +77,20 @@
 		return FALSE
 	error_message = null
 	switch(action)
+		if("humanity_open")
+			var/datum/ipc_os_program/humanity/archive = programs["humanity"]
+			archive.ui_interact(ui.user)
+			return TRUE
+		if("cyberlink_open")
+			var/datum/ipc_os_program/cyberlink/program = programs["cyberlink"]
+			return program.open_ui(ui.user)
+		if("factory_command")
+			if(!istext(params["id"]))
+				return FALSE
+			var/datum/ipc_os_program/factory/program = programs[params["id"]]
+			if(!istype(program) || !program.running || !program.available())
+				return FALSE
+			return program.command(params)
 		if("install")
 			begin_download(params["id"])
 		if("cancel_download")

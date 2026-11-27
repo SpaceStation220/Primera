@@ -33,13 +33,6 @@
 
 	src.targets = targets
 
-	if (show_progress)
-		if(astype(user, /mob)?.client || bar_override?.client)
-			progressbar = new(bar_override || user, delay, targets[1] || user)
-
-		if(!isnull(cog_icon) && delay >= 1 SECONDS)
-			cogbar = new(user, cog_icon, cog_iconstate)
-
 #ifdef UNIT_TESTS
 	timed_action_flags &= ~IGNORE_SLOWDOWNS // Test dummies are a special case
 #endif
@@ -48,6 +41,13 @@
 		timed_action_flags |= IGNORE_HELD_ITEM | IGNORE_INCAPACITATED | IGNORE_SLOWDOWNS
 	else if(!(timed_action_flags & IGNORE_SLOWDOWNS))
 		delay *= astype(user, /mob).cached_multiplicative_actions_slowdown
+
+	if (show_progress)
+		if(astype(user, /mob)?.client || bar_override?.client)
+			progressbar = new(bar_override || user, delay, targets[1] || user)
+
+		if(!isnull(cog_icon) && delay >= 1 SECONDS)
+			cogbar = new(user, cog_icon, cog_iconstate)
 
 	start_time = world.time
 	end_time = world.time + delay
@@ -208,7 +208,7 @@
  * - cog_iconstate - The icon state of the cog. Default: "Cog"
  * - bar_override - Mob which should see the bar instead of the user
  */
-/proc/do_after(atom/movable/user, delay, atom/target, timed_action_flags = NONE, show_progress = TRUE, datum/callback/extra_checks, interaction_key, max_interact_count = 1, cog_icon = 'icons/effects/progressbar.dmi', cog_iconstate = "cog", mob/bar_override = null)
+/proc/do_after(atom/movable/user, delay, atom/target, timed_action_flags = NONE, show_progress = TRUE, datum/callback/extra_checks, interaction_key, max_interact_count = 1, cog_icon = 'icons/effects/progressbar.dmi', cog_iconstate = "cog", mob/bar_override = null, work_departments = null, ipc_action_kind = null, ipc_fixed_duration = FALSE)
 	if (!user)
 		return FALSE
 
@@ -218,6 +218,8 @@
 
 	if (delay <= 0)
 		return TRUE
+	if(!ipc_fixed_duration)
+		delay *= ipc_work_multiplier(user, islist(target) ? target[1] : target, work_departments, ipc_action_kind)
 
 	if(!interaction_key && ismob(user))
 		if(!islist(target))

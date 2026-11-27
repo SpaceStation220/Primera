@@ -47,6 +47,8 @@
 	if(istype(worn_gloves) && locate(/obj/item/clothing/accessory/gloves_accessory/ring) in worn_gloves.attached_accessories)
 		fail_chance += SURGERY_RING_FAIL_MOD - 5
 
+	if(astype(surgeon, /mob/living/carbon/human)?.has_ipc_specialization("medical"))
+		fail_chance = max(0, clamp(fail_chance, 0, 99) - 15)
 	return fail_chance
 
 #undef SURGERY_TOOL_MOD_GHETTO

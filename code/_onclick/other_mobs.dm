@@ -122,7 +122,9 @@
 
 /atom/ui_status(mob/user, datum/ui_state/state)
 	. = ..()
-	//Check if both user and atom are at the same location
+	// ChromieKnight validates electronic reach in its target-scoped state.
+	if(state == GLOB.ipc_remote_state)
+		return .
 	if(!can_interact(user))
 		. = min(., UI_UPDATE)
 

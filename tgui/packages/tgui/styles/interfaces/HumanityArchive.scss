@@ -1,0 +1,172 @@
+// Each stage changes the material of the same archive. Controls keep their order and contrast.
+.theme-humanity-1 {
+  --archive-desk: #322e27;
+  --archive-sheet: #f2e8d3;
+  --archive-ink: #302b23;
+  --archive-muted: #625640;
+  --archive-edge: #b9a888;
+  --archive-accent: #386047;
+  --archive-inset: #e6dbc4;
+  --archive-radius: 13px;
+  --archive-type: Georgia, 'Times New Roman', serif;
+}
+
+.theme-humanity-2 {
+  --archive-desk: #293436;
+  --archive-sheet: #e0e6dd;
+  --archive-ink: #243431;
+  --archive-muted: #485e59;
+  --archive-edge: #9caea5;
+  --archive-accent: #326665;
+  --archive-inset: #d0dcd4;
+  --archive-radius: 8px;
+  --archive-type: Georgia, 'Times New Roman', serif;
+}
+
+.theme-humanity-3 {
+  --archive-desk: #18242d;
+  --archive-sheet: #293a44;
+  --archive-ink: #e6edea;
+  --archive-muted: #b4c6c6;
+  --archive-edge: #5d7981;
+  --archive-accent: #9ddfdf;
+  --archive-inset: #23343c;
+  --archive-radius: 3px;
+  --archive-type: 'Segoe UI', sans-serif;
+}
+
+.theme-humanity-4 {
+  --archive-desk: #0c1218;
+  --archive-sheet: #172028;
+  --archive-ink: #e4edf1;
+  --archive-muted: #adbdc9;
+  --archive-edge: #526375;
+  --archive-accent: #baddc8;
+  --archive-inset: #111a21;
+  --archive-radius: 0px;
+  --archive-type: Consolas, 'Courier New', monospace;
+}
+
+@mixin archive-window {
+  .TitleBar {
+    background: var(--archive-desk);
+    border-bottom: 1px solid var(--archive-edge);
+    color: #e2e5de;
+  }
+  .Window__rest { background: var(--archive-desk); }
+}
+
+@for $stage from 1 through 4 {
+  .theme-humanity-#{$stage} { @include archive-window; }
+}
+
+.HumanityArchive {
+  background: var(--archive-desk);
+  color: var(--archive-ink);
+  font-family: var(--archive-type);
+
+  &__page {
+    box-sizing: border-box;
+    min-height: calc(100% - 16px);
+    margin: 8px;
+    padding: 18px 21px;
+    border: 1px solid var(--archive-edge);
+    border-radius: var(--archive-radius);
+    background: var(--archive-sheet);
+  }
+
+  &__identity {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 76px;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--archive-accent);
+  }
+  h1, h2, h3, p { margin: 0; }
+  h1 { font: 500 1.9rem/1.13 var(--archive-type); color: var(--archive-ink); }
+  h2 { font: 600 1.12rem/1.25 var(--archive-type); }
+  h3 {
+    font: 600 0.92rem/1.3 'Segoe UI', sans-serif;
+    color: var(--archive-muted);
+    margin-bottom: 0.35rem;
+  }
+  p { line-height: 1.46; overflow-wrap: anywhere; }
+  &__diagnosis { margin-top: 6px !important; color: var(--archive-accent); font-weight: 700; }
+  &__detail { color: var(--archive-muted); font-size: 0.88rem; }
+  &__portrait {
+    flex: 0 0 66px;
+    width: 66px;
+    height: 70px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--archive-edge);
+    border-radius: var(--archive-radius);
+    background: var(--archive-inset);
+  }
+  &__portrait img { width: 64px; height: 64px; image-rendering: pixelated; }
+  &__anchor {
+    margin: 14px 0 18px;
+    padding: 12px 14px;
+    border-left: 3px solid var(--archive-accent);
+    border-radius: var(--archive-radius);
+    background: var(--archive-inset);
+  }
+  &__anchor p { margin-top: 5px; }
+  &__actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  &__actions .Button {
+    margin: 0;
+    padding: 5px 9px;
+    border: 1px solid var(--archive-edge);
+    border-radius: var(--archive-radius);
+    background: var(--archive-sheet);
+    color: var(--archive-ink);
+    font: 600 0.86rem/1.35 'Segoe UI', sans-serif;
+  }
+  &__actions .Button:not(.Button--disabled):hover,
+  &__actions .Button:focus-visible { outline: 1px solid var(--archive-accent); }
+  &__actions .Button--disabled { color: var(--archive-muted); opacity: 0.72; }
+  &__records article {
+    padding: 11px 0 12px;
+    border-bottom: 1px solid var(--archive-edge);
+  }
+  &__records article p { white-space: pre-wrap; }
+  &__records > p { margin-top: 8px; color: var(--archive-muted); }
+}
+
+.theme-humanity-2 .HumanityArchive__portrait {
+  box-shadow: 2px 1px 0 #82a9a8, -1px 0 0 #ad9da7;
+}
+.theme-humanity-2 .HumanityArchive__records article { border-bottom-style: dotted; }
+.theme-humanity-3 .HumanityArchive__identity {
+  border-bottom: 3px double var(--archive-accent);
+}
+.theme-humanity-3 .HumanityArchive__portrait {
+  box-shadow: -2px 1px 0 #65b5c1, 2px -1px 0 #b57aa4;
+}
+.theme-humanity-3 .HumanityArchive__records article {
+  border-left: 2px solid #748a98;
+  border-bottom-style: dashed;
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: var(--archive-inset);
+}
+.theme-humanity-4 .HumanityArchive__identity {
+  border-bottom: 3px double var(--archive-edge);
+}
+.theme-humanity-4 .HumanityArchive__portrait {
+  background: repeating-linear-gradient(0deg, #15232b, #15232b 3px, #1e3039 4px);
+  border-left: 2px solid #8abdc9;
+  border-right: 2px solid #a384a7;
+}
+.theme-humanity-4 .HumanityArchive__records article {
+  background: var(--archive-inset);
+  border: 1px dashed var(--archive-edge);
+  padding: 9px 11px;
+  margin-top: 8px;
+}
+.theme-humanity-4 .HumanityArchive__records h3 {
+  font-family: Consolas, 'Courier New', monospace;
+  color: var(--archive-accent);
+}

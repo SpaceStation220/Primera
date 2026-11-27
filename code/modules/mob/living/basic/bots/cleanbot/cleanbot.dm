@@ -226,7 +226,7 @@
 // Variables sent to TGUI
 /mob/living/basic/bot/cleanbot/ui_data(mob/user)
 	var/list/data = ..()
-	if((bot_access_flags & BOT_COVER_LOCKED) && !HAS_SILICON_ACCESS(user))
+	if((bot_access_flags & BOT_COVER_LOCKED) && !HAS_SILICON_ACCESS(user) && !ipc_remote_controls(user))
 		return data
 	data["custom_controls"]["clean_blood"] = janitor_mode_flags & CLEANBOT_CLEAN_BLOOD
 	data["custom_controls"]["clean_trash"] = janitor_mode_flags & CLEANBOT_CLEAN_TRASH
@@ -238,7 +238,7 @@
 /mob/living/basic/bot/cleanbot/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()
 	var/mob/user = ui.user
-	if(. || (bot_access_flags & BOT_COVER_LOCKED) && !HAS_SILICON_ACCESS(user))
+	if(. || (bot_access_flags & BOT_COVER_LOCKED) && !HAS_SILICON_ACCESS(user) && !ipc_remote_controls(user))
 		return
 
 	switch(action)
@@ -250,6 +250,7 @@
 			janitor_mode_flags ^= CLEANBOT_CLEAN_TRASH
 		if("clean_graffiti")
 			janitor_mode_flags ^= CLEANBOT_CLEAN_DRAWINGS
+	return TRUE
 
 /mob/living/basic/bot/cleanbot/Destroy()
 	QDEL_NULL(build_bucket)

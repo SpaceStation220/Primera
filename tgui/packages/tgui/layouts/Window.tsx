@@ -71,6 +71,14 @@ export function Window(props: Props) {
   const { scale } = config?.window || false;
 
   useEffect(() => {
+    if (!suspended && isReadyToRender) {
+      Byond.winset(Byond.windowId, {
+        'can-close': Boolean(canClose),
+      });
+    }
+  }, [canClose, isReadyToRender, suspended]);
+
+  useEffect(() => {
     let cancelled = false;
 
     if (!suspended && isReadyToRender) {
@@ -99,9 +107,6 @@ export function Window(props: Props) {
         logger.log('set to visible');
       };
 
-      Byond.winset(Byond.windowId, {
-        'can-close': Boolean(canClose),
-      });
       logger.log('mounting');
       updateGeometry();
     }

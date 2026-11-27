@@ -150,6 +150,8 @@
 	if(!do_after(
 		user = src,
 		delay = /datum/surgery_operation/limb/close_skin::time * 2 * tool.toolspeed,
+		work_departments = "medical",
+		ipc_action_kind = "surgery",
 		target = src,
 		extra_checks = CALLBACK(src, PROC_REF(manual_cauterize_check), tool, limb),
 	))
@@ -859,6 +861,8 @@ GLOBAL_DATUM_INIT(operations, /datum/operation_holder, new)
 
 		if(!do_after(
 			user = surgeon,
+			work_departments = "medical",
+			ipc_action_kind = "surgery",
 			// Actual delay is capped - think of the excess time as being added to failure chance instead
 			delay = time * min(operation_args[OPERATION_SPEED], SURGERY_MODIFIER_FAILURE_THRESHOLD),
 			target = patient || operating_on,

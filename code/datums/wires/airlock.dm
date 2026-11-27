@@ -178,6 +178,7 @@
 			A.shock(usr, 50)
 		if(WIRE_BOLTS) // Cut to engage bolts, mend does nothing.
 			if(!mend)
+				A.bolt_revision++
 				A.bolt()
 		if(WIRE_AI) // Cut to disable WIRE_AI control, mend to re-enable.
 			if(mend)
@@ -191,6 +192,7 @@
 				else if(A.aiControlDisabled == AI_WIRE_DISABLED_HACKED)
 					A.aiControlDisabled = AI_WIRE_HACKED
 		if(WIRE_SHOCK) // Cut to shock the door, mend to unshock.
+			A.shock_revision++
 			if (!isnull(source))
 				log_combat(source, A, "[mend ? "disabled" : "enabled"] shocking for")
 			if(mend)

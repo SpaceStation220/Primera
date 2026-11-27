@@ -367,6 +367,10 @@
 
 	var/brute_damaged = affecting.brute_dam > 0
 	var/burn_damaged = affecting.burn_dam > 0
+	if(required_bodytype == BODYTYPE_ROBOTIC)
+		var/datum/ipc_manufacturer/manufacturer = get_ipc_manufacturer()
+		brute_heal *= manufacturer?.repair_efficiency || 1
+		burn_heal *= manufacturer?.repair_efficiency || 1
 
 	var/nothing_to_heal = ((brute_heal <= 0 || !brute_damaged) && (burn_heal <= 0 || !burn_damaged))
 	if (nothing_to_heal)

@@ -4,13 +4,14 @@ import type { PropsWithChildren } from 'react';
 
 type WindowProps = Partial<{
   title: string;
+  canClose: boolean;
 }>;
 
 function Window(props: PropsWithChildren<WindowProps>) {
-  const { title = 'Test UI', children } = props;
+  const { title = 'Test UI', canClose = true, children } = props;
 
   return (
-    <div className="Window">
+    <div className="Window" data-can-close={canClose}>
       <div>{title}</div>
       {children}
     </div>

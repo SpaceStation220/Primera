@@ -14,6 +14,7 @@ import { storage } from 'common/storage';
 import { Slider, Tabs } from 'tgui-core/components';
 import { startKeyPassthrough, stopKeyPassthrough } from 'tgui-core/hotkeys';
 
+import { store, suspendedAtom } from '../events/store';
 import { Window } from './Window';
 
 beforeAll(startKeyPassthrough);
@@ -26,6 +27,24 @@ afterEach(() => {
   fireEvent.keyUp(document.body, { keyCode: 18, altKey: false });
   fireEvent.focus(window);
   mock.restore();
+});
+
+it('updates the native close setting and title bar when canClose changes', () => {
+  const suspended = store.get(suspendedAtom);
+  store.set(suspendedAtom, false);
+  const winset = spyOn(Byond, 'winset');
+  const view = render(<Window title="Routing" canClose={false} />);
+  try {
+    expect(winset).toHaveBeenCalledWith(Byond.windowId, { 'can-close': false });
+    expect(view.container.querySelector('.TitleBar__close')).toBeNull();
+
+    view.rerender(<Window title="Routing" canClose />);
+    expect(winset).toHaveBeenCalledWith(Byond.windowId, { 'can-close': true });
+    expect(view.container.querySelector('.TitleBar__close')).toBeTruthy();
+  } finally {
+    view.unmount();
+    store.set(suspendedAtom, suspended);
+  }
 });
 
 describe('Window content dragging', () => {

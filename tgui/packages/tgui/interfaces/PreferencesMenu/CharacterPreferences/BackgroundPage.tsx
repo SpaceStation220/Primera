@@ -57,12 +57,81 @@ function BackgroundContents() {
             />
           </Stack.Item>
         ))}
+      <HumanityBackground />
       {data.sierra_antagonist && (
         <Stack.Item>
           <PrivateAntagonist profile={data.sierra_antagonist} />
         </Stack.Item>
       )}
     </Stack>
+  );
+}
+
+function HumanityBackground() {
+  const { data, act } = useBackend<{
+    humanity_profile?: {
+      anchor: string;
+      fields: { key: string; label: string; value: string; limit: number }[];
+    };
+  }>();
+  const profile = data.humanity_profile;
+  if (!profile) return null;
+  return (
+    <Stack.Item>
+      <Section title="Энграмма III поколения">
+        <Box color="label" mb={1}>
+          Личные записи для вашего мнемонического архива. Все поля
+          необязательны.
+        </Box>
+        <Box mb={1}>
+          {(
+            [
+              ['reflection', 'Самоанализ'],
+              ['habit', 'Привычка'],
+              ['keepsake', 'Фотография'],
+              ['social', 'Общение'],
+            ] as const
+          ).map(([value, label]) => (
+            <Button
+              key={value}
+              selected={profile.anchor === value}
+              onClick={() =>
+                act('set_preference', { preference: 'humanity_anchor', value })
+              }
+            >
+              {label}
+            </Button>
+          ))}
+        </Box>
+        {profile.anchor === 'keepsake' && (
+          <Box mb={1} color="label">
+            Вы начнёте раунд с готовой фотографией. Поле «Значение фотографии»
+            станет подписью на её обороте.
+          </Box>
+        )}
+        {profile.fields.map((field) => (
+          <Box key={field.key} mb={1}>
+            <Box mb={0.25}>{field.label}</Box>
+            {field.key === 'humanity_habit' && (
+              <Box mb={0.25} color="label">
+                Текст после имени персонажа в /me при выполнении привычки.
+              </Box>
+            )}
+            <TextArea
+              fluid
+              height="4em"
+              aria-label={field.label}
+              maxLength={field.limit}
+              value={field.value}
+              onBlur={(value) => {
+                if (value !== field.value)
+                  act('set_preference', { preference: field.key, value });
+              }}
+            />
+          </Box>
+        ))}
+      </Section>
+    </Stack.Item>
   );
 }
 

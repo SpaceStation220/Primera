@@ -65,7 +65,7 @@
 	src.interface = interface
 	if(title)
 		src.title = title
-	src.state = src_object.ui_state(user)
+	src.state = ipc_remote_panel_state(user, src_object) || src_object.ui_state(user)
 	// Deprecated
 	if(ui_x && ui_y)
 		src.window_size = list(ui_x, ui_y)
@@ -391,7 +391,20 @@
 
 /// Wrapper for behavior to potentially wait until the next tick if the server is overloaded
 /datum/tgui/proc/on_act_message(act_type, payload, state)
+	SHOULD_CALL_PARENT(TRUE)
 	if(QDELETED(src) || QDELETED(src_object))
 		return
-	if(src_object.ui_act(act_type, payload, src, state))
-		SStgui.update_uis(src_object)
+	var/datum/action_source = src_object
+	var/mob/action_user = user
+	var/list/completions = list()
+	var/list/action_context = list("interactive" = status == UI_INTERACTIVE, "completions" = completions)
+	var/cancelled = SEND_SIGNAL(action_source, COMSIG_TGUI_ACTION_REQUEST, action_user, act_type, payload, action_context) & COMPONENT_CANCEL_TGUI_ACTION
+	var/succeeded = FALSE
+	if(!cancelled)
+		succeeded = action_source.ui_act(act_type, payload, src, state)
+	// Native actions may close their own UI or delete their source before returning.
+	for(var/datum/callback/completion as anything in completions)
+		completion.Invoke(succeeded)
+	completions.Cut()
+	if(succeeded && !QDELETED(action_source))
+		SStgui.update_uis(action_source)

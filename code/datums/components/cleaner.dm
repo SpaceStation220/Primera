@@ -126,7 +126,7 @@
 	all_cleaned[target] = GET_ATOM_BLOOD_DNA(target) || list()
 	//do the cleaning
 	var/clean_succeeded = FALSE
-	if(do_after(user, cleaning_duration, target = target))
+	if(do_after(user, cleaning_duration, target = target, work_departments = "service"))
 		clean_succeeded = TRUE
 		for(var/obj/effect/decal/cleanable/cleanable_decal in target) //it's important to do this before you wash all of the cleanables off
 			if(call_wash && grant_xp)

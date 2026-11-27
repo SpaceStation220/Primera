@@ -119,7 +119,9 @@
  * * min_temp (optional) The minimum body temperature after adjustment
  * * max_temp (optional) The maximum body temperature after adjustment
  */
-/mob/living/carbon/human/proc/adjust_coretemperature(amount, min_temp=0, max_temp=INFINITY)
+/mob/living/carbon/human/proc/adjust_coretemperature(amount, min_temp=0, max_temp=INFINITY, apply_ipc_heat = TRUE)
+	if(apply_ipc_heat)
+		amount = ipc_heat_input(amount)
 	set_coretemperature(clamp(coretemperature + amount, min_temp, max_temp))
 
 /mob/living/carbon/human/proc/set_coretemperature(value)

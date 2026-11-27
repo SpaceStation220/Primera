@@ -36,6 +36,9 @@
 	src.core = core
 	for(var/program_type in subtypesof(/datum/ipc_os_program))
 		var/datum/ipc_os_program/program = new program_type(src)
+		if(!program.id)
+			qdel(program)
+			continue
 		programs[program.id] = program
 
 /datum/ipc_os/Destroy()
@@ -56,13 +59,18 @@
 	SIGNAL_HANDLER
 	if(spawned == host)
 		capture_pda_job(job)
+		capture_generation_job(job)
+		if(pda_job_title)
+			UnregisterSignal(SSdcs, COMSIG_GLOB_JOB_AFTER_SPAWN)
+		var/datum/ipc_os_program/humanity/archive = programs["humanity"]
+		if(archive?.anchor == "keepsake")
+			INVOKE_ASYNC(archive, TYPE_PROC_REF(/datum/ipc_os_program/humanity, give_starting_photo), spawned)
 
 /// Reuse the same configured trim as a normal job-issued ID without creating an ID item.
 /datum/ipc_os/proc/capture_pda_job(datum/job/job)
 	if(pda_job_title || !job || istype(job, /datum/job/unassigned))
 		return
 	pda_job_title = job.title
-	UnregisterSignal(SSdcs, COMSIG_GLOB_JOB_AFTER_SPAWN)
 	var/datum/outfit/job_outfit = job.outfit
 	if(!job_outfit || !job_outfit::id_trim)
 		return
@@ -78,8 +86,9 @@
 		return
 	unbind()
 	host = new_host
-	if(!pda_job_title)
-		RegisterSignal(SSdcs, COMSIG_GLOB_JOB_AFTER_SPAWN, PROC_REF(on_job_spawn))
+	RegisterSignal(SSdcs, COMSIG_GLOB_JOB_AFTER_SPAWN, PROC_REF(on_job_spawn))
+	var/datum/ipc_os_program/humanity/archive = programs["humanity"]
+	archive?.attach(host)
 	open_action = new(src)
 	open_action.Grant(host)
 	RegisterSignal(host, COMSIG_LIVING_LIFE, PROC_REF(on_life))
@@ -90,6 +99,8 @@
 
 /// Stop effects before detaching from a body; preserve installed software and licenses.
 /datum/ipc_os/proc/unbind()
+	var/datum/ipc_os_program/humanity/archive = programs?["humanity"]
+	archive?.detach()
 	control_session?.end()
 	suspend_malware()
 	stop_all()
@@ -128,7 +139,7 @@
 	if(!istext(id) || downloading || !can_use(host))
 		return FALSE
 	var/datum/ipc_os_program/program = programs[id]
-	if(!program || program.installed || !program.available() || used_storage() + program.size > capacity())
+	if(!program || program.builtin || program.installed || !program.available() || used_storage() + program.size > capacity())
 		error_message = "Загрузка невозможна: проверьте доступ и свободное место."
 		return FALSE
 	downloading = program
@@ -166,7 +177,8 @@
 
 /// EMAG increases capacity exactly once, regardless of license application order.
 /datum/ipc_os/proc/capacity()
-	return emag_unlocked ? 32 : 24
+	var/datum/ipc_manufacturer/manufacturer = host?.get_ipc_manufacturer()
+	return 24 + (emag_unlocked ? 8 : 0) + manufacturer?.memory
 
 /// Catalog access grants no installation and cannot downgrade a prior unlock.
 /datum/ipc_os/proc/unlock(full = FALSE)
@@ -185,7 +197,7 @@
 	if(!istext(id))
 		return FALSE
 	var/datum/ipc_os_program/program = programs[id]
-	if(!program || program.installed || !program.available() || used_storage() + program.size > capacity())
+	if(!program || program.builtin || program.installed || !program.available() || used_storage() + program.size > capacity())
 		error_message = "Установка невозможна: проверьте доступ и свободное место."
 		return FALSE
 	program.installed = TRUE
@@ -198,7 +210,7 @@
 	if(!istext(id))
 		return FALSE
 	var/datum/ipc_os_program/program = programs[id]
-	if(!program?.installed)
+	if(!program?.installed || program.builtin)
 		return FALSE
 	program.stop()
 	program.on_uninstall()
@@ -229,6 +241,11 @@
 	SIGNAL_HANDLER
 	if(!has_valid_chassis() || !GET_CLIENT(host))
 		suspend_malware()
+		var/datum/ipc_os_program/cyberlink/link = programs["cyberlink"]
+		if(link.pilot)
+			if(!has_valid_chassis())
+				link.pilot.end()
+			return
 		// The attacker's original chassis is intentionally uncliented during a valid remote session.
 		if(control_session)
 			return
@@ -250,6 +267,10 @@
 
 /datum/ipc_os/proc/on_shutdown(mob/source)
 	SIGNAL_HANDLER
+	var/datum/ipc_os_program/cyberlink/link = programs["cyberlink"]
+	if(link.pilot && source.stat != DEAD && !QDELING(source))
+		return
+	link.pilot?.end()
 	if(control_session)
 		if(!control_session.transferring || source.stat == DEAD || QDELING(source))
 			control_session.end()
@@ -319,6 +340,10 @@
 	var/activation_id = 0
 	/// Core-owned OS, cleared on deletion.
 	var/datum/ipc_os/os
+	/// System programs are installed with their core and cannot be downloaded or removed.
+	var/builtin = FALSE
+	/// Generation I factory programs additionally require the captured profession.
+	var/builtin_department
 
 /datum/ipc_os_program/New(datum/ipc_os/os)
 	. = ..()
@@ -331,6 +356,9 @@
 
 /// Availability is always calculated from persistent unlock state.
 /datum/ipc_os_program/proc/available()
+	if(builtin_department)
+		var/obj/item/organ/brain/ipc/core = os.core
+		return os.generation() == "I" && istype(core) && core.ipc_department == builtin_department
 	return !illegal || os.emag_unlocked || (limited && os.limited_unlocked)
 
 /// All activation paths recheck installation and physical validity.

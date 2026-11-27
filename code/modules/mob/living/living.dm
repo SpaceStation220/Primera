@@ -1153,6 +1153,9 @@ GAME_VERB_PROC(/mob/living, mob_sleep, "Sleep", null)
 
 ///proc extender of [/mob/living/verb/resist] meant to make the process queable if the server is overloaded when the verb is called
 /mob/living/proc/execute_resist()
+	if(ipc_resist_guardian_jaws(src))
+		changeNext_move(CLICK_CD_RESIST)
+		return
 	if(!can_resist())
 		return
 	changeNext_move(CLICK_CD_RESIST)
@@ -1184,6 +1187,8 @@ GAME_VERB_PROC(/mob/living, mob_sleep, "Sleep", null)
 	return FALSE
 
 /mob/living/resist_grab(moving_resist)
+	if(moving_resist && ipc_resist_guardian_jaws(src))
+		return TRUE
 	if(HAS_TRAIT(src, TRAIT_INCAPACITATED))
 		return FALSE
 
@@ -1396,7 +1401,7 @@ GAME_VERB_PROC(/mob/living, mob_sleep, "Sleep", null)
 			to_chat(src, span_warning("У вас нет рук!"))
 			return FALSE
 
-	if(!(action_bitflags & BYPASS_ADJACENCY) && ((action_bitflags & NOT_INSIDE_TARGET) || !recursive_loc_check(src, target)) && !target.IsReachableBy(src))
+	if(!(action_bitflags & BYPASS_ADJACENCY) && ((action_bitflags & NOT_INSIDE_TARGET) || !recursive_loc_check(src, target)) && !target.IsReachableBy(src) && !((action_bitflags & ALLOW_SILICON_REACH) && !(action_bitflags & NEED_HANDS) && ipc_remote_action_reach(src, target)))
 		if(HAS_SILICON_ACCESS(src) && !ispAI(src))
 			if(!(action_bitflags & ALLOW_SILICON_REACH)) // silicons can ignore range checks (except pAIs)
 				if(!(action_bitflags & SILENT_ADJACENCY))

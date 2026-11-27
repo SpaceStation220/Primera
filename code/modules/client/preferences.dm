@@ -461,7 +461,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	for(var/quirk_name in all_quirks)
 		var/quirk_path = SSquirks.quirks[quirk_name]
 		var/datum/quirk/quirk_prototype = SSquirks.quirk_prototypes[quirk_path]
-		if(!quirk_prototype.is_species_appropriate(species_type))
+		if(!can_select_generation_quirk(quirk_prototype, species_type))
 			all_quirks -= quirk_name
 			LAZYADD(quirks_removed, quirk_name)
 	var/list/feedback

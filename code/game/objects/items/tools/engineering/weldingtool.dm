@@ -175,7 +175,8 @@
 	if(user == attacked_humanoid)
 		use_delay = 5 SECONDS
 
-	if(!use_tool(attacked_humanoid, user, use_delay, volume=50, amount=1))
+	var/datum/ipc_manufacturer/manufacturer = attacked_humanoid.get_ipc_manufacturer()
+	if(!use_tool(attacked_humanoid, user, use_delay, volume=50, amount = manufacturer?.repair_materials || 1))
 		return ITEM_INTERACT_BLOCKING
 
 	if (!attacked_humanoid.item_heal(user, brute_heal = 15, burn_heal = 0, heal_message_brute = "вмятины", heal_message_burn = "сожженную проводку", required_bodytype = BODYTYPE_ROBOTIC))

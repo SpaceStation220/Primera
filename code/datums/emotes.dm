@@ -385,10 +385,12 @@
  * Returns a bool about whether or not the user can run the emote.
  */
 /datum/emote/proc/can_run_emote(mob/user, status_check = TRUE, intentional = FALSE, params)
+	if(QDELETED(user))
+		return FALSE
 	// BANDASTATION ADDITION START - IPC emote anatomy also filters panels and keybindings.
 	if(ishuman(user))
 		var/mob/living/carbon/human/human = user
-		var/datum/species/ipc/chassis = human.dna.species
+		var/datum/species/ipc/chassis = human.dna?.species
 		if(istype(chassis) && !chassis.can_use_emote(human, src))
 			return FALSE
 	// BANDASTATION ADDITION END

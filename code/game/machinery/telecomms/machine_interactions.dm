@@ -78,9 +78,9 @@
 	if(.)
 		return
 
-	var/mob/living/current_user = usr
+	var/mob/living/current_user = ui.user
 	if(!HAS_SILICON_ACCESS(current_user))
-		if(!istype(current_user.get_active_held_item(), /obj/item/multitool))
+		if(!get_multitool(current_user))
 			return
 
 	var/obj/item/multitool/heldmultitool = get_multitool(current_user)
@@ -346,6 +346,11 @@
 
 /// Returns a multitool from a user depending on their mobtype.
 /obj/machinery/telecomms/proc/get_multitool(mob/user)
+	if(ishuman(user))
+		var/mob/living/carbon/human/body = user
+		var/datum/ipc_os_program/cyberlink/program = body.get_ipc_os()?.programs["cyberlink"]
+		if(program?.multitool_enabled && program.neural_multitool && (src in program.remote_panels) && program.can_use_neural_tool(user, src))
+			return program.neural_multitool
 	. = null
 	if(isAI(user))
 		var/mob/living/silicon/ai/U = user

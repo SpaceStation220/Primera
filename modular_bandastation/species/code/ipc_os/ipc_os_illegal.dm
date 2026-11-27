@@ -5,6 +5,7 @@
 
 /// Return software only for a compatible chassis with its actual existing core.
 /mob/living/carbon/human/proc/get_ipc_os()
+	RETURN_TYPE(/datum/ipc_os)
 	if(!is_species(src, /datum/species/ipc))
 		return null
 	var/obj/item/organ/brain/core = get_organ_slot(ORGAN_SLOT_BRAIN)
@@ -16,7 +17,7 @@
 		return ..()
 	if(istype(emag_card, /obj/item/card/emag/doorjack) || !os.unlock(TRUE))
 		return FALSE
-	to_chat(src, span_warning("Positronic OS: Black Wall разблокирован. Доступно 32 GB."))
+	to_chat(src, span_warning("Positronic OS: Black Wall разблокирован. Доступно [os.capacity()] GB."))
 	return TRUE
 
 /// A consumed software carrier, never an implant or an organ.
@@ -180,7 +181,7 @@
 	if(!modifier)
 		return
 	syncing_speed = TRUE
-	var/base_delay = os.host.cached_multiplicative_slowdown - modifier.get_rp_speed()
+	var/base_delay = os.host.cached_multiplicative_slowdown * os.host.ipc_movement_rate() - modifier.get_rp_speed()
 	var/adjustment = os.host.move_intent == MOVE_INTENT_RUN && !(os.host.movement_type & (FLYING|FLOATING)) ? -max(base_delay, 0) * 0.2 : 0
 	os.host.add_or_update_variable_movespeed_modifier(/datum/movespeed_modifier/ipc_os_overclock, multiplicative_slowdown = adjustment)
 	syncing_speed = FALSE

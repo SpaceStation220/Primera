@@ -243,7 +243,7 @@
 		if(delay <= 0)
 			return TRUE
 
-		return do_after(user, delay, target)
+		return do_after(user, delay, target, work_departments = "engineering", ipc_action_kind = "construction")
 
 	//checks for ui changes
 	return ..()

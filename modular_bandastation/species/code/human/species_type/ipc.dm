@@ -56,7 +56,7 @@
 
 /datum/species/ipc/on_species_gain(mob/living/carbon/human/human, datum/species/old_species, pref_load, regenerate_icons = TRUE, replace_missing = TRUE)
 	. = ..()
-	human.mob_mood?.set_enabled(FALSE)
+	human.mob_mood?.set_enabled(human.is_ipc_generation("III"))
 	human.hud_used?.remove_screen_object(HUD_MOB_HUNGER)
 	for(var/hud_type in list(DATA_HUD_MEDICAL_BASIC, DATA_HUD_MEDICAL_ADVANCED))
 		var/datum/atom_hud/medical_hud = GLOB.huds[hud_type]
@@ -86,6 +86,10 @@
 	), PROC_REF(update_diagnostics))
 	RegisterSignal(human, COMSIG_ATOM_EXAMINE, PROC_REF(on_examine))
 	RegisterSignal(human, COMSIG_CARBON_ATTEMPT_EAT, PROC_REF(on_attempt_eat))
+	RegisterSignal(human, COMSIG_MOB_CLICKON, PROC_REF(on_food_load_click))
+	RegisterSignal(human, COMSIG_MOB_ITEM_ATTACK, PROC_REF(on_generation_item_attack))
+	RegisterSignal(human, COMSIG_LIVING_ATTACK_ATOM, PROC_REF(on_generation_object_attack))
+	RegisterSignals(human, list(COMSIG_CARBON_POST_ATTACH_LIMB, COMSIG_CARBON_POST_REMOVE_LIMB, COMSIG_HUMAN_PREFS_APPLIED), PROC_REF(on_chassis_changed))
 	// Species can be applied both before and after the human's initial HUD setup.
 	if(!human.hud_list)
 		human.prepare_huds()
@@ -106,11 +110,13 @@
 	. = ..()
 	if(!istype(new_species, /datum/species/ipc))
 		human.mob_mood?.set_enabled(TRUE)
+	REMOVE_TRAIT(human, TRAIT_SILENT_FOOTSTEPS, REF(src))
 	QDEL_NULL(display_action)
 	restore_emote_verbs(human)
 	if(human.hud_used && !istype(new_species, /datum/species/ipc) && !human.hud_used.screen_objects[HUD_MOB_HUNGER])
 		human.hud_used.add_screen_object(/atom/movable/screen/hunger, HUD_MOB_HUNGER, HUD_GROUP_INFO, update_screen = TRUE)
 	UnregisterSignal(human, list(
+		COMSIG_MOB_CLICKON,
 		COMSIG_MOB_PRE_EMOTED,
 		COMSIG_LIVING_ELECTROCUTE_ACT,
 		COMSIG_LIVING_LIFE,
@@ -125,6 +131,11 @@
 		SIGNAL_REMOVETRAIT(TRAIT_KNOCKEDOUT),
 		COMSIG_ATOM_EXAMINE,
 		COMSIG_CARBON_ATTEMPT_EAT,
+		COMSIG_MOB_ITEM_ATTACK,
+		COMSIG_LIVING_ATTACK_ATOM,
+		COMSIG_CARBON_POST_ATTACH_LIMB,
+		COMSIG_CARBON_POST_REMOVE_LIMB,
+		COMSIG_HUMAN_PREFS_APPLIED,
 	))
 	human.set_hud_image_inactive(DIAG_HUD)
 	human.set_hud_image_inactive(DIAG_STAT_HUD)
@@ -136,6 +147,10 @@
 /// The chassis has no food intake; this also rejects another person's feeding attempt.
 /datum/species/ipc/proc/on_attempt_eat(mob/living/carbon/human/human, atom/food)
 	SIGNAL_HANDLER
+	var/obj/item/bodypart/chest/robot/ipc/torso = human.get_bodypart(BODY_ZONE_CHEST)
+	if(istype(torso) && torso.ipc_manufacturer == /datum/ipc_manufacturer/zeng::name)
+		if(torso.load_ipc_food(human, food))
+			return BLOCK_EAT_ATTEMPT
 	var/obj/item/organ/stomach/ipc_culinary/culinary = human.get_organ_by_type(/obj/item/organ/stomach/ipc_culinary)
 	if(culinary?.is_operational())
 		return NONE
@@ -165,6 +180,13 @@
 
 /datum/species/ipc/proc/on_life(mob/living/carbon/human/human, seconds_per_tick)
 	SIGNAL_HANDLER
+	if(human.get_ipc_manufacturer()?.name == /datum/ipc_manufacturer/cybersun::name)
+		ADD_TRAIT(human, TRAIT_SILENT_FOOTSTEPS, REF(src))
+	else
+		REMOVE_TRAIT(human, TRAIT_SILENT_FOOTSTEPS, REF(src))
+	var/obj/item/bodypart/chest/robot/ipc/torso = human.get_bodypart(BODY_ZONE_CHEST)
+	if(istype(torso))
+		torso.process_ipc_food(human, seconds_per_tick)
 	if(!istype(human.get_organ_slot(ORGAN_SLOT_HEART), /obj/item/organ/heart/ipc) && !HAS_TRAIT(human, TRAIT_GODMODE))
 		human.death()
 		return
@@ -197,19 +219,20 @@
 	human.set_hud_image_state(DIAG_HUD, hud_state = "huddiag[human.stat == DEAD ? "dead" : RoundDiagBar(human.health / human.maxHealth)]")
 	human.set_hud_image_state(DIAG_STAT_HUD, hud_state = human.stat == DEAD ? "huddead2" : (IS_UNCONSCIOUS(human) ? "hudoffline" : "hudstat"))
 	var/obj/item/organ/heart/ipc/battery = human.get_organ_slot(ORGAN_SLOT_HEART)
-	human.set_hud_image_state(DIAG_BATT_HUD, hud_state = istype(battery) ? "hudbatt[RoundDiagBar(human.nutrition / NUTRITION_LEVEL_FULL)]" : "hudnobatt")
+	human.set_hud_image_state(DIAG_BATT_HUD, hud_state = istype(battery) ? "hudbatt[RoundDiagBar(human.nutrition / human.ipc_charge_capacity())]" : "hudnobatt")
 
 /datum/species/ipc/proc/on_examine(mob/living/carbon/human/human, mob/examiner, list/examine_text)
 	SIGNAL_HANDLER
 	if(human.stat == DEAD)
 		examine_text += span_notice("Корпус можно восстановить сваркой и проводами. Для перезапуска также нужны исправные позитронный мозг и батарея с зарядом.")
 	else if(examiner == human)
-		examine_text += span_notice("Заряд батареи: [round(100 * human.nutrition / NUTRITION_LEVEL_FULL)]%.")
+		examine_text += span_notice("Заряд батареи: [round(100 * human.nutrition / human.ipc_charge_capacity())]% ([round(100 * human.nutrition / NUTRITION_LEVEL_FULL, 0.1)] / [round(100 * human.ipc_charge_capacity() / NUTRITION_LEVEL_FULL)] ед.).")
 
 /datum/species/ipc/get_features()
 	var/list/features = ..()
 	features = features.Copy()
-	features |= list(FEATURE_IPC_CHASSIS, FEATURE_IPC_CHASSIS_COLOR, FEATURE_IPC_HEAD, FEATURE_IPC_SCREEN, FEATURE_IPC_SCREEN_COLOR, FEATURE_IPC_SCREEN_COLOR_SECONDARY, FEATURE_IPC_ANTENNA, FEATURE_IPC_ANTENNA_COLOR)
+	features |= list("ipc_left_arm", "ipc_right_arm", "ipc_left_leg", "ipc_right_leg")
+	features |= list(FEATURE_IPC_GENERATION, FEATURE_IPC_MANUFACTURER, FEATURE_IPC_CHASSIS, FEATURE_IPC_CHASSIS_COLOR, FEATURE_IPC_HEAD, FEATURE_IPC_SCREEN, FEATURE_IPC_SCREEN_COLOR, FEATURE_IPC_SCREEN_COLOR_SECONDARY, FEATURE_IPC_ANTENNA, FEATURE_IPC_ANTENNA_COLOR)
 	return features
 
 /datum/species/ipc/get_physical_attributes()

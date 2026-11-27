@@ -307,6 +307,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 /// This object innately spawns with fantasy variables already applied (the magical component is given to it on initialize), and thus we never want to give it the component again.
 #define TRAIT_INNATELY_FANTASTICAL_ITEM "innately_fantastical_item"
 #define TRAIT_NOCRITDAMAGE "no_crit"
+/// The Guardian Jaws own the participant's heartbeat channel while the clamp is active.
+#define TRAIT_IPC_JAWS_HEARTBEAT "ipc_jaws_heartbeat"
 /// Prevents shovies and some strong blows such as unarmed punches and (unreliably) tackles the owner down
 #define TRAIT_BRAWLING_KNOCKDOWN_BLOCKED "brawling_knockdown_blocked"
 /// Applies tackling defense bonus to any mob that has it
@@ -442,6 +444,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 
 /// Lets us scan reagents
 #define TRAIT_REAGENT_SCANNER "reagent_scanner"
+/// The local player is driving a remote chassis, so SSD must not put the source body to sleep.
+#define TRAIT_IPC_REMOTE_PILOT_BODY "ipc_remote_pilot_body"
 /// Lets us scan machine parts and tech unlocks
 #define TRAIT_RESEARCH_SCANNER "research_scanner"
 /// Can weave webs into cloth

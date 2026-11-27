@@ -39,5 +39,7 @@
 
 	var/turf/weld_location = get_turf(source)
 	for(var/mob/living/victim in viewers(1, weld_location))
+		if(astype(victim, /mob/living/carbon/human)?.has_ipc_specialization("engineering"))
+			continue
 		var/flash_strength_for_victim = max(flash_strength - get_dist(victim, weld_location), 0)
 		victim.flash_act(flash_strength_for_victim)

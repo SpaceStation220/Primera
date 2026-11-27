@@ -16,6 +16,8 @@
 	var/mob/living/mob_parent
 	/// BANDASTATION ADDITION - Keep a neutral datum for callers when a species has no mood.
 	var/enabled = TRUE
+	/// Installed Gen III engram, bound and released with its positronic core.
+	var/datum/ipc_os_program/humanity/humanity
 
 	/// The total combined value of all moodlets for the mob
 	var/mood
@@ -99,6 +101,7 @@
 	mob_parent = null
 
 /datum/mood/Destroy(force)
+	humanity = null
 	STOP_PROCESSING(SSmood, src)
 	QDEL_LIST_ASSOC_VAL(mood_events)
 	return ..()
@@ -149,6 +152,9 @@
 		update_mood()
 
 /datum/mood/process(seconds_per_tick)
+	if(humanity)
+		humanity.process_mood(seconds_per_tick)
+		return
 	switch(mood_level)
 		if(MOOD_LEVEL_SAD4)
 			adjust_sanity(-0.3 * seconds_per_tick, SANITY_INSANE)
@@ -181,7 +187,8 @@
 
 /// Handles mood given by nutrition
 /datum/mood/proc/update_nutrition_moodlets()
-	if(HAS_TRAIT(mob_parent, TRAIT_NOHUNGER))
+	var/mob/living/carbon/human/body = mob_parent
+	if(HAS_TRAIT(mob_parent, TRAIT_NOHUNGER) || (istype(body) && body.is_ipc_generation("III")))
 		clear_mood_event(MOOD_CATEGORY_NUTRITION)
 		return FALSE
 
@@ -418,6 +425,13 @@
 		if (SANITY_LEVEL_INSANE)
 			mood_screen_object.color = "#f15d36"
 
+	if(humanity)
+		mood_screen_object.icon = 'modular_bandastation/species/icons/hud/humanity.dmi'
+		var/expression = mood_level > MOOD_LEVEL_NEUTRAL ? "up" : (mood_level < MOOD_LEVEL_NEUTRAL ? "down" : "rest")
+		mood_screen_object.icon_state = humanity.eye_episode ? "stage4-saccade[humanity.eye_frame]" : "stage[humanity.stage]-[expression]"
+		return
+	if(mood_screen_object.icon == 'modular_bandastation/species/icons/hud/humanity.dmi')
+		mood_screen_object.icon = initial(mood_screen_object.icon)
 	if (!conflicting_moodies.len) // there's no special icons, use the normal icon states
 		mood_screen_object.icon_state = "mood[mood_level]"
 		return
@@ -438,6 +452,9 @@
 	mood_screen_object.color = "#4b96c4"
 	RegisterSignal(hud, COMSIG_QDELETING, PROC_REF(unmodify_hud))
 	RegisterSignal(mood_screen_object, COMSIG_SCREEN_ELEMENT_CLICK, PROC_REF(hud_click))
+	var/mob/living/carbon/human/body = mob_parent
+	if(istype(body) && body.is_ipc_generation("III"))
+		update_mood_icon()
 
 /// Removes the mood HUD object
 /datum/mood/proc/unmodify_hud(datum/source)
@@ -688,11 +705,14 @@
 			sanity_level = SANITY_LEVEL_GREAT
 
 	set_crit_threshold()
-	set_movespeed_effect()
-	set_actionspeed_effect()
+	if(humanity)
+		humanity.refresh_speed()
+	else
+		set_movespeed_effect()
+		set_actionspeed_effect()
 
 	// Crazy or insane = add some uncommon hallucinations
-	if(sanity_level >= SANITY_LEVEL_CRAZY)
+	if(!humanity && sanity_level >= SANITY_LEVEL_CRAZY)
 		mob_parent.apply_status_effect(/datum/status_effect/hallucination/sanity)
 	else
 		mob_parent.remove_status_effect(/datum/status_effect/hallucination/sanity)

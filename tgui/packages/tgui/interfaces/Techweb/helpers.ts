@@ -140,6 +140,7 @@ export function joinResearch(
       tier,
       enqueued_by_user: flags & NodeFlag.QueuedByViewer ? 1 : 0,
       discount_boosted: flags & NodeFlag.Boosted ? 1 : 0,
+      reverse_engineered: flags & NodeFlag.ReverseEngineered ? 1 : 0,
     });
   }
 

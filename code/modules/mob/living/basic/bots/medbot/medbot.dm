@@ -244,7 +244,7 @@
 // Variables sent to TGUI
 /mob/living/basic/bot/medbot/ui_data(mob/user)
 	var/list/data = ..()
-	if(!(bot_access_flags & BOT_COVER_LOCKED) || HAS_SILICON_ACCESS(user))
+	if(!(bot_access_flags & BOT_COVER_LOCKED) || HAS_SILICON_ACCESS(user) || ipc_remote_controls(user))
 		data["custom_controls"]["heal_threshold"] = heal_threshold
 		data["custom_controls"]["speaker"] = medical_mode_flags & MEDBOT_SPEAK_MODE
 		data["custom_controls"]["crit_alerts"] = medical_mode_flags & MEDBOT_DECLARE_CRIT
@@ -255,7 +255,7 @@
 /mob/living/basic/bot/medbot/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()
 	var/mob/user = ui.user
-	if(. || !isliving(ui.user) || (bot_access_flags & BOT_COVER_LOCKED) && !HAS_SILICON_ACCESS(user))
+	if(. || !isliving(ui.user) || (bot_access_flags & BOT_COVER_LOCKED) && !HAS_SILICON_ACCESS(user) && !ipc_remote_controls(user))
 		return
 	switch(action)
 		if("heal_threshold")
@@ -273,6 +273,7 @@
 			medical_mode_flags ^= MEDBOT_STATIONARY_MODE
 
 	update_appearance()
+	return TRUE
 
 /mob/living/basic/bot/medbot/emag_effects(mob/user)
 	medical_mode_flags &= ~MEDBOT_DECLARE_CRIT

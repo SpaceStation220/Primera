@@ -1,0 +1,2 @@
+cyberlink_success.mp3 and cyberlink_failure.mp3 are the contributor-supplied routing result sounds, copied without modification.
+The contributor confirmed permission to distribute under the project asset license, CC BY-SA 3.0.

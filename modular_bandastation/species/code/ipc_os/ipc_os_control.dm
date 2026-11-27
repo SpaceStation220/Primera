@@ -32,6 +32,10 @@
 
 /// Validate ownership of a real existing infection before displacing either player's controller.
 /datum/ipc_os_control/proc/start()
+	var/datum/ipc_os_program/cyberlink/source_link = source_os.programs["cyberlink"]
+	var/datum/ipc_os_program/cyberlink/target_link = target_os.programs["cyberlink"]
+	if(source_link.busy() || target_link.busy())
+		return FALSE
 	if(!source_os.can_use(attacker) || !target_os.is_operational() || !GET_CLIENT(victim) || source_os.control_session || target_os.control_session)
 		return FALSE
 	if(attacker == victim || !attacker.mind || !victim.mind)

@@ -1,0 +1,7 @@
+ipc_coffee_machine_10s.ogg supplied by the task owner in IPC_Generations_Primera_v2_Codex_bundle.zip.
+SHA256: E96E7C574C0F5ED53C7DEE6FB770F9D1068E3A9ACF9167B705F6349E52EF33BF
+Source: https://pixabay.com/sound-effects/household-coffee-machine-40031/
+Title: Coffee Machine
+Creator: dryade07 (Freesound), published by freesound_community.
+License: Pixabay Content License, https://pixabay.com/service/license-summary/
+This asset remains under the Pixabay Content License. It is not relicensed as CC BY-SA. The contributor requested its inclusion in the public pull request with this attribution.

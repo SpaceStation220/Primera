@@ -546,6 +546,7 @@
 #define TECHWEB_UI_EXPERIMENTS_DONE (1<<2)
 #define TECHWEB_UI_QUEUED_BY_VIEWER (1<<3)
 #define TECHWEB_UI_BOOSTED (1<<4)
+#define TECHWEB_UI_REVERSE_ENGINEERED (1<<5)
 
 /// Returns everything the research UIs' static data depends on - the catalogue build, this techweb, and its experiments
 /datum/techweb/proc/get_ui_static_key()
@@ -607,7 +608,7 @@
 		var/datum/techweb_node/node = SSresearch.techweb_nodes[node_path]
 		// Only discounts make a price differ from the costs, so we only copy the costs for nodes they can apply to
 		var/list/price = node.research_costs
-		if(LAZYLEN(node.discount_experiments) || (LAZYLEN(node.discount_boosts) && boosted_nodes[node_path]))
+		if(ipc_reverse_discounts[node_path] || LAZYLEN(node.discount_experiments) || (LAZYLEN(node.discount_boosts) && boosted_nodes[node_path]))
 			price = node.get_price(src)
 		var/row_flags = NONE
 		if(!price || !values_sum(price))
@@ -621,6 +622,8 @@
 			row_flags |= TECHWEB_UI_QUEUED_BY_VIEWER
 		if(boosted_nodes[node_path])
 			row_flags |= TECHWEB_UI_BOOSTED
+		if(ipc_reverse_discounts[node_path])
+			row_flags |= TECHWEB_UI_REVERSE_ENGINEERED
 		nodes += list(id, node_tier, row_flags)
 
 	var/list/queue = list()
@@ -653,3 +656,4 @@
 #undef TECHWEB_UI_EXPERIMENTS_DONE
 #undef TECHWEB_UI_QUEUED_BY_VIEWER
 #undef TECHWEB_UI_BOOSTED
+#undef TECHWEB_UI_REVERSE_ENGINEERED

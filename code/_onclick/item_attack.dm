@@ -225,6 +225,7 @@
  * * attack_modifiers - attack modifiers such as force, damage type, etc
  */
 /obj/item/proc/attack(mob/living/target_mob, mob/living/user, list/modifiers, list/attack_modifiers)
+	LAZYINITLIST(attack_modifiers)
 	var/signal_return = SEND_SIGNAL(src, COMSIG_ITEM_ATTACK, target_mob, user, modifiers, attack_modifiers) || SEND_SIGNAL(user, COMSIG_MOB_ITEM_ATTACK, target_mob, user, modifiers, attack_modifiers)
 	if(signal_return & COMPONENT_CANCEL_ATTACK_CHAIN)
 		return TRUE
@@ -298,6 +299,7 @@
 
 /// The equivalent of the standard version of [/obj/item/proc/attack] but for non mob targets.
 /obj/item/proc/attack_atom(atom/attacked_atom, mob/living/user, list/modifiers, list/attack_modifiers)
+	LAZYINITLIST(attack_modifiers)
 	var/signal_return = SEND_SIGNAL(src, COMSIG_ITEM_ATTACK_ATOM, attacked_atom, user, modifiers, attack_modifiers) | SEND_SIGNAL(user, COMSIG_LIVING_ATTACK_ATOM, attacked_atom, modifiers, attack_modifiers)
 	if(signal_return & COMPONENT_SKIP_ATTACK)
 		return TRUE

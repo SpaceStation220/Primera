@@ -25,6 +25,8 @@ multiple modular subtrees with behaviors
 	var/registered_z
 	///Set by force_ai_off() when an outside system deliberately disables this AI. While TRUE, get_expected_ai_status() always returns AI_STATUS_OFF, so status recalculations (stat changes, z changes, client login/logout) cannot re-enable us. Cleared via clear_forced_off().
 	var/forced_off = FALSE
+	/// Allows a temporary controller to restore only the forced-off state it owns.
+	var/forced_off_revision = 0
 	///Tracks recent pathing attempts, if we fail too many in a row we fail our current plans.
 	var/consecutive_pathing_attempts
 	///Can the AI remain in control if there is a client?
@@ -427,11 +429,13 @@ multiple modular subtrees with behaviors
  * from stat changes, z-level changes, client login/logout and the like.
  */
 /datum/ai_controller/proc/force_ai_off(additional_flags = NONE)
+	forced_off_revision++
 	forced_off = TRUE
 	set_ai_status(AI_STATUS_OFF, additional_flags)
 
 /// Undoes force_ai_off() and recalculates what status we should be in.
 /datum/ai_controller/proc/clear_forced_off()
+	forced_off_revision++
 	forced_off = FALSE
 	reset_ai_status()
 

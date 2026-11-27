@@ -240,12 +240,13 @@
 		return FALSE
 	if (!rmat.can_use_resource(user_data = user_data))
 		return FALSE
-	if(!materials.has_materials(D.materials, component_coeff))
+	var/material_cost_coefficient = ipc_calibrated_cost(D, component_coeff)
+	if(!materials.has_materials(D.materials, material_cost_coefficient))
 		if(verbose)
 			say("Not enough resources. Processing stopped.")
 		return FALSE
 
-	rmat.use_materials(D.materials, component_coeff, 1, "processed", "[D.name]", user_data)
+	rmat.use_materials(D.materials, material_cost_coefficient, 1, "processed", "[D.name]", user_data)
 	being_built = D
 	build_finish = world.time + get_construction_time_w_coeff(initial(D.construction_time))
 	build_start = world.time
@@ -349,7 +350,7 @@
  * * roundto - Rounding value for round() proc
  */
 /obj/machinery/mecha_part_fabricator/proc/get_construction_time_w_coeff(construction_time, roundto = 1) //aran
-	return round(construction_time*time_coeff, roundto)
+	return round(ipc_calibrated_time(construction_time * time_coeff), roundto)
 
 /obj/machinery/mecha_part_fabricator/ui_assets(mob/user)
 	return list(
@@ -381,7 +382,7 @@
 		var/cost = list()
 		var/list/materials = design.materials
 		for(var/datum/material/mat in materials)
-			cost[mat.name] = OPTIMAL_COST(materials[mat] * component_coeff)
+			cost[mat.name] = OPTIMAL_COST(materials[mat] * ipc_calibrated_cost(design, component_coeff))
 
 		var/icon_size = spritesheet.icon_size_id(design.asset_id)
 		designs[design.type] = list(

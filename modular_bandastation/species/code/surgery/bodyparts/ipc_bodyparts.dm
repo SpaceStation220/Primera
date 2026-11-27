@@ -9,6 +9,18 @@
 		return
 	var/is_head = body_zone == BODY_ZONE_HEAD
 	var/feature_key = is_head ? FEATURE_IPC_HEAD : FEATURE_IPC_CHASSIS
+	if(human.dna.features[FEATURE_IPC_MANUFACTURER] == /datum/ipc_manufacturer/con::name)
+		switch(body_zone)
+			if(BODY_ZONE_L_ARM)
+				feature_key = "ipc_left_arm"
+			if(BODY_ZONE_R_ARM)
+				feature_key = "ipc_right_arm"
+			if(BODY_ZONE_L_LEG)
+				feature_key = "ipc_left_leg"
+			if(BODY_ZONE_R_LEG)
+				feature_key = "ipc_right_leg"
+		if(!human.dna.features[feature_key])
+			feature_key = is_head ? FEATURE_IPC_HEAD : FEATURE_IPC_CHASSIS
 	var/datum/ipc_chassis/chassis = GLOB.ipc_chassis[human.dna.features[feature_key]]
 	if(isnull(chassis) || (is_head && !chassis.has_head) || (!is_head && !chassis.has_body))
 		chassis = GLOB.ipc_chassis[/datum/ipc_chassis/morpheus::name]
@@ -25,6 +37,9 @@
 			limb_image.color = ipc_additive_color(species_color)
 
 /obj/item/bodypart/proc/ipc_receive_emp(severity)
+	var/mob/living/carbon/human/human = owner
+	if(istype(human) && human.get_ipc_os()?.generation() == "I")
+		human.Paralyze(severity == EMP_HEAVY ? 10 SECONDS : 5 SECONDS)
 	// The chassis resists the usual robotic limb paralysis; internal organs still receive EMPs.
 	receive_damage(burn = severity == EMP_HEAVY ? IPC_EMP_HEAVY_LIMB_DAMAGE : IPC_EMP_LIGHT_LIMB_DAMAGE)
 	do_sparks(number = 1, cardinal_only = FALSE, source = owner || src)

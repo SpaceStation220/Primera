@@ -135,6 +135,8 @@
 
 /datum/unit_test/ipc_os_signaler/Run()
 	var/mob/living/carbon/human/ipc = allocate(/mob/living/carbon/human/consistent)
+	// An unoccupied chassis shuts its software down on the next life tick.
+	ipc.mock_client = allocate(/datum/client_interface)
 	ipc.set_species(/datum/species/ipc)
 	// A radio broadcast can yield, giving the OS a life tick before the test sends again.
 	ipc.mock_client = allocate(/datum/client_interface)

@@ -1,0 +1,4 @@
+The IPC shield sprites in integrated_shield.dmi, factory_tools_left.dmi, and
+factory_tools_right.dmi are adapted from the project owner's supplied shield
+reference. The cable and jaws sprites are adapted from the owner's matching
+hand-slot and equipped references.

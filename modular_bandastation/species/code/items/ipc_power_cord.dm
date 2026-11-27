@@ -78,7 +78,7 @@
 	if(QDELETED(apc.cell) || apc.cell.charge() <= 0)
 		balloon_alert(user, "в ЛКП нет заряда!")
 		return FALSE
-	if(user.nutrition >= NUTRITION_LEVEL_WELL_FED)
+	if(user.nutrition >= user.ipc_apc_charge_limit())
 		balloon_alert(user, "зарядка завершена")
 		return FALSE
 	return TRUE
@@ -90,7 +90,8 @@
 		if(!can_charge(apc, user))
 			break
 		var/obj/item/organ/heart/ipc/battery = user.get_organ_slot(ORGAN_SLOT_HEART)
-		var/requested_nutrition = min(IPC_APC_CHARGE_RATE, NUTRITION_LEVEL_WELL_FED - user.nutrition)
+		var/datum/ipc_manufacturer/manufacturer = astype(user, /mob/living/carbon/human)?.get_ipc_manufacturer()
+		var/requested_nutrition = min(IPC_APC_CHARGE_RATE * (manufacturer?.apc_rate || 1), user.ipc_apc_charge_limit() - user.nutrition)
 		var/energy_received = apc.cell.use(requested_nutrition * IPC_APC_ENERGY_PER_NUTRITION, force = TRUE)
 		if(QDELETED(battery) || !energy_received)
 			break

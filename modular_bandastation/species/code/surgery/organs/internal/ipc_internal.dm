@@ -90,6 +90,13 @@
 	else if(!owner)
 		activate_processor()
 
+/obj/item/organ/brain/ipc/emp_act(severity)
+	. = ..()
+	if(. & EMP_PROTECT_SELF)
+		return
+	var/datum/ipc_os_program/cyberlink/program = operating_system?.programs["cyberlink"]
+	program?.disable_by_emp(severity)
+
 /obj/item/organ/brain/ipc/on_begin_failure()
 	. = ..()
 	brainmob?.death()
@@ -200,6 +207,8 @@
 		return
 	var/obj/item/organ/brain/core = owner.get_organ_slot(ORGAN_SLOT_BRAIN)
 	var/power_multiplier = core?.operating_system ? core.operating_system.power_multiplier() : 1
+	var/datum/ipc_manufacturer/manufacturer = astype(owner, /mob/living/carbon/human)?.get_ipc_manufacturer()
+	power_multiplier *= manufacturer?.base_drain || 1
 	adjust_charge(-HUNGER_FACTOR * seconds_per_tick * power_multiplier)
 	if(owner.nutrition >= IPC_CRITICAL_CHARGE)
 		return
@@ -224,12 +233,16 @@
 	if(. & EMP_PROTECT_SELF)
 		return
 	apply_organ_damage(severity == EMP_HEAVY ? 20 : 7)
+	if(severity == EMP_HEAVY && ishuman(owner))
+		var/mob/living/carbon/human/body = owner
+		var/datum/ipc_os_program/humanity/archive = body.get_ipc_os()?.programs["humanity"]
+		archive?.record_trauma(/datum/mood_event/humanity_trauma/emp)
 
 /// Changes nutrition-based charge and returns the amount accepted; failed batteries cannot charge.
 /obj/item/organ/heart/ipc/proc/adjust_charge(amount)
 	if(!owner || (organ_flags & (ORGAN_FAILING | ORGAN_EMP)))
 		return 0
-	var/accepted = clamp(amount, -owner.nutrition, NUTRITION_LEVEL_FULL - owner.nutrition)
+	var/accepted = clamp(amount, -owner.nutrition, owner.ipc_charge_capacity() - owner.nutrition)
 	owner.adjust_nutrition(accepted, forced = TRUE)
 	update_charge_alert()
 	return accepted
@@ -237,11 +250,12 @@
 /// Uses the station's callback so power availability, upgraded parts, and actual energy costs still apply.
 /obj/item/organ/heart/ipc/proc/on_charger(datum/source, datum/callback/charge_cell, seconds_per_tick)
 	SIGNAL_HANDLER
-	if(!owner || (organ_flags & (ORGAN_FAILING | ORGAN_EMP)) || owner.nutrition >= NUTRITION_LEVEL_FULL)
+	if(!owner || (organ_flags & (ORGAN_FAILING | ORGAN_EMP)) || owner.nutrition >= owner.ipc_charge_capacity())
 		return
 	if(!charging_buffer)
 		charging_buffer = new(src)
-	charging_buffer.charge = clamp(owner.nutrition, 0, NUTRITION_LEVEL_FULL) * IPC_ENERGY_PER_NUTRITION
+	charging_buffer.maxcharge = owner.ipc_charge_capacity() * IPC_ENERGY_PER_NUTRITION
+	charging_buffer.charge = clamp(owner.nutrition, 0, owner.ipc_charge_capacity()) * IPC_ENERGY_PER_NUTRITION
 	var/energy_received = charge_cell.Invoke(charging_buffer, seconds_per_tick)
 	adjust_charge(energy_received / IPC_ENERGY_PER_NUTRITION)
 	charging_buffer.charge = 0
@@ -250,7 +264,7 @@
 /obj/item/organ/heart/ipc/proc/update_charge_alert()
 	if(QDELETED(owner))
 		return
-	var/percentage = round(clamp(owner.nutrition / NUTRITION_LEVEL_FULL, 0, 1) * 100)
+	var/percentage = round(clamp(owner.nutrition / owner.ipc_charge_capacity(), 0, 1) * 100)
 	if(percentage == displayed_charge && owner.alerts[IPC_CHARGE_ALERT])
 		return
 	displayed_charge = percentage

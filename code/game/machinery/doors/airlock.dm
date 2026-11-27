@@ -266,6 +266,7 @@
 /obj/machinery/door/airlock/proc/set_bolt(should_bolt)
 	if(locked == should_bolt)
 		return
+	bolt_revision++
 	SEND_SIGNAL(src, COMSIG_AIRLOCK_SET_BOLT, should_bolt)
 	. = locked
 	locked = should_bolt
@@ -911,9 +912,10 @@
 	return ..()
 
 /obj/machinery/door/airlock/proc/electrified_loop()
+	var/loop_revision = shock_revision
 	while (secondsElectrified > MACHINE_NOT_ELECTRIFIED)
 		sleep(1 SECONDS)
-		if(QDELETED(src))
+		if(QDELETED(src) || loop_revision != shock_revision)
 			return
 
 		if(secondsElectrified <= MACHINE_NOT_ELECTRIFIED) //make sure they weren't unelectrified during the sleep.
@@ -1620,6 +1622,8 @@
 		LAZYADD(shockedby, "\[[server_timestamp()]\]EM Pulse")
 
 /obj/machinery/door/airlock/proc/set_electrified(seconds, mob/user)
+	if(user || secondsElectrified != seconds)
+		shock_revision++
 	secondsElectrified = seconds
 	diag_hud_set_electrified()
 	if(secondsElectrified > MACHINE_NOT_ELECTRIFIED)

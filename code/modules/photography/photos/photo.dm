@@ -13,6 +13,8 @@
 	pickup_sound = 'sound/items/handling/paper_pickup.ogg'
 	var/datum/picture/picture
 	var/scribble //Scribble on the back.
+	/// Whether viewing the item can open its full-size picture.
+	var/show_picture = TRUE
 
 /obj/item/photo/grind_results()
 	return LAZYACCESS(custom_materials, /datum/material/hauntium) ? list(/datum/reagent/hauntium = 20) : list(/datum/reagent/iodine = 4)
@@ -91,12 +93,16 @@
 /obj/item/photo/examine(mob/user)
 	. = ..()
 
+	if(!show_picture)
+		return
 	if(in_range(src, user) || isobserver(user))
 		show(user)
 	else
 		. += span_warning("You need to get closer to get a good look at this photo!")
 
 /obj/item/photo/proc/show(mob/user)
+	if(!show_picture)
+		return
 	if(!istype(picture) || !picture.picture_image)
 		to_chat(user, span_warning("[src] seems to be blank..."))
 		return

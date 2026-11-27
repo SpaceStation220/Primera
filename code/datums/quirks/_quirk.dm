@@ -82,7 +82,7 @@
 
 	if(ishuman(new_holder))
 		var/mob/living/carbon/human/human_holder = new_holder
-		if(!human_holder.dna.species.can_have_quirks)
+		if(!human_holder.dna.species.can_have_quirks && !(human_holder.is_ipc_generation("III") && is_humanity_quirk(type)))
 			return FALSE
 
 	quirk_holder = new_holder

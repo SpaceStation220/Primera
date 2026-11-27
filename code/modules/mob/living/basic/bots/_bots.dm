@@ -603,9 +603,9 @@ GLOBAL_LIST_INIT(command_strings, list(
 	data["custom_controls"] = list()
 	data["emagged"] = bot_access_flags & BOT_COVER_EMAGGED
 	data["has_access"] = allowed(user)
-	data["locked"] = (bot_access_flags & BOT_COVER_LOCKED)
+	data["locked"] = (bot_access_flags & BOT_COVER_LOCKED) && !ipc_remote_controls(user)
 	data["settings"] = list()
-	if(!(bot_access_flags & BOT_COVER_LOCKED) || HAS_SILICON_ACCESS(user))
+	if(!(bot_access_flags & BOT_COVER_LOCKED) || HAS_SILICON_ACCESS(user) || ipc_remote_controls(user))
 		data["settings"]["pai_inserted"] = !isnull(paicard)
 		data["settings"]["allow_possession"] = bot_mode_flags & BOT_MODE_CAN_BE_SAPIENT
 		data["settings"]["possession_enabled"] = can_be_possessed
@@ -676,6 +676,9 @@ GLOBAL_LIST_INIT(command_strings, list(
 		if("rename")
 			rename(the_user)
 
+	if(action in list("power", "patrol", "airplane"))
+		return TRUE
+
 /mob/living/basic/bot/update_icon_state()
 	icon_state = "[isnull(base_icon_state) ? initial(icon_state) : base_icon_state][bot_mode_flags & BOT_MODE_ON]"
 	return ..()
@@ -689,7 +692,7 @@ GLOBAL_LIST_INIT(command_strings, list(
 		return FALSE
 	if(!(bot_access_flags & BOT_COVER_HACKED)) //Manually emagged by a human - access denied to all.
 		return TRUE
-	if(!HAS_SILICON_ACCESS(user)) //Bot is hacked, so only silicons and admins are allowed access.
+	if(!HAS_SILICON_ACCESS(user) && !ipc_remote_controls(user)) //Bot is hacked, so only silicons and admins are allowed access.
 		return TRUE
 
 	return FALSE

@@ -1,0 +1,534 @@
+{
+  "config": {
+    "interface": {
+      "name": "ChromieRouting"
+    },
+    "title": "ChromieКnight 4.4",
+    "window": {
+      "size": [
+        540,
+        740
+      ]
+    }
+  },
+  "data": {
+    "phase": 1,
+    "attempt": 3,
+    "advanced": true,
+    "routing_left": 44,
+    "board": [
+      {
+        "index": 1,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 2,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 3,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 4,
+        "mask": 12,
+        "output": 4,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 5,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 6,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 7,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 8,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 9,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 10,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 11,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 12,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 13,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 14,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": true
+      },
+      {
+        "index": 15,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 16,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 17,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 18,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 19,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": true
+      },
+      {
+        "index": 20,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 21,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 22,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": true,
+        "blocked": false
+      },
+      {
+        "index": 23,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 24,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 25,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 26,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 27,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 28,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 29,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 30,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 31,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 32,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 33,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 34,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 35,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 36,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 37,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 38,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 39,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 40,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 41,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 42,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 43,
+        "mask": 5,
+        "output": 0,
+        "required": true,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 44,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 45,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 46,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 47,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 48,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 49,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 50,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 51,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": true,
+        "blocked": false
+      },
+      {
+        "index": 52,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": true
+      },
+      {
+        "index": 53,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 54,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 55,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 56,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 57,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 58,
+        "mask": 10,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 59,
+        "mask": 3,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 60,
+        "mask": 12,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 61,
+        "mask": 9,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 62,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 63,
+        "mask": 5,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      },
+      {
+        "index": 64,
+        "mask": 6,
+        "output": 0,
+        "required": false,
+        "locked": false,
+        "blocked": false
+      }
+    ]
+  }
+}

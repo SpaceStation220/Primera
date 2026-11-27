@@ -1,0 +1,69 @@
+{
+  "config": {
+    "interface": {
+      "name": "ChromieKnight"
+    },
+    "title": "ChromieКnight 4.4",
+    "window": {
+      "size": [
+        820,
+        700
+      ]
+    }
+  },
+  "data": {
+    "remote_enabled": true,
+    "active_devices": 1,
+    "charge": 83,
+    "temperature": 32.4,
+    "scan_cost": 1,
+    "memory": [
+      {
+        "id": "m1",
+        "name": "Медбот",
+        "category": "bot",
+        "available": true,
+        "reachable": true,
+        "target": "medical"
+      },
+      {
+        "id": "m2",
+        "name": "APLU Ripley",
+        "category": "mech",
+        "available": true,
+        "active": true
+      },
+      {
+        "id": "m3",
+        "name": "Медотсек / вход",
+        "category": "camera",
+        "available": false
+      },
+      {
+        "id": "m4",
+        "name": "Сервер сообщений",
+        "category": "machine",
+        "available": true
+      }
+    ],
+    "connected": "APLU Ripley",
+    "pilot_kind": "civilian",
+    "pilot_distance": 14,
+    "pilot_integrity": 78,
+    "pilot_cost": 1,
+    "devices": [],
+    "scanner_targets": [
+      {
+        "id": "medical",
+        "name": "Медбот"
+      }
+    ],
+    "last_scan": {
+      "name": "Медбот",
+      "integrity": 91
+    },
+    "buffer_name": "Ретранслятор связи",
+    "routing_cooldown": 0,
+    "relay_targets": []
+  }
+}

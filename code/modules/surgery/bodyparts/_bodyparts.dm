@@ -723,6 +723,16 @@
 	var/dmg_multi = CONFIG_GET(number/damage_multiplier) * hit_percent
 	brute = round(max(brute * dmg_multi * brute_modifier, 0), DAMAGE_PRECISION)
 	burn = round(max(burn * dmg_multi * burn_modifier, 0), DAMAGE_PRECISION)
+	var/mob/living/carbon/human/ipc_owner = owner
+	var/datum/ipc_manufacturer/manufacturer = istype(ipc_owner) ? ipc_owner.get_ipc_manufacturer() : null
+	if(manufacturer)
+		brute *= manufacturer.brute_multiplier
+		burn *= manufacturer.burn_multiplier
+		if(body_zone == BODY_ZONE_L_LEG || body_zone == BODY_ZONE_R_LEG)
+			brute *= manufacturer.leg_multiplier
+			burn *= manufacturer.leg_multiplier
+	if(istype(ipc_owner) && ipc_owner.is_ipc_generation("IV"))
+		brute *= 1.1
 
 	if(!brute && !burn)
 		return FALSE

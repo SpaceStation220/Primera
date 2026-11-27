@@ -1,0 +1,39 @@
+{
+  "config": {
+    "interface": {
+      "name": "CameraConsole220"
+    },
+    "title": "Camera Network",
+    "window": {
+      "size": [
+        1170,
+        775
+      ]
+    }
+  },
+  "data": {
+    "network": [
+      "Медотсек"
+    ],
+    "neural_routes": [
+      {
+        "ref": "station-a",
+        "name": "Центральный коридор"
+      }
+    ],
+    "neural_hops": 1,
+    "neural_cost": 1.5,
+    "activeCamera": null,
+    "cameras": [],
+    "mapRef": "fixture-camera",
+    "can_spy": false,
+    "mapData": {
+      "name": "MetaStation",
+      "minFloor": 1,
+      "mainFloor": 1,
+      "maxFloor": 1,
+      "lavalandLevel": 3,
+      "stairs": []
+    }
+  }
+}

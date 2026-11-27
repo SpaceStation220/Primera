@@ -152,6 +152,7 @@
 			self_delay * (auto_change_zone ? 1 : 0.9),
 			patient,
 			extra_checks = CALLBACK(src, PROC_REF(can_heal), patient, user, healed_zone),
+			work_departments = "medical",
 		))
 			return
 		if(!auto_change_zone)
@@ -171,6 +172,7 @@
 			other_delay * (auto_change_zone ? 1 : 0.9),
 			patient,
 			extra_checks = CALLBACK(src, PROC_REF(can_heal), patient, user, healed_zone),
+			work_departments = "medical",
 		))
 			return
 		if(!auto_change_zone)
@@ -255,7 +257,7 @@
 	PRIVATE_PROC(TRUE)
 
 	patient.balloon_alert(user, "оценка травмы...")
-	if(!do_after(user, 1 SECONDS, patient))
+	if(!do_after(user, 1 SECONDS, patient, work_departments = "medical"))
 		return
 	var/new_zone = check_zone(user.zone_selected)
 	if(!try_heal_checks(patient, user, new_zone))
@@ -505,7 +507,7 @@
 	if(heal_begin_sound)
 		playsound(src, heal_begin_sound, 75, TRUE, MEDIUM_RANGE_SOUND_EXTRARANGE)
 
-	if(!do_after(user, treatment_delay, patient))
+	if(!do_after(user, treatment_delay, patient, work_departments = "medical"))
 		return FALSE
 
 	if(islist(heal_end_sound))

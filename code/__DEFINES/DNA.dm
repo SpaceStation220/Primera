@@ -79,6 +79,8 @@
 // BANDASTATION ADDITION START - Species Features
 // keep in line with sprite_accessories .dmi
 #define FEATURE_IPC_CHASSIS "ipc_chassis"
+#define FEATURE_IPC_GENERATION "ipc_generation"
+#define FEATURE_IPC_MANUFACTURER "ipc_manufacturer"
 #define FEATURE_IPC_CHASSIS_COLOR "ipc_chassis_color"
 #define FEATURE_IPC_HEAD "ipc_head"
 #define FEATURE_IPC_SCREEN "ipc_screen"

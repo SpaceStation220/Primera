@@ -46,6 +46,7 @@ export function TechNode(props: Props) {
     enqueued_by_user,
     is_free,
     discount_boosted,
+    reverse_engineered,
   } = node;
   const {
     name,
@@ -165,10 +166,11 @@ export function TechNode(props: Props) {
       {tier !== 0 && (
         <Stack className="Techweb__NodeProgress">
           {costs.map((k) => {
-            const reqPts = Math.max(
-              0,
-              k.value - nodeDiscountExperiments - nodeDiscountBoosts,
-            );
+            const reqPts =
+              Math.max(
+                0,
+                k.value - nodeDiscountExperiments - nodeDiscountBoosts,
+              ) * (reverse_engineered ? 0.9 : 1);
             const nodeProg = Math.min(reqPts, points[k.type]) || 0;
             return (
               <Stack.Item key={k.type} grow basis={0}>

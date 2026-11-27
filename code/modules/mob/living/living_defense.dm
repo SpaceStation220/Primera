@@ -666,6 +666,12 @@
 	if(. & EMP_PROTECT_CONTENTS)
 		return
 	severity += get_emp_protection()
+	var/mob/living/carbon/human/ipc = src
+	if(!(. & EMP_PROTECT_SELF) && istype(ipc) && ipc.is_ipc_generation("I"))
+		if(severity == EMP_HEAVY)
+			ipc.Paralyze(7 SECONDS)
+		else if(severity == EMP_LIGHT)
+			ipc.Paralyze(5 SECONDS)
 	for(var/obj/inside in contents)
 		inside.emp_act(severity)
 

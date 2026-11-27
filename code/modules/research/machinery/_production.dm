@@ -241,7 +241,7 @@
 	for(var/datum/design/design in cached_designs)
 		var/list/cost = list()
 
-		var/coefficient = build_efficiency(design)
+		var/coefficient = ipc_calibrated_cost(design, build_efficiency(design))
 		for(var/_material, amount in design.materials)
 			var/datum/material/material = _material
 			cost[material.name] = OPTIMAL_COST(amount * coefficient)
@@ -332,7 +332,7 @@
 			//check for materials
 			if(!materials.can_use_resource(user_data = ID_DATA(usr)))
 				return
-			if(!materials.mat_container.has_materials(design.materials, coefficient, print_quantity))
+			if(!materials.mat_container.has_materials(design.materials, ipc_calibrated_cost(design, coefficient), print_quantity))
 				say("Not enough materials to complete prototype[print_quantity > 1 ? "s" : ""].")
 				return FALSE
 
@@ -352,7 +352,7 @@
 					target_location = get_turf(src)
 			else
 				target_location = get_turf(src)
-			addtimer(CALLBACK(src, PROC_REF(do_make_item), design, print_quantity, build_time_per_item, coefficient, charge_per_item, target_location, ID_DATA(usr)), build_time_per_item)
+			addtimer(CALLBACK(src, PROC_REF(do_make_item), design, print_quantity, build_time_per_item, coefficient, charge_per_item, target_location, ID_DATA(usr)), ipc_calibrated_time(build_time_per_item))
 
 			return TRUE
 
@@ -408,11 +408,12 @@
 
 	var/is_stack = ispath(design.build_path, /obj/item/stack)
 
-	if(!materials.mat_container.has_materials(design.materials, material_cost_coefficient, is_stack ? items_remaining : 1))
+	var/calibrated_cost = ipc_calibrated_cost(design, material_cost_coefficient)
+	if(!materials.mat_container.has_materials(design.materials, calibrated_cost, is_stack ? items_remaining : 1))
 		say("Unable to continue production, missing materials.")
 		finalize_build()
 		return
-	materials.use_materials(design.materials, material_cost_coefficient, is_stack ? items_remaining : 1, "processed", "[design.name]", user_data = user_data)
+	materials.use_materials(design.materials, calibrated_cost, is_stack ? items_remaining : 1, "processed", "[design.name]", user_data = user_data)
 
 	var/atom/movable/created
 	var/number_to_make = 1
@@ -429,7 +430,7 @@
 
 	created = design.create_result(target, design.materials, amount = number_to_make)
 	if(!is_stack && design.inherit_materials != DESIGN_DONT_INHERIT_MATS)
-		design.transfer_materials(design.materials, material_cost_coefficient, created)
+		design.transfer_materials(design.materials, calibrated_cost, created)
 
 	if(isitem(created))
 		created.pixel_x = created.base_pixel_x + rand(-6, 6)
@@ -444,7 +445,7 @@
 	if(!items_remaining)
 		finalize_build()
 		return
-	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, target, user_data), build_time_per_item)
+	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, target, user_data), ipc_calibrated_time(build_time_per_item))
 
 /// Resets the busy flag
 /// Called at the end of do_make_item's timer loop

@@ -110,6 +110,9 @@
 		else if(istype(s, /datum/computer_file/program/secureye))
 			var/datum/computer_file/program/secureye/prog = s
 			prog.on_camera_disabled(bodycam)
+		else if(istype(s, /datum/ipc_cyberlink_camera))
+			var/datum/ipc_cyberlink_camera/neural_view = s
+			neural_view.on_camera_disabled(bodycam)
 
 // with this pattren we could have a proc that takes a mode (disable/refresh) and iterates, but that's kinda overkill
 /datum/component/pausable_bodycam/proc/notify_watchers_refresh()
@@ -120,6 +123,9 @@
 		else if(istype(s, /datum/computer_file/program/secureye))
 			var/datum/computer_file/program/secureye/prog = s
 			prog.update_active_camera_screen()
+		else if(istype(s, /datum/ipc_cyberlink_camera))
+			var/datum/ipc_cyberlink_camera/neural_view = s
+			neural_view.render_camera()
 
 /datum/component/pausable_bodycam/proc/force_pause()
 	notify_watchers_disconnect()

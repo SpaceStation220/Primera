@@ -148,7 +148,7 @@
 			continue
 
 		//compute cost & maximum number of printable items
-		var/coeff = (ispath(design.build_path, /obj/item/stack) ? 1 : creation_efficiency)
+		var/coeff = ipc_calibrated_cost(design, ispath(design.build_path, /obj/item/stack) ? 1 : creation_efficiency)
 		var/list/cost = list()
 		var/custom_materials = FALSE
 		for(var/datum/material/mat as anything in design.materials)
@@ -276,6 +276,7 @@
 	build_count = clamp(build_count, 1, 50)
 
 	// Check for materials required. For custom material items decode their required materials
+	var/material_cost_coefficient = (ispath(design.build_path, /obj/item/stack) || design.fixed_cost_efficiency) ? 1 : creation_efficiency
 	var/list/materials_needed = list()
 	var/list/slots_chosen = null
 	var/mat_choice = FALSE
@@ -293,7 +294,7 @@
 
 		var/list/choices = list()
 		for(var/datum/material/valid_candidate as anything in SSmaterials.get_materials_by_req(material))
-			if(materials.get_material_amount(valid_candidate) >= (amount_needed + materials_needed[valid_candidate]))
+			if(materials.get_material_amount(valid_candidate) >= ipc_calibrated_cost(design, amount_needed + materials_needed[valid_candidate]))
 				choices[valid_candidate.name] = valid_candidate
 
 		if(!length(choices))
@@ -319,8 +320,7 @@
 		materials_needed[material] += amount_needed
 
 	//checks for available materials
-	var/material_cost_coefficient = (ispath(design.build_path, /obj/item/stack) || design.fixed_cost_efficiency) ? 1 : creation_efficiency
-	if(!materials.has_materials(materials_needed, material_cost_coefficient, build_count))
+	if(!materials.has_materials(materials_needed, ipc_calibrated_cost(design, material_cost_coefficient), build_count))
 		say("Not enough materials to begin production.")
 		return
 
@@ -352,7 +352,7 @@
 			if(!istype(material, /datum/material/glass) && !istype(material, /datum/material/iron))
 				ui.user.client.give_award(/datum/award/achievement/misc/getting_an_upgrade, ui.user)
 				break
-	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, build_count, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target_location, slots_chosen), build_time_per_item)
+	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, build_count, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target_location, slots_chosen), ipc_calibrated_time(build_time_per_item))
 
 	return TRUE
 
@@ -395,11 +395,12 @@
 		return
 
 	var/is_stack = ispath(design.build_path, /obj/item/stack)
-	if(!materials.has_materials(materials_needed, material_cost_coefficient, is_stack ? items_remaining : 1))
+	var/calibrated_cost = ipc_calibrated_cost(design, material_cost_coefficient)
+	if(!materials.has_materials(materials_needed, calibrated_cost, is_stack ? items_remaining : 1))
 		say("Unable to continue production, missing materials.")
 		finalize_build()
 		return
-	materials.use_materials(materials_needed, material_cost_coefficient, is_stack ? items_remaining : 1)
+	materials.use_materials(materials_needed, calibrated_cost, is_stack ? items_remaining : 1)
 
 	var/atom/movable/created
 	var/number_to_make = 1
@@ -417,7 +418,7 @@
 	if (length(slots_chosen))
 		created.set_material_slots(slots_chosen)
 	if(!is_stack && design.inherit_materials != DESIGN_DONT_INHERIT_MATS)
-		design.transfer_materials(materials_needed, material_cost_coefficient, created)
+		design.transfer_materials(materials_needed, calibrated_cost, created)
 
 	if(isitem(created))
 		created.pixel_x = created.base_pixel_x + rand(-6, 6)
@@ -432,7 +433,7 @@
 	if(items_remaining <= 0)
 		finalize_build()
 		return
-	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target, slots_chosen), build_time_per_item)
+	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target, slots_chosen), ipc_calibrated_time(build_time_per_item))
 
 /**
  * Resets the icon state and busy flag

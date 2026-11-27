@@ -111,7 +111,7 @@
 	playsound(loc, cuffsound, 30, TRUE, -2)
 	log_combat(user, victim, "attempted to handcuff")
 
-	if(!do_after(user, get_handcuff_time(user), victim, timed_action_flags = IGNORE_SLOWDOWNS) || !victim.canBeHandcuffed())
+	if(!do_after(user, get_handcuff_time(user), victim, timed_action_flags = IGNORE_SLOWDOWNS, work_departments = "security") || !victim.canBeHandcuffed())
 		victim.balloon_alert(user, "failed to handcuff!")
 		to_chat(user, span_warning("You fail to handcuff [victim]!"))
 		log_combat(user, victim, "failed to handcuff")

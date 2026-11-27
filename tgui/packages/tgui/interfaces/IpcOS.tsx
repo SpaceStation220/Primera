@@ -25,6 +25,7 @@ type Program = {
   size: number;
   illegal: BooleanLike;
   installed: BooleanLike;
+  builtin?: BooleanLike;
   running: BooleanLike;
   passive: BooleanLike;
   ready: BooleanLike;
@@ -34,7 +35,15 @@ type Data = {
   programs: Program[];
   used: number;
   capacity: number;
+  drink_selection?: string;
+  brewing?: BooleanLike;
+  calibration_mode?: 'economy' | 'fast';
+  calibration_cable?: BooleanLike;
+  calibrating?: BooleanLike;
+  jaws_mode?: 'stabilize' | 'restore';
+  jaws_patient?: string;
   charge: number;
+  battery_capacity?: number;
   error?: string;
   frequency: number;
   code: number;
@@ -60,6 +69,7 @@ type Data = {
   can_manage?: BooleanLike;
   neural_available?: BooleanLike;
   neural_cooldown?: number;
+  cyberlink_emp_left?: number;
   download_id?: string;
   download_progress?: number;
 };
@@ -203,7 +213,9 @@ export const IpcOS = () => {
         {data.used} / {data.capacity} GB
       </ProgressBar>
       <Icon name="battery-half" /> Заряд{' '}
-      <ProgressBar value={data.charge / 100}>{data.charge}%</ProgressBar>
+      <ProgressBar value={data.charge / 100}>
+        {data.charge}% · ёмкость {data.battery_capacity ?? 100} ед.
+      </ProgressBar>
     </div>
   );
   return (
@@ -268,7 +280,7 @@ export const IpcOS = () => {
               >
                 Открыть
               </Button>
-              {!system && (
+              {!system && !('builtin' in selection && selection.builtin) && (
                 <Button
                   fluid
                   icon="trash"
@@ -326,6 +338,185 @@ export const IpcOS = () => {
                       </Box>
                     )}
                     <Box color="label">Занимает {program.size} GB.</Box>
+                    {program.id === 'humanity' && (
+                      <Button
+                        icon="book-open"
+                        disabled={!canManage}
+                        onClick={() => act('humanity_open')}
+                      >
+                        Открыть мнемонический архив
+                      </Button>
+                    )}
+                    {program.id === 'cyberlink' && (
+                      <>
+                        {!!data.cyberlink_emp_left && (
+                          <NoticeBox>
+                            Восстановление после ЭМИ: {data.cyberlink_emp_left}{' '}
+                            с
+                          </NoticeBox>
+                        )}
+                        <Button
+                          icon="network-wired"
+                          disabled={
+                            !canManage ||
+                            !program.running ||
+                            !!data.cyberlink_emp_left
+                          }
+                          onClick={() => act('cyberlink_open')}
+                        >
+                          Открыть ChromieКnight 4.4
+                        </Button>
+                      </>
+                    )}
+                    {program.id === 'factory_gps' && (
+                      <Button
+                        disabled={!canManage || !program.running}
+                        onClick={() =>
+                          act('factory_command', { id: program.id })
+                        }
+                      >
+                        Открыть GPS
+                      </Button>
+                    )}
+                    {program.id === 'factory_cargo' && (
+                      <Button
+                        disabled={!canManage || !program.running}
+                        onClick={() =>
+                          act('factory_command', { id: program.id })
+                        }
+                      >
+                        Выгрузить ящик
+                      </Button>
+                    )}
+                    {program.id === 'factory_calibration' && (
+                      <Box my={1}>
+                        <Box mb={1} color="label">
+                          Режим действует 20 минут. Экономия снижает расход
+                          материалов на 15%, ускорение даёт 25% к скорости.
+                        </Box>
+                        {(
+                          [
+                            ['economy', 'Экономичная работа'],
+                            ['fast', 'Ускоренная работа'],
+                          ] as const
+                        ).map(([mode, label]) => (
+                          <Button
+                            key={mode}
+                            selected={data.calibration_mode === mode}
+                            disabled={
+                              !canManage ||
+                              !program.running ||
+                              !!data.calibrating
+                            }
+                            onClick={() =>
+                              act('factory_command', { id: program.id, mode })
+                            }
+                          >
+                            {label}
+                          </Button>
+                        ))}
+                        <Button
+                          icon="plug"
+                          disabled={
+                            !canManage || !program.running || !!data.calibrating
+                          }
+                          onClick={() =>
+                            act('factory_command', {
+                              id: program.id,
+                              operation: 'cable',
+                            })
+                          }
+                        >
+                          {data.calibration_cable
+                            ? 'Убрать кабель'
+                            : 'Выпустить кабель'}
+                        </Button>
+                        {!!data.calibration_cable && (
+                          <Box mt={1}>
+                            {data.calibrating
+                              ? 'Идёт калибровка…'
+                              : 'Подключите кабель к машине.'}
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                    {program.id === 'factory_jaws' && (
+                      <Box my={1}>
+                        {(
+                          [
+                            ['stabilize', 'Стабилизация'],
+                            ['restore', 'Восстановление'],
+                          ] as const
+                        ).map(([operation, label]) => (
+                          <Button
+                            key={operation}
+                            selected={data.jaws_mode === operation}
+                            disabled={
+                              !canManage ||
+                              !program.running ||
+                              !!data.jaws_patient
+                            }
+                            onClick={() =>
+                              act('factory_command', {
+                                id: program.id,
+                                operation,
+                              })
+                            }
+                          >
+                            {label}
+                          </Button>
+                        ))}
+                        <Button
+                          disabled={!canManage || !data.jaws_patient}
+                          onClick={() =>
+                            act('factory_command', {
+                              id: program.id,
+                              operation: 'release',
+                            })
+                          }
+                        >
+                          Раскрыть челюсти
+                        </Button>
+                        <Box mt={1} color="label">
+                          {data.jaws_patient
+                            ? `Пациент: ${data.jaws_patient}`
+                            : 'Выпустите клешни, выберите режим и нажмите ЛКМ по пациенту рядом.'}
+                        </Box>
+                      </Box>
+                    )}
+                    {program.id === 'factory_drinks' && (
+                      <Box my={1}>
+                        {[
+                          ['cola', 'Кола'],
+                          ['beer', 'Пиво'],
+                          ['coffee', 'Кофе «Робас»'],
+                        ].map(([drink, label]) => (
+                          <Button
+                            key={drink}
+                            selected={data.drink_selection === drink}
+                            disabled={
+                              !canManage || !program.running || !!data.brewing
+                            }
+                            onClick={() =>
+                              act('factory_command', { id: program.id, drink })
+                            }
+                          >
+                            {label}
+                          </Button>
+                        ))}
+                        <Button
+                          icon="mug-hot"
+                          disabled={
+                            !canManage || !program.running || !!data.brewing
+                          }
+                          onClick={() =>
+                            act('factory_command', { id: program.id })
+                          }
+                        >
+                          {data.brewing ? 'Готовится…' : 'Приготовить'}
+                        </Button>
+                      </Box>
+                    )}
                     {program.ready ? (
                       <>
                         <Box my={1} color={program.running ? 'good' : 'label'}>
@@ -337,7 +528,13 @@ export const IpcOS = () => {
                             disabled={!canManage}
                             onClick={() => act('toggle', { id: program.id })}
                           >
-                            {program.running ? 'Остановить' : 'Запустить'}
+                            {program.id === 'factory_jaws'
+                              ? program.running
+                                ? 'Втянуть клешни'
+                                : 'Выпустить клешни'
+                              : program.running
+                                ? 'Остановить'
+                                : 'Запустить'}
                           </Button>
                         )}
                         {!!program.passive && (
@@ -571,7 +768,11 @@ export const IpcOS = () => {
                         title={illegal ? 'Black Wall' : 'White Wall'}
                       >
                         {data.programs
-                          .filter((entry) => Boolean(entry.illegal) === illegal)
+                          .filter(
+                            (entry) =>
+                              !entry.builtin &&
+                              Boolean(entry.illegal) === illegal,
+                          )
                           .map((entry) => (
                             <Section
                               key={entry.id}

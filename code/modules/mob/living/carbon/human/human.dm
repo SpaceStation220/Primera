@@ -552,7 +552,7 @@
 		visible_message(span_notice("[capitalize(declent_ru(NOMINATIVE))] пытается провести СЛР [target.declent_ru(DATIVE)]!"), \
 						span_notice("Вы пытаетесь провести СЛР [target.declent_ru(DATIVE)]!... Стойте на месте!"))
 
-		if (!do_after(src, delay = panicking ? CPR_PANIC_SPEED : (3 SECONDS), target = target))
+		if (!do_after(src, delay = panicking ? CPR_PANIC_SPEED : (3 SECONDS), target = target, work_departments = "medical"))
 			balloon_alert(src, "у вас не получается провести СЛР!")
 			return FALSE
 

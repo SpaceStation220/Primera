@@ -72,6 +72,9 @@
 			if(actual_costs[boost_type])
 				actual_costs[boost_type] = max(actual_costs[boost_type] - boost_amount, 0)
 
+	if(host.ipc_reverse_discounts[type])
+		for(var/point_type in actual_costs)
+			actual_costs[point_type] = max(0, actual_costs[point_type]) * 0.9
 	return actual_costs
 
 /// If this node requires 0 points to research

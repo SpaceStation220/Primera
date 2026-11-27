@@ -67,7 +67,7 @@
 
 	blueprint_changed = FALSE
 
-	return do_after(user, delay, target, extra_checks = CALLBACK(src, PROC_REF(blueprint_change)))
+	return do_after(user, delay, target, extra_checks = CALLBACK(src, PROC_REF(blueprint_change)), work_departments = "engineering", ipc_action_kind = "construction")
 
 /obj/item/construction/proc/blueprint_change()
 	PRIVATE_PROC(TRUE)

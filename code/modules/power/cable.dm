@@ -669,13 +669,17 @@ GLOBAL_LIST_INIT(wire_node_generating_types, typecacheof(list(
 	if(user == attacked_humanoid)
 		use_delay = 5 SECONDS
 
-	if(!do_after(user, use_delay, attacked_humanoid))
+	if(!do_after(user, use_delay, attacked_humanoid, work_departments = list("engineering", "medical"), ipc_action_kind = "engineering_tools"))
 		return ITEM_INTERACT_BLOCKING
 
+	var/datum/ipc_manufacturer/manufacturer = attacked_humanoid.get_ipc_manufacturer()
+	var/material_cost = manufacturer?.repair_materials || 1
+	if(get_amount() < material_cost)
+		return ITEM_INTERACT_BLOCKING
 	if (!attacked_humanoid.item_heal(user, brute_heal = 0, burn_heal = 15, heal_message_brute = "вмятины", heal_message_burn = "сожженую проводку", required_bodytype = BODYTYPE_ROBOTIC))
 		return ITEM_INTERACT_BLOCKING
 
-	if (use(1) && amount > 0)
+	if (use(material_cost) && !QDELETED(src) && amount > 0)
 		INVOKE_ASYNC(src, PROC_REF(try_heal_loop), interacting_with, user, TRUE)
 
 	return ITEM_INTERACT_SUCCESS

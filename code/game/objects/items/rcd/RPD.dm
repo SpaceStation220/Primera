@@ -425,7 +425,7 @@
 					return ITEM_INTERACT_FAILURE
 				playsound(get_turf(src), SFX_TOOL_SWITCH, 20, TRUE)
 
-				if(!do_after(user, disposal_build_speed, target = attack_target))
+				if(!do_after(user, disposal_build_speed, target = attack_target, work_departments = "engineering", ipc_action_kind = "construction"))
 					return ITEM_INTERACT_FAILURE
 
 				var/obj/structure/disposalconstruct/new_disposals_segment = new (attack_target, queued_pipe_type, queued_pipe_dir, queued_pipe_flipped)
@@ -457,7 +457,7 @@
 					return ITEM_INTERACT_FAILURE
 
 				playsound(get_turf(src), SFX_TOOL_SWITCH, 20, TRUE)
-				if(!do_after(user, transit_build_speed, target = attack_target))
+				if(!do_after(user, transit_build_speed, target = attack_target, work_departments = "engineering", ipc_action_kind = "construction"))
 					return ITEM_INTERACT_FAILURE
 
 				playsound(get_turf(src), RPD_USE_SOUND, 50, TRUE)
@@ -538,7 +538,7 @@
 	var/list/pipe_layer_numbers = get_active_pipe_layers()
 	for(var/layer_to_build in pipe_layer_numbers)
 		playsound(get_turf(src), SFX_TOOL_SWITCH, 20, vary = TRUE)
-		if(!do_after(user, atmos_build_speed, target = atom_to_target))
+		if(!do_after(user, atmos_build_speed, target = atom_to_target, work_departments = "engineering", ipc_action_kind = "construction"))
 			return FALSE
 		if(!recipe.all_layers && (layer_to_build == 1 || layer_to_build == MAX_PIPE_LAYERS))
 			balloon_alert(user, "can't build on layer [layer_to_build]!")

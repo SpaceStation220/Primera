@@ -18,6 +18,11 @@ import { Window } from '../layouts';
 import { type MapData, NanoMap } from './common/NanoMap';
 
 type Data = {
+  order_bot?: string;
+  destinations?: { id: string; x: number; y: number }[];
+  neural_routes?: { name: string; ref: string }[];
+  neural_hops?: number;
+  neural_cost?: number;
   activeCamera: Camera & { status: BooleanLike };
   cameras: Camera[];
   can_spy: BooleanLike;
@@ -89,10 +94,21 @@ const selectCameras = (cameras: Camera[], searchText = ''): Camera[] => {
 };
 
 export const CameraConsole220 = (props) => {
+  const { data } = useBackend<Data>();
   return (
     <Window width={1170} height={775}>
-      <Window.Content>
-        <CameraContent />
+      <Window.Content
+        className={data.neural_routes ? 'ChromieKnight' : undefined}
+      >
+        <Stack vertical fill g={0}>
+          <Stack.Item>
+            <NeuralCameraRoutes />
+            <NeuralBotOrders />
+          </Stack.Item>
+          <Stack.Item grow minHeight={0}>
+            <CameraContent />
+          </Stack.Item>
+        </Stack>
       </Window.Content>
     </Window>
   );
@@ -293,6 +309,67 @@ const CameraControls = (props: { searchText: string }) => {
           />
         </Stack.Item>
       </Stack>
+    </Section>
+  );
+};
+
+const NeuralBotOrders = () => {
+  const { act, data } = useBackend<Data>();
+  const [expanded, setExpanded] = useState(false);
+  const tiles = data.destinations;
+  if (!tiles?.length) return null;
+  const minX = Math.min(...tiles.map((tile) => tile.x));
+  const maxX = Math.max(...tiles.map((tile) => tile.x));
+  const maxY = Math.max(...tiles.map((tile) => tile.y));
+  return (
+    <Section title={`Место назначения · ${data.order_bot}`}>
+      <Button selected={expanded} onClick={() => setExpanded(!expanded)}>
+        Сетка обзора камеры
+      </Button>
+      {expanded && (
+        <div
+          className="ChromieKnight__grid"
+          style={{ gridTemplateColumns: `repeat(${maxX - minX + 1}, 24px)` }}
+        >
+          {tiles.map((tile) => (
+            <button
+              key={tile.id}
+              type="button"
+              className="ChromieKnight__cell"
+              style={{
+                gridColumn: tile.x - minX + 1,
+                gridRow: maxY - tile.y + 1,
+              }}
+              title={`Клетка ${tile.x}, ${tile.y}`}
+              onClick={() => {
+                act('bot_order', { destination: tile.id });
+                setExpanded(false);
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </Section>
+  );
+};
+
+const NeuralCameraRoutes = () => {
+  const { act, data } = useBackend<Data>();
+  if (!data.neural_routes) return null;
+  return (
+    <Section
+      title={`Camera Network · ${data.network.join(' / ')} · переходов ${data.neural_hops} · ${data.neural_cost}% / 10 с`}
+    >
+      {data.neural_routes.map((camera) => (
+        <Button
+          key={camera.ref}
+          onClick={() => act('neural_route', { camera: camera.ref })}
+        >
+          Стандартная маршрутизация: {camera.name}
+        </Button>
+      ))}
+      {data.neural_routes.length === 0 &&
+        'В поле зрения текущей камеры нет доступных переходов в другую сеть.'}
     </Section>
   );
 };

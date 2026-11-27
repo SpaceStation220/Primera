@@ -76,7 +76,7 @@
 				span_danger("[user] is trying to inject [living_target]!"),
 				span_userdanger("[user] is trying to inject you!"),
 			)
-			if(!do_after(user, CHEM_INTERACT_DELAY(3 SECONDS, user), living_target, extra_checks = CALLBACK(src, PROC_REF(try_syringe), living_target, user)))
+			if(!do_after(user, CHEM_INTERACT_DELAY(3 SECONDS, user), living_target, extra_checks = CALLBACK(src, PROC_REF(try_syringe), living_target, user), work_departments = list("medical", "science")))
 				return ITEM_INTERACT_BLOCKING
 			if(!reagents.total_volume)
 				return ITEM_INTERACT_BLOCKING
@@ -119,7 +119,7 @@
 				span_danger("[user] is trying to take a blood sample from [target]!"),
 				span_userdanger("[user] is trying to take a blood sample from you!"),
 			)
-			if(!do_after(user, CHEM_INTERACT_DELAY(3 SECONDS, user), target, extra_checks = CALLBACK(src, PROC_REF(try_syringe), living_target, user)))
+			if(!do_after(user, CHEM_INTERACT_DELAY(3 SECONDS, user), target, extra_checks = CALLBACK(src, PROC_REF(try_syringe), living_target, user), work_departments = list("medical", "science")))
 				return ITEM_INTERACT_BLOCKING
 			if(reagents.holder_full())
 				return ITEM_INTERACT_BLOCKING
