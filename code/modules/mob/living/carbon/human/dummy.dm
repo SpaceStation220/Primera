@@ -140,8 +140,8 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 // To speed up the preference menu, we apply one height filter to the entire mob,
 // rather than independently applying offsets and filters to each individual overlay
 // This looks good enough to pass the sniff test and saves a lot of time
-/mob/living/carbon/human/dummy/apply_height(image/appearance, body_area)
-	if(appearance == src)
+/mob/living/carbon/human/dummy/apply_height(image/appearance, body_area, worn_clothing = FALSE)
+	if(appearance == src || (worn_clothing && mob_height == NATIVE_MONKEY_HEIGHT_MEDIUM))
 		return ..()
 
 /// Takes in an accessory list and returns the first entry from that list, ensuring that we dont return SPRITE_ACCESSORY_NONE in the process.

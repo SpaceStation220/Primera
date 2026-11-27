@@ -1,4 +1,5 @@
 /datum/species/skrell
+	primitive_form = /datum/species/monkey/neara
 	name = "Скрелл"
 	plural_form = "Скреллы"
 	id = SPECIES_SKRELL

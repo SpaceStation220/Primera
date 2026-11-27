@@ -1,0 +1,23 @@
+bodyparts.dmi and tails.dmi, Stok, Neara and Farwa
+Source: https://github.com/TauCetiStation/TauCetiClassic/blob/b6d1080e46c3bbd56f6c9e8a2dc119ea86b25695/icons/mob/monkey.dmi
+States: stokkey1, skrellkey1, tajkey1. Original pixels split into body part and tail states.
+Asset license declaration: https://github.com/TauCetiStation/TauCetiClassic/blob/b6d1080e46c3bbd56f6c9e8a2dc119ea86b25695/README.md#license
+
+bodyparts.dmi, Nian Worme
+Source: https://github.com/ParadiseSS13/Paradise/blob/4e8992132e1c15d919bf96f5597adcff40bde7a6/icons/mob/human_races/monkeys/r_worme.dmi
+Torso and groin frames composed into chest frames, legs composed with corresponding feet.
+
+boxes.dmi, Stok, Neara, Nian Worme, Farwa and Sparra
+Source: https://github.com/ParadiseSS13/Paradise/blob/4e8992132e1c15d919bf96f5597adcff40bde7a6/icons/obj/boxes.dmi
+States: stok_box, neaera_box, nian_worme_box, farwa_box.
+The sparra_box state reuses the stok_box carton with a redrawn label.
+Asset license declaration: https://github.com/ParadiseSS13/Paradise/blob/4e8992132e1c15d919bf96f5597adcff40bde7a6/README.md#licenses
+
+vox_sparra.dmi, Sparra palette adapted for Vox
+Source artwork: VOREStation contributors.
+Source: https://github.com/VOREStation/VOREStation/blob/10b81d9de01b6d607d7c77b1c3e27152f30faf10/icons/mob/human_races/monkeys/r_sparra_vr.dmi
+Changes: recolored palette and body-part states adapted to BandaStation. Torso and groin form the chest, and each leg includes its foot.
+Asset license declaration: https://github.com/VOREStation/VOREStation#license
+
+License: Creative Commons Attribution-ShareAlike 3.0
+https://creativecommons.org/licenses/by-sa/3.0/

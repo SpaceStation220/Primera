@@ -2,7 +2,7 @@ GLOBAL_LIST_EMPTY(monkey_recyclers)
 
 /obj/machinery/monkey_recycler
 	name = "monkey recycler"
-	desc = "Машина для переработки мертвых обезьян в кубы обезьян."
+	desc = "Машина для переработки низших форм в кубики соответствующего вида."
 	icon = 'icons/obj/machines/kitchen.dmi'
 	icon_state = "grinder"
 	base_icon_state = "grinder"
@@ -11,7 +11,8 @@ GLOBAL_LIST_EMPTY(monkey_recyclers)
 	density = TRUE
 	circuit = /obj/item/circuitboard/machine/monkey_recycler
 
-	var/stored_matter = 0
+	/// Recycled material in cube equivalents, keyed by the type of cube it can produce.
+	var/list/stored_matter = list()
 	var/cube_production = 0.2
 
 /obj/machinery/monkey_recycler/Initialize(mapload)
@@ -35,7 +36,7 @@ GLOBAL_LIST_EMPTY(monkey_recyclers)
 /obj/machinery/monkey_recycler/examine(mob/user)
 	. = ..()
 	if(in_range(user, src) || isobserver(user))
-		. += span_notice("На дисплее состояния отображается: Производит <b>[cube_production]</b> [declension_ru(cube_production,"кубик","кубика","кубиков")] за каждую вставленную обезьяну.")
+		. += span_notice("На дисплее состояния отображается: Производит <b>[cube_production]</b> [declension_ru(cube_production,"кубик","кубика","кубиков")] за каждое переработанное существо.")
 
 /obj/machinery/monkey_recycler/wrench_act(mob/living/user, obj/item/tool)
 	. = ..()
@@ -60,34 +61,42 @@ GLOBAL_LIST_EMPTY(monkey_recyclers)
 		stuff_monkey_in(target, user)
 
 /obj/machinery/monkey_recycler/proc/stuff_monkey_in(mob/living/carbon/human/target, mob/living/user)
-	if(!istype(target))
+	if(!ismonkey(target))
 		return
 	if(!IS_UNCONSCIOUS_OR_CRIT(target))
-		to_chat(user, span_warning("Обезьяна слишком сильно сопротивляется, чтобы поместить её в утилизатор."))
+		to_chat(user, span_warning("Существо слишком сильно сопротивляется, чтобы поместить его в утилизатор."))
 		return
 	if(target.buckled || target.has_buckled_mobs())
-		to_chat(user, span_warning("Тело обезьяны к чему-то пристегнуто."))
+		to_chat(user, span_warning("Тело существа к чему-то пристёгнуто."))
 		return
+	var/datum/species/monkey/lesser_species = target.dna.species
+	var/obj/item/food/monkeycube/cube_type = lesser_species.recycled_cube_type
 	qdel(target)
-	to_chat(user, span_notice("Вы засовываете обезьяну в машину."))
+	to_chat(user, span_notice("Вы помещаете существо в машину."))
 	playsound(src.loc, 'sound/machines/juicer.ogg', 50, TRUE)
 	var/offset = prob(50) ? -2 : 2
 	animate(src, pixel_x = pixel_x + offset, time = 0.2, loop = 200) //start shaking
 	use_energy(active_power_usage)
-	stored_matter += cube_production
+	var/stock = round(stored_matter[cube_type] + cube_production, 0.1)
+	stored_matter[cube_type] = stock
 	addtimer(VARSET_CALLBACK(src, pixel_x, base_pixel_x))
-	addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(to_chat), user, span_notice("Теперь машина имеет материалов для обезьян: [stored_matter].")))
+	to_chat(user, span_notice("Запас материала для «[initial(cube_type.name)]»: [stock]."))
 
 /obj/machinery/monkey_recycler/interact(mob/user)
-	if(stored_matter >= 1)
-		to_chat(user, span_notice("Машина громко шипит, сжимая измельченное обезьянье мясо. Через мгновение она выдает совершенно новый обезьяний кубик."))
+	var/printed = FALSE
+	for(var/obj/item/food/monkeycube/cube_type as anything in stored_matter)
+		var/ready = floor(stored_matter[cube_type])
+		if(!ready)
+			continue
+		stored_matter[cube_type] -= ready
+		for(var/i in 1 to ready)
+			new cube_type(drop_location())
+		printed = TRUE
+	if(printed)
+		to_chat(user, span_notice("Машина громко шипит и выдаёт кубы из переработанного материала."))
 		playsound(src.loc, 'sound/machines/hiss.ogg', 50, TRUE)
-		for(var/i in 1 to floor(stored_matter))
-			new /obj/item/food/monkeycube(src.loc)
-			stored_matter--
-		to_chat(user, span_notice("На дисплее машины мигает сообщение о том, что материалов осталось на [stored_matter] обезьян."))
 	else
-		to_chat(user, span_danger("Чтобы изготовить кубик обезьяны, машине требуется материал стоимостью не менее 1 обезьяны. В настоящее время у нее есть [stored_matter]."))
+		to_chat(user, span_danger("Для изготовления куба нужна хотя бы одна единица материала одного вида."))
 
 /obj/machinery/monkey_recycler/multitool_act(mob/living/user, obj/item/multitool/I)
 	. = ..()

@@ -18042,19 +18042,13 @@
 /area/station/science/xenobiology)
 "eri" = (
 /obj/effect/turf_decal/tile/dark_blue/anticorner,
-/obj/structure/table,
-/obj/item/storage/box/disks{
-	pixel_x = -8;
-	pixel_y = 2
+/obj/structure/rack,
+/obj/item/storage/box/monkeycubes/worme{
+	pixel_x = -8
 	},
-/obj/item/storage/box/beakers{
-	pixel_x = 8;
-	pixel_y = 2
+/obj/item/storage/box/monkeycubes/sparra{
+	pixel_x = 8
 	},
-/obj/item/storage/box/syringes{
-	pixel_y = 8
-	},
-/obj/item/toy/figure/geneticist,
 /turf/open/floor/iron,
 /area/station/science/genetics)
 "erk" = (
@@ -65741,8 +65735,17 @@
 /turf/open/floor/iron,
 /area/station/security/prison/ghetto)
 "pMr" = (
-/obj/machinery/computer/dna_console{
-	dir = 8
+/obj/structure/rack,
+/obj/item/storage/box/monkeycubes{
+	pixel_x = -8;
+	pixel_y = -4
+	},
+/obj/item/storage/box/monkeycubes{
+	pixel_x = 8;
+	pixel_y = -4
+	},
+/obj/item/storage/box/monkeycubes/wolpin{
+	pixel_y = 7
 	},
 /obj/item/radio/intercom/directional/east,
 /obj/effect/turf_decal/tile/dark_blue/anticorner{
@@ -77094,12 +77097,20 @@
 /area/station/maintenance/ghetto/aft)
 "sCR" = (
 /obj/structure/table,
-/obj/item/storage/box/monkeycubes{
-	pixel_x = 6;
-	pixel_y = 4
+/obj/item/storage/box/disks{
+	pixel_x = -8;
+	pixel_y = -9
 	},
-/obj/item/storage/box/monkeycubes{
-	pixel_x = 6
+/obj/item/storage/box/beakers{
+	pixel_x = 8;
+	pixel_y = -9
+	},
+/obj/item/storage/box/syringes{
+	pixel_x = 8;
+	pixel_y = 8
+	},
+/obj/item/toy/figure/geneticist{
+	pixel_y = 8
 	},
 /obj/item/storage/pill_bottle/mutadone{
 	pixel_x = -9;
@@ -77161,7 +77172,18 @@
 /turf/open/floor/plating,
 /area/station/medical/medbay)
 "sDf" = (
-/obj/machinery/dna_scannernew,
+/obj/structure/rack,
+/obj/item/storage/box/monkeycubes/stok{
+	pixel_x = -8;
+	pixel_y = -4
+	},
+/obj/item/storage/box/monkeycubes/neara{
+	pixel_x = 8;
+	pixel_y = -4
+	},
+/obj/item/storage/box/monkeycubes/farwa{
+	pixel_y = 7
+	},
 /obj/effect/turf_decal/tile/dark_blue/half{
 	dir = 4
 	},
@@ -94744,9 +94766,6 @@
 /turf/open/floor/wood/large,
 /area/station/service/bar)
 "wWV" = (
-/obj/structure/chair/office{
-	dir = 4
-	},
 /obj/effect/landmark/start/geneticist,
 /obj/effect/turf_decal/tile/dark_blue/half{
 	dir = 1

@@ -17,6 +17,15 @@
 	. = ..()
 	remove_verb(owner, /mob/living/carbon/human/proc/emote_wag)
 
+/obj/item/organ/tail/vulpkanin/mutate_feature(features, mob/living/carbon/human/human)
+	. = ..()
+	if(!bodypart_owner)
+		return
+	remove_tail_markings(bodypart_owner)
+	insert_tail_markings(bodypart_owner)
+	if(tail_markings_overlay)
+		tail_markings_overlay.wagging = !!(wag_flags & WAG_WAGGING)
+
 /datum/bodypart_overlay/mutant/tail/vulpkanin
 	feature_key = FEATURE_VULPKANIN_TAIL
 

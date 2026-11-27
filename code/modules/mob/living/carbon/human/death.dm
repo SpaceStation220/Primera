@@ -42,7 +42,8 @@ GLOBAL_LIST_EMPTY(dead_players_during_shift)
 		dust(just_ash = TRUE, drop_items = TRUE, give_moodlet = FALSE)
 
 /mob/living/carbon/human/gib_animation()
-	new /obj/effect/temp_visual/gib_animation(loc, dna.species.gib_anim)
+	if(dna.species.gib_anim)
+		new /obj/effect/temp_visual/gib_animation(loc, dna.species.gib_anim)
 
 /mob/living/carbon/human/spawn_dust(just_ash)
 	if(just_ash)

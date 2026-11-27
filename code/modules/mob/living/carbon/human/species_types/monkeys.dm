@@ -1,6 +1,10 @@
 #define MONKEY_SPEC_ATTACK_BITE_MISS_CHANCE 25
 
 /datum/species/monkey
+	/// Cube produced when a body of this species is recycled.
+	var/recycled_cube_type = /obj/item/food/monkeycube
+	/// Species restored on removal of the race mutation from a naturally spawned lesser form.
+	var/adult_form = /datum/species/human
 	name = "\improper Monkey"
 	id = SPECIES_MONKEY
 	mutant_organs = list(
@@ -44,6 +48,9 @@
 	if (pref_load)
 		ADD_TRAIT(human_who_gained_species, TRAIT_BORN_MONKEY, INNATE_TRAIT) // Not a species trait, you cannot escape your genetic destiny
 	human_who_gained_species.dna.add_mutation(/datum/mutation/race, MUTATION_SOURCE_ACTIVATED)
+	var/datum/mutation/race/race_mutation = human_who_gained_species.dna.get_mutation(/datum/mutation/race)
+	if(race_mutation?.original_species == /datum/species/human && adult_form != /datum/species/human)
+		race_mutation.original_species = old_species?.primitive_form == type ? old_species.type : adult_form
 
 /datum/species/monkey/on_species_loss(mob/living/carbon/human/C)
 	. = ..()

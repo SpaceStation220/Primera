@@ -138,9 +138,17 @@ There are several things that need to be remembered:
 			// AI EDIT END
 		)
 
-		apply_height(uniform_overlay, ENTIRE_BODY)
-		var/obj/item/bodypart/chest/my_chest = get_bodypart(BODY_ZONE_CHEST)
-		my_chest?.worn_uniform_offset?.apply_offset(uniform_overlay)
+		var/fitted_uniform_icon
+		if(mob_height == NATIVE_MONKEY_HEIGHT_MEDIUM)
+			// Keep separately positioned blood, damage and accessory layers on the standard path.
+			if(!uniform.damaged_clothes && !length(uniform.attached_accessories) && !GET_ATOM_BLOOD_DECAL_LENGTH(uniform))
+				fitted_uniform_icon = get_lesser_form_uniform_icon(uniform_overlay.icon, uniform_overlay.icon_state, !(uniform.body_parts_covered & LEGS), species_id)
+		if(fitted_uniform_icon)
+			uniform_overlay.icon = fitted_uniform_icon
+		else
+			apply_height(uniform_overlay, ENTIRE_BODY, worn_clothing = TRUE)
+			var/obj/item/bodypart/chest/my_chest = get_bodypart(BODY_ZONE_CHEST)
+			my_chest?.worn_uniform_offset?.apply_offset(uniform_overlay)
 		overlays_standing[UNIFORM_LAYER] = uniform_overlay
 
 	apply_overlay(UNIFORM_LAYER)
@@ -493,7 +501,7 @@ There are several things that need to be remembered:
 		// AI EDIT START - Pass the actual equipment slot to worn rendering
 		var/mutable_appearance/suit_overlay = wear_suit.build_worn_icon(default_layer = SUIT_LAYER, default_icon_file = icon_file, override_file = mutant_override ? icon_file : null, bodyshape = bodyshape, slot_id = ITEM_SLOT_OCLOTHING) // BANDASTATION EDIT - Slot-specific worn states
 		// AI EDIT END
-		apply_height(suit_overlay, ENTIRE_BODY)
+		apply_height(suit_overlay, ENTIRE_BODY, worn_clothing = TRUE)
 		var/obj/item/bodypart/chest/my_chest = get_bodypart(BODY_ZONE_CHEST)
 		my_chest?.worn_suit_offset?.apply_offset(suit_overlay)
 		overlays_standing[SUIT_LAYER] = suit_overlay
@@ -954,20 +962,22 @@ generate/load female uniform sprites matching all previously decided variables
  *
  * * appearance - The appearance to apply the height changes to
  * * body_area - The body area this appearance is on, used to determine what offsets/filters to apply
+ * * worn_clothing - The clothing sprite uses standard proportions even on a body drawn at its final size.
  */
-/mob/living/carbon/proc/apply_height(image/appearance, body_area)
+/mob/living/carbon/proc/apply_height(image/appearance, body_area, worn_clothing = FALSE)
 	return
 
-/mob/living/carbon/human/apply_height(image/appearance, body_area)
-	if(mob_height == HUMAN_HEIGHT_MEDIUM)
+/mob/living/carbon/human/apply_height(image/appearance, body_area, worn_clothing = FALSE)
+	var/render_height = worn_clothing && mob_height == NATIVE_MONKEY_HEIGHT_MEDIUM ? MONKEY_HEIGHT_MEDIUM : mob_height
+	if(render_height == HUMAN_HEIGHT_MEDIUM)
 		return // default, no handling needed
 
 	switch(body_area)
 		if(LOWER_BODY, UPPER_BODY)
-			appearance.pixel_z += GLOB.human_heights_to_offsets[mob_height][body_area]
+			appearance.pixel_z += GLOB.human_heights_to_offsets[render_height][body_area]
 			return
 		if(ENTIRE_BODY)
-			apply_height_filter(appearance)
+			apply_height_filter(appearance, render_height)
 			return
 		if(NO_MODIFY)
 			return
@@ -977,7 +987,7 @@ generate/load female uniform sprites matching all previously decided variables
 /**
  * Applies a filter to an appearance according to mob height
  */
-/mob/living/carbon/human/proc/apply_height_filter(image/appearance)
+/mob/living/carbon/human/proc/apply_height_filter(image/appearance, render_height)
 	PRIVATE_PROC(TRUE)
 
 	var/static/icon/cut_torso_mask = icon('icons/effects/cut.dmi', "Cut1")
@@ -1000,7 +1010,7 @@ generate/load female uniform sprites matching all previously decided variables
 		"Monkey_Gnome_Cut_Legs",
 	))
 
-	switch(mob_height)
+	switch(render_height)
 		// Don't set this one directly, use TRAIT_DWARF
 		if(MONKEY_HEIGHT_DWARF)
 			appearance.add_filters(list(
@@ -1109,7 +1119,7 @@ generate/load female uniform sprites matching all previously decided variables
 	// Otherwise overlays, such as worn overlays on icons, won't have the filter "applied", and the effect kinda breaks
 	if(!(appearance.appearance_flags & KEEP_TOGETHER))
 		for(var/mutable_appearance/child_overlay as anything in appearance.underlays + appearance.overlays)
-			apply_height_filter(child_overlay)
+			apply_height_filter(child_overlay, render_height)
 
 	return appearance
 

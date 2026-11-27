@@ -43,7 +43,7 @@ const GenomeImage = (props) => {
           color="good"
           style={{ fontSize: '10px', lineHeight: 1, pointerEvents: 'none' }}
         >
-          <b>M</b>
+          <b title="Есть в памяти ручного сканера">С</b>
         </Box>
       )}
     </Box>
@@ -143,12 +143,12 @@ function buildGenomePairs(sequence, renderGene) {
 const GenomeSequencer = (props) => {
   const { mutation } = props;
   if (!mutation) {
-    return <Box color="average">No genome selected for sequencing.</Box>;
+    return <Box color="average">Выберите ген для редактирования.</Box>;
   }
   if (mutation.Scrambled) {
     return (
       <Box color="average">
-        Sequence unreadable due to unpredictable mutation.
+        Последовательность нечитаема из-за непредсказуемой мутации.
       </Box>
     );
   }
@@ -173,8 +173,8 @@ const GenomeSequencer = (props) => {
     <>
       <Box m={-0.5}>{pairs}</Box>
       <Box color="label" mt={1}>
-        <b>Tip:</b> Ctrl+Click on the gene to set it to X. Right Click to cycle
-        in reverse.
+        <b>Подсказка:</b> Ctrl + щелчок устанавливает X. Правая кнопка мыши
+        перебирает значения в обратном порядке.
       </Box>
     </>
   );
@@ -221,7 +221,7 @@ export const DnaConsoleSequencer = (props) => {
       <Stack mb={1}>
         <Stack.Item width={(mutations.length <= 8 && '154px') || '174px'}>
           <Section
-            title="Sequences"
+            title="Гены"
             height="214px"
             overflowY={mutations.length > 8 && 'scroll'}
           >
@@ -244,42 +244,42 @@ export const DnaConsoleSequencer = (props) => {
           </Section>
         </Stack.Item>
         <Stack.Item grow={1} basis={0}>
-          <Section title="Sequence Info" minHeight="100%">
+          <Section title="Сведения о мутации" minHeight="100%">
             <MutationInfo mutation={mutation} />
           </Section>
         </Stack.Item>
       </Stack>
       {(subjectStatus === SUBJECT_DEAD && (
         <Section color="bad">
-          Genetic sequence corrupted. Subject diagnostic report: DECEASED.
+          Последовательность повреждена: подопытный мёртв.
         </Section>
       )) ||
         (isMonkey && mutation?.Name !== 'Monkified' && (
           <Section color="bad">
-            Genetic sequence corrupted. Subject diagnostic report: MONKEY.
+            Редактирование этих генов недоступно в низшей форме.
           </Section>
         )) ||
         (subjectStatus === SUBJECT_TRANSFORMING && (
           <Section color="bad">
-            Genetic sequence corrupted. Subject diagnostic report: TRANSFORMING.
+            Последовательность недоступна: подопытный трансформируется.
           </Section>
         )) || (
           <>
             <Section
-              title="Genome Sequencer™"
+              title="Редактор генов"
               buttons={
                 (!isJokerReady && (
                   <Box lineHeight="20px" color="label">
-                    Joker on cooldown ({jokerSeconds}s)
+                    Раскрытие гена доступно через {jokerSeconds} с
                   </Box>
                 )) ||
                 (jokerActive && (
                   <>
                     <Box mr={1} inline color="label">
-                      Click on a gene to reveal it.
+                      Выберите символ, чтобы раскрыть его значение.
                     </Box>
                     <Button
-                      content="Cancel Joker"
+                      content="Отмена"
                       onClick={() =>
                         act('set_view', {
                           jokerActive: '',
@@ -291,7 +291,7 @@ export const DnaConsoleSequencer = (props) => {
                   <Button
                     icon="crown"
                     color="purple"
-                    content="Use Joker"
+                    content="Раскрыть ген"
                     onClick={() =>
                       act('set_view', {
                         jokerActive: '1',
@@ -304,7 +304,7 @@ export const DnaConsoleSequencer = (props) => {
               <GenomeSequencer mutation={mutation} />
             </Section>
             {!!scannerSequence && (
-              <Section title="Held Scanner">
+              <Section title="Память ручного сканера">
                 <GenomeSequencerReadOnly sequence={scannerSequence} />
               </Section>
             )}

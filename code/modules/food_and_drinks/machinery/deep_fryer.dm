@@ -1,3 +1,5 @@
+#define KFV_FRYING_TIME (30 SECONDS)
+
 /// Global typecache of things which should never be fried.
 GLOBAL_LIST_INIT(oilfry_blacklisted_items, typecacheof(list(
 	/obj/item/bodybag/bluespace,
@@ -154,7 +156,8 @@ GLOBAL_LIST_INIT(oilfry_blacklisted_items, typecacheof(list(
 	grease_level += prob(grease_increase_chance) * grease_Increase_amount
 
 	cook_time += fry_speed * seconds_per_tick SECONDS
-	if(cook_time >= FRYING_TIME_PERFECT && !frying_fried)
+	var/ready_time = istype(frying, /obj/item/food/breaded_vox) ? KFV_FRYING_TIME : FRYING_TIME_PERFECT
+	if(cook_time >= ready_time && !frying_fried)
 		frying_fried = TRUE //frying... frying... fried
 		playsound(src.loc, 'sound/machines/ding.ogg', 50, TRUE)
 		audible_message(span_notice("[capitalize(declent_ru(NOMINATIVE))] звенит!"))
@@ -217,9 +220,14 @@ GLOBAL_LIST_INIT(oilfry_blacklisted_items, typecacheof(list(
 /obj/machinery/deepfryer/attack_hand(mob/living/user, list/modifiers)
 	if(frying)
 		to_chat(user, span_notice("Вы вытаскиваете [frying.declent_ru(ACCUSATIVE)] из [declent_ru(GENITIVE)]."))
+		var/obj/item/food/breaded_vox/batch = frying
+		var/perfectly_fried = cook_time >= KFV_FRYING_TIME && cook_time < FRYING_TIME_BURNT
 		frying.forceMove(drop_location())
+		var/obj/item/removed_item = frying
+		if(perfectly_fried && istype(batch) && !QDELETED(batch))
+			removed_item = batch.pack_servings()
 		if(Adjacent(user) && !issilicon(user))
-			user.put_in_hands(frying)
+			user.put_in_hands(removed_item)
 		return
 
 	else if(user.pulling && iscarbon(user.pulling) && reagents.total_volume)
@@ -257,3 +265,5 @@ GLOBAL_LIST_INIT(oilfry_blacklisted_items, typecacheof(list(
 	grease_level = 0
 	update_appearance(UPDATE_OVERLAYS)
 	. |= COMPONENT_CLEANED|COMPONENT_CLEANED_GAIN_XP
+
+#undef KFV_FRYING_TIME

@@ -196,6 +196,7 @@
 #define SPECIES_NIGHTMARE "nightmare"
 #define SPECIES_CERULEAN "cerulean"
 #define SPECIES_MONKEY "monkey"
+#define SPECIES_WORME "worme"
 #define SPECIES_MOTH "moth"
 #define SPECIES_MUSHROOM "mush"
 #define SPECIES_PLASMAMAN "plasmaman"
@@ -774,6 +775,8 @@
 // Otherwise they are completely arbitrary
 #define MONKEY_HEIGHT_DWARF 2
 #define MONKEY_HEIGHT_MEDIUM 4
+/// Native height of already-scaled lesser-form sprites. No displacement filter.
+#define NATIVE_MONKEY_HEIGHT_MEDIUM 5
 #define MONKEY_HEIGHT_TALL HUMAN_HEIGHT_DWARF
 #define HUMAN_HEIGHT_DWARF 6
 #define HUMAN_HEIGHT_SHORTEST 8
@@ -788,6 +791,7 @@
 GLOBAL_ALIST_INIT(human_heights_to_offsets, alist(
 	MONKEY_HEIGHT_DWARF   = list("[UPPER_BODY]" = -9, "[LOWER_BODY]" = -3),
 	MONKEY_HEIGHT_MEDIUM  = list("[UPPER_BODY]" = -7, "[LOWER_BODY]" = -4),
+	NATIVE_MONKEY_HEIGHT_MEDIUM = list("[UPPER_BODY]" =  0, "[LOWER_BODY]" =  0),
 	HUMAN_HEIGHT_DWARF    = list("[UPPER_BODY]" = -5, "[LOWER_BODY]" = -4),
 	HUMAN_HEIGHT_SHORTEST = list("[UPPER_BODY]" = -2, "[LOWER_BODY]" = -1),
 	HUMAN_HEIGHT_SHORT    = list("[UPPER_BODY]" = -1, "[LOWER_BODY]" = -1),

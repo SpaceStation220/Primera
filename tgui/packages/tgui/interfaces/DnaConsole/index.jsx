@@ -24,17 +24,18 @@ import { DnaScanner } from './DnaScanner';
 
 export const DnaConsole = (props) => {
   const { data } = useBackend();
-  const { isPulsing, timeToPulse, subjectUNI, subjectUF } = data;
+  const { isPulsing, timeToPulse, subjectUNI, subjectUF, targetUNI, targetUF } =
+    data;
   const { consoleMode } = data.view;
 
   return (
-    <Window title="DNA Console" width={550} height={710}>
+    <Window title="Консоль ДНК" width={550} height={710}>
       {!!isPulsing && (
         <Dimmer fontSize="14px" textAlign="center">
           <Icon mr={1} name="spinner" spin />
-          Pulse in progress...
+          Идёт облучение…
           <Box mt={1} />
-          {timeToPulse}s
+          {timeToPulse} с
         </Dimmer>
       )}
       <Window.Content scrollable>
@@ -48,18 +49,21 @@ export const DnaConsole = (props) => {
           <Stack.Item grow>
             {consoleMode === CONSOLE_MODE_STORAGE && <DnaConsoleStorage />}
             {consoleMode === CONSOLE_MODE_SEQUENCER && <DnaConsoleSequencer />}
-            {consoleMode === CONSOLE_MODE_ENZYMES && (
+            {(consoleMode === CONSOLE_MODE_ENZYMES ||
+              consoleMode === CONSOLE_MODE_FEATURES) && (
               <DnaConsoleEnzymes
-                subjectBlock={subjectUNI}
-                type="ui"
-                name="Enzymes"
-              />
-            )}
-            {consoleMode === CONSOLE_MODE_FEATURES && (
-              <DnaConsoleEnzymes
-                subjectBlock={subjectUF}
-                type="uf"
-                name="Features"
+                subjectBlock={
+                  consoleMode === CONSOLE_MODE_FEATURES ? subjectUF : subjectUNI
+                }
+                targetBlock={
+                  consoleMode === CONSOLE_MODE_FEATURES ? targetUF : targetUNI
+                }
+                type={consoleMode === CONSOLE_MODE_FEATURES ? 'uf' : 'ui'}
+                name={
+                  consoleMode === CONSOLE_MODE_FEATURES
+                    ? 'Видовая ДНК'
+                    : 'Базовая ДНК'
+                }
               />
             )}
           </Stack.Item>
@@ -76,19 +80,19 @@ const DnaConsoleCommands = (props) => {
 
   return (
     <Section
-      title="DNA Console"
+      title="Консоль ДНК"
       buttons={
         !isInjectorReady && (
           <Box lineHeight="20px" color="label">
-            Injector on cooldown ({injectorSeconds}s)
+            Инъектор готов через {injectorSeconds} с
           </Box>
         )
       }
     >
       <LabeledList>
-        <LabeledList.Item label="Mode">
+        <LabeledList.Item label="Раздел">
           <Button
-            content="Storage"
+            content="Хранилище"
             selected={consoleMode === CONSOLE_MODE_STORAGE}
             onClick={() =>
               act('set_view', {
@@ -97,7 +101,7 @@ const DnaConsoleCommands = (props) => {
             }
           />
           <Button
-            content="Sequencer"
+            content="Мутации"
             disabled={!data.isViableSubject}
             selected={consoleMode === CONSOLE_MODE_SEQUENCER}
             onClick={() =>
@@ -107,29 +111,26 @@ const DnaConsoleCommands = (props) => {
             }
           />
           <Button
-            content="Enzymes"
-            selected={consoleMode === CONSOLE_MODE_ENZYMES}
-            onClick={() =>
-              act('set_view', {
-                consoleMode: CONSOLE_MODE_ENZYMES,
-              })
+            content="Внешность"
+            selected={
+              consoleMode === CONSOLE_MODE_ENZYMES ||
+              consoleMode === CONSOLE_MODE_FEATURES
             }
-          />
-          <Button
-            content="Features"
-            selected={consoleMode === CONSOLE_MODE_FEATURES}
             onClick={() =>
               act('set_view', {
-                consoleMode: CONSOLE_MODE_FEATURES,
+                consoleMode:
+                  consoleMode === CONSOLE_MODE_FEATURES
+                    ? CONSOLE_MODE_FEATURES
+                    : CONSOLE_MODE_ENZYMES,
               })
             }
           />
         </LabeledList.Item>
         {!!hasDisk && (
-          <LabeledList.Item label="Disk">
+          <LabeledList.Item label="Диск">
             <Button
               icon="eject"
-              content="Eject"
+              content="Извлечь"
               onClick={() => {
                 act('eject_disk');
                 act('set_view', {

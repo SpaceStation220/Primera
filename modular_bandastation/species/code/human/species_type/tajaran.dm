@@ -1,4 +1,5 @@
 /datum/species/tajaran
+	primitive_form = /datum/species/monkey/farwa
 	name = "\improper Таяран"
 	plural_form = "Таяры"
 	id = SPECIES_TAJARAN
@@ -54,6 +55,7 @@
 
 /datum/species/tajaran/randomize_features()
 	var/list/features = ..()
+	features[FEATURE_TAJARAN_LIMB_MARKINGS] = SPRITE_ACCESSORY_NONE
 	features[FEATURE_TAJARAN_CHEST_MARKINGS] = prob(50) ? pick(SSaccessories.feature_list[FEATURE_TAJARAN_CHEST_MARKINGS]) : SPRITE_ACCESSORY_NONE
 	features[FEATURE_TAJARAN_HEAD_MARKINGS] = prob(50) ? pick(SSaccessories.feature_list[FEATURE_TAJARAN_HEAD_MARKINGS]) : SPRITE_ACCESSORY_NONE
 	features[FEATURE_TAJARAN_TAIL_MARKINGS] = prob(50) ? pick(SSaccessories.feature_list[FEATURE_TAJARAN_TAIL_MARKINGS]) : SPRITE_ACCESSORY_NONE

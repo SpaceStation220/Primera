@@ -1,0 +1,44 @@
+{
+  "config": {
+    "interface": {
+      "name": "DnaConsole"
+    },
+    "title": "DNA Console",
+    "window": {
+      "size": [
+        550,
+        710
+      ]
+    }
+  },
+  "data": {
+    "view": {
+      "consoleMode": "enzymes"
+    },
+    "isScannerConnected": true,
+    "scannerOpen": true,
+    "scannerLocked": false,
+    "isViableSubject": false,
+    "subjectName": null,
+    "subjectHealth": null,
+    "subjectDamage": null,
+    "subjectStatus": null,
+    "subjectUNI": "",
+    "subjectUF": "",
+    "subjectEnzymes": "ABCDEF0123456789ABCDEF0123456789AB",
+    "isPulsing": false,
+    "hasDelayedAction": false,
+    "isScrambleReady": true,
+    "isInjectorReady": true,
+    "hasDisk": false,
+    "makeupCapacity": 3,
+    "makeupStorage": {},
+    "geneticMakeupCooldown": 0,
+    "pulseStrength": 2,
+    "pulseDuration": 1,
+    "stdDevAcc": "68-95 %",
+    "stdDevStr": 2
+  },
+  "static_data": {},
+  "shared": {}
+}

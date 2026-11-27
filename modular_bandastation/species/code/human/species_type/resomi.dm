@@ -48,6 +48,13 @@
 	listen = new(human)
 	listen.Grant(human)
 
+/datum/species/resomi/randomize_features()
+	var/list/features = ..()
+	features[FEATURE_RESOMI_MARKINGS] = SPRITE_ACCESSORY_NONE
+	features[FEATURE_RESOMI_MARKINGS_COLOR] = COLOR_WHITE
+	features[FEATURE_RESOMI_CREST_COLOR] = COLOR_WHITE
+	return features
+
 /datum/species/resomi/on_species_loss(mob/living/carbon/human/human, datum/species/new_species, pref_load)
 	QDEL_NULL(agility)
 	QDEL_NULL(listen)

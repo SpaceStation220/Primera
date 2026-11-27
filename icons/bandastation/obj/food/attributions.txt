@@ -1,0 +1,10 @@
+Kentucky Fried Vox (kentucky_fried_vox.dmi), CC BY-SA 3.0.
+
+SS1984 Paradise contributors. Original frames copied without redrawing:
+- bucket and vox_meat: fried_vox and meat_vox from https://github.com/ss220-space/Paradise/blob/002f0b6204ceca936447f47f78104dbca34ddb43/icons/obj/food/food.dmi
+- bucket_empty: fried_vox_empty from https://github.com/ss220-space/Paradise/blob/002f0b6204ceca936447f47f78104dbca34ddb43/icons/obj/trash.dmi
+
+Revised frames for BandaStation:
+- serving: green portion redrawn using /tg/station contributors' fried_chicken1 as a reference, https://github.com/tgstation/tgstation/blob/3d539ad0265e208bf8a1b9a964b458a469114226/icons/obj/food/meat.dmi
+- breaded: blue Vox cut in breading.
+- breaded_batch: three cuts in breading, based on the breaded frame.
