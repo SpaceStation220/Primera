@@ -158,22 +158,11 @@ GLOBAL_LIST_INIT(freqtospan, list(
 
 /// Formats speech for a listener, omitting the sender's identity from radio messages.
 /atom/movable/proc/compose_message(atom/movable/speaker, datum/language/message_language, raw_message, radio_freq, radio_freq_name, radio_freq_color, list/spans, list/message_mods = list(), visible_name = FALSE)
-	//This proc uses [] because it is faster than continually appending strings. Thanks BYOND.
-	//Basic span
+	var/message_class = radio_freq ? get_radio_span(radio_freq) : "game say"
 	var/freq_color = get_radio_color(radio_freq, radio_freq_color)
-	var/spanpart1 = "<span class='[radio_freq ? get_radio_span(radio_freq) : "game say"]' [freq_color ? "style='color:[freq_color];'" : ""]>"
-	//Start name span.
-	var/spanpart2 = "<span class='name'>"
-	//Radio freq/name display
-	var/freqpart = radio_freq ? "\[[get_radio_name(radio_freq, radio_freq_name)]\] " : ""
-	//Speaker name
-	var/namepart = message_mods[MODE_SPEAKER_NAME_OVERRIDE] || speaker.get_message_voice(visible_name)
+	var/color_attr = freq_color ? " style='color:[freq_color];'" : ""
 
-	//End name span.
-	var/endspanpart = "</span>"
-
-	// Language icon.
-	var/languageicon = ""
+	var/language_icons = ""
 	if(!message_mods[MODE_CUSTOM_SAY_ERASE_INPUT])
 		var/list/languages = list(message_language)
 		for(var/list/segment as anything in message_mods[LANGUAGE_MESSAGE_SEGMENTS])
@@ -185,18 +174,24 @@ GLOBAL_LIST_INIT(freqtospan, list(
 				continue
 			var/datum/asset/spritesheet_batched/sheet = get_asset_datum(/datum/asset/spritesheet_batched/chat)
 			var/icon_tag = sheet.icon_tag("language-[dialect.icon_state][dialect_icon_type == DISPLAY_LANGUAGE_ICON_PARTIAL ? "-partial" : ""]")
-			languageicon += span_tooltip_subtle(dialect.name, icon_tag) + " "
+			language_icons += span_tooltip_subtle(dialect.name, icon_tag) + " "
 
-	// The actual message part.
-	var/messagepart = speaker.generate_messagepart(raw_message, spans, message_mods)
+	var/header
 	if(radio_freq)
-		messagepart = "[speaker.get_radio_voice_label(message_mods)] [messagepart]"
-	messagepart = " <span class='message'>[messagepart]</span></span>"
+		var/freq_label = "\[[get_radio_name(radio_freq, radio_freq_name)]\] "
+		header = trim_right("[freq_label][language_icons][compose_radio_links(speaker)]")
+	else
+		var/speaker_name = message_mods[MODE_SPEAKER_NAME_OVERRIDE] || speaker.get_message_voice(visible_name)
+		var/colored_name = "<span style='color: [speaker.chat_color]'>[speaker_name]</span>"
+		var/track_link = compose_track_href(speaker, speaker_name)
+		var/job_info = compose_job(speaker, message_language, raw_message, radio_freq)
+		header = "[language_icons][track_link][colored_name][job_info]"
 
+	var/message_body = speaker.generate_messagepart(raw_message, spans, message_mods)
 	if(radio_freq)
-		return "[spanpart1][spanpart2][freqpart][languageicon][compose_radio_links(speaker)][endspanpart][messagepart]"
+		message_body = "[speaker.get_radio_voice_label(message_mods)] [message_body]"
 
-	return "[spanpart1][spanpart2][freqpart][languageicon][compose_track_href(speaker, namepart)]["<span style='color: [speaker.chat_color]'>[namepart]</span>"][compose_job(speaker, message_language, raw_message, radio_freq)][endspanpart][messagepart]" // BANDASTATION Addition: span with color
+	return "<span class='[message_class]'[color_attr]><span class='name'>[header]</span> <span class='message'>[message_body]</span></span>"
 
 /atom/movable/proc/compose_track_href(atom/movable/speaker, message_langs, raw_message, radio_freq)
 	return ""
