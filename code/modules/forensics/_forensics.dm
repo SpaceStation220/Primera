@@ -85,6 +85,8 @@
 		return NONE
 
 	blood_DNA = null
+	parent.cached_blood_color = null
+	parent.cached_blood_emissive = null
 	return COMPONENT_CLEANED
 
 /// Empties the fibers list
@@ -103,6 +105,11 @@
 	if(clean_types & CLEAN_TYPE_FINGERPRINTS)
 		. |= wipe_fingerprints()
 	if(clean_types & CLEAN_TYPE_BLOOD)
+		if(length(blood_DNA) && !(clean_types & CLEAN_TYPE_BLOOD_RESIDUE) && isitem(parent) && !isorgan(parent))
+			var/list/sample = get_residue_dna(BLOOD_COVER_ITEMS)
+			if(length(sample))
+				var/datum/component/blood_residue/residue = parent.LoadComponent(/datum/component/blood_residue)
+				residue.record(sample)
 		. |= wipe_blood_DNA()
 	if(clean_types & CLEAN_TYPE_FIBERS)
 		. |= wipe_fibers()

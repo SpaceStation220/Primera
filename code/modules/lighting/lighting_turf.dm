@@ -139,14 +139,12 @@
 
 ///Calculate on which directions this turfs block view.
 /turf/proc/recalculate_directional_opacity()
+	SHOULD_CALL_PARENT(TRUE)
 	. = directional_opacity
+	directional_opacity = NONE
 	if(opacity)
 		directional_opacity = ALL_CARDINALS
-		if(. != directional_opacity)
-			reconsider_lights()
-		return
-	directional_opacity = NONE
-	if(opacity_sources)
+	else if(opacity_sources)
 		for(var/atom/movable/opacity_source as anything in opacity_sources)
 			if(opacity_source.flags_1 & ON_BORDER_1)
 				directional_opacity |= opacity_source.dir
@@ -156,7 +154,10 @@
 	else
 		for(var/atom/movable/content as anything in contents)
 			SEND_SIGNAL(content, COMSIG_TURF_NO_LONGER_BLOCK_LIGHT)
-	if(. != directional_opacity && (. == ALL_CARDINALS || directional_opacity == ALL_CARDINALS))
+	if(. == directional_opacity)
+		return
+	SEND_SIGNAL(src, COMSIG_TURF_DIRECTIONAL_OPACITY_CHANGED)
+	if(. == ALL_CARDINALS || directional_opacity == ALL_CARDINALS)
 		reconsider_lights() //The lighting system only cares whether the tile is fully concealed from all directions or not.
 
 ///Transfer the lighting of one area to another

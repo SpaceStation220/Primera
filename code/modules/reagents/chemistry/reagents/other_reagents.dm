@@ -1181,6 +1181,7 @@
 
 /datum/reagent/space_cleaner/sterilizine
 	name = "Sterilizine"
+	clean_types = CLEAN_WASH | CLEAN_TYPE_BLOOD_RESIDUE
 	description = "Sterilizes wounds in preparation for surgery."
 	color = "#D0EFEE" // space cleaner but lighter
 	taste_description = "bitterness"
@@ -1427,6 +1428,20 @@
 
 	reagent_explode(holder, volume, strengthdiv = strengthdiv, clear_holder_reagents = FALSE, flame_factor = 1)
 	return SPARK_ACT_DESTRUCTIVE | SPARK_ACT_CLEAR_ALL
+
+/// A forensic dye that marks washed blood residue for examination under a forensic UV flashlight.
+/datum/reagent/fluorescein
+	name = "Fluorescein"
+	description = "A fluorescent dye used to reveal washed blood under a forensic UV flashlight."
+	color = "#ADFF2F"
+
+/datum/reagent/fluorescein/expose_mob(mob/living/exposed_mob, methods, reac_volume, show_message, touch_protection)
+	. = ..()
+	if(!iscarbon(exposed_mob) || !(methods & (TOUCH|VAPOR)) || reac_volume <= 0)
+		return
+	var/mob/living/carbon/wearer = exposed_mob
+	for(var/obj/item/item as anything in wearer.get_visible_items())
+		expose_atom(item, reac_volume, methods)
 
 /datum/reagent/space_cleaner
 	name = "Space Cleaner"

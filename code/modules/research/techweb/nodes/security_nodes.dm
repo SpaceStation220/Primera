@@ -48,6 +48,7 @@
 	description = "Разработка и внедрение специализированного оборудования для нейтрализации массовых беспорядков и противодействия особо опасным нарушителям."
 	prerequisite_nodes = list(/datum/techweb_node/sec_equip)
 	unlocked_designs = list(
+		/datum/design/flashlight/forensic_uv,
 		/datum/design/clown_firing_pin,
 		/datum/design/pin_testing,
 		/datum/design/pin_mindshield,

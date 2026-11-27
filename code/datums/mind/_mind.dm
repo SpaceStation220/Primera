@@ -48,6 +48,8 @@
 
 	/// Job datum indicating the mind's role. This should always exist after initialization, as a reference to a singleton.
 	var/datum/job/assigned_role
+	/// The spawned character's display title; independent of the client's currently selected profile.
+	var/assigned_job_title
 
 	/// List of antag datums on this mind
 	var/list/antag_datums
@@ -499,9 +501,16 @@
 		CRASH("set_assigned_role called with invalid role: [isnull(new_role) ? "null" : new_role]")
 	. = assigned_role
 	assigned_role = new_role
+	assigned_job_title = null
 	if(!isnull(current))
 		SEND_SIGNAL(current, COMSIG_MOB_MIND_SET_ROLE, new_role)
 		current.client?.tgui_panel?.send_player_info()
+
+/// Returns a validated display title without changing the actual assigned role.
+/datum/mind/proc/get_job_title()
+	if(istext(assigned_job_title) && (assigned_job_title in assigned_role?.alt_titles))
+		return assigned_job_title
+	return assigned_role?.title
 
 ///Sets your holy role, giving/taking away traits related to if you're gaining/losing it.
 /datum/mind/proc/set_holy_role(new_holy_role)

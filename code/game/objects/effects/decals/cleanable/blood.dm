@@ -77,6 +77,31 @@
 	STOP_PROCESSING(SSblood_drying, src)
 	return ..()
 
+/obj/effect/decal/cleanable/blood/wash(clean_types)
+	// cleanable/wash may delete the decal even when only a secondary stain was cleaned.
+	var/turf/floor = loc
+	var/list/sample
+	var/mutable_appearance/shape
+	if(isturf(floor) && is_mopped && !istype(src, /obj/effect/decal/cleanable/blood/gibs) && !(clean_types & CLEAN_TYPE_BLOOD_RESIDUE))
+		sample = forensics?.get_residue_dna(BLOOD_COVER_TURFS)
+		if(length(sample))
+			shape = residue_appearance()
+	. = ..()
+	if(shape && QDELETED(src))
+		var/datum/component/blood_residue/residue = floor.LoadComponent(/datum/component/blood_residue)
+		residue.record(sample, type, shape)
+
+/// Snapshot only the shape. Diseases, drying, reagents and contact behavior die with the decal.
+/obj/effect/decal/cleanable/blood/proc/residue_appearance()
+	var/mutable_appearance/shape = mutable_appearance(icon, icon_state, CLEANABLE_FLOOR_OBJECT_LAYER, src, FLOOR_PLANE)
+	shape.dir = dir
+	shape.transform = transform
+	shape.pixel_x = pixel_x
+	shape.pixel_y = pixel_y
+	shape.color = /datum/reagent/fluorescein::color
+	shape.overlays += emissive_appearance(icon, icon_state, src)
+	return shape
+
 /// Returns the default blood type for this decal for maploaded decals
 /obj/effect/decal/cleanable/blood/proc/get_default_blood_type()
 	return random_human_blood_type()
@@ -313,6 +338,13 @@
 /obj/effect/decal/cleanable/blood/trail_holder/Destroy()
 	QDEL_LIST_ASSOC_VAL(trail_components)
 	return ..()
+
+/obj/effect/decal/cleanable/blood/trail_holder/residue_appearance()
+	var/mutable_appearance/shape = mutable_appearance('icons/blanks/32x32.dmi', "nothing", CLEANABLE_FLOOR_OBJECT_LAYER, src, FLOOR_PLANE)
+	for(var/key in trail_components)
+		var/obj/effect/decal/cleanable/blood/trail/piece = trail_components[key]
+		shape.overlays += piece.residue_appearance()
+	return shape
 
 /**
  * Returns the trail component corresponding to the given direction
@@ -703,6 +735,16 @@
 
 /obj/effect/decal/cleanable/blood/footprints/get_blood_string()
 	return null
+
+/obj/effect/decal/cleanable/blood/footprints/residue_appearance()
+	var/mutable_appearance/shape = mutable_appearance('icons/blanks/32x32.dmi', "nothing", CLEANABLE_FLOOR_OBJECT_LAYER, src, FLOOR_PLANE)
+	shape.color = /datum/reagent/fluorescein::color
+	for(var/image/step_image as anything in overlays)
+		if(step_image.plane != FLOAT_PLANE || step_image.icon != icon)
+			continue
+		shape.overlays += step_image
+		shape.overlays += image(emissive_appearance(icon, step_image.icon_state, src), dir = step_image.dir)
+	return shape
 
 //Rotate all of the footprint directions too
 /obj/effect/decal/cleanable/blood/footprints/setDir(newdir)

@@ -21,30 +21,14 @@
  * Crayons
  */
 
-/obj/item/toy/crayon
-	name = "crayon"
-	desc = "A colourful crayon. Looks tasty. Mmmm..."
-	icon = 'icons/obj/art/crayons.dmi'
-	icon_state = "crayonred"
-	worn_icon_state = "crayon"
+/// Drawing tools that share stencils, ink charges, and the floor drawing action.
+/obj/item/toy/stencil_tool
+	abstract_type = /obj/item/toy/stencil_tool
 	w_class = WEIGHT_CLASS_TINY
-	attack_verb_continuous = list("attacks", "colours")
-	attack_verb_simple = list("attack", "colour")
 	interaction_flags_atom = parent_type::interaction_flags_atom | INTERACT_ATOM_IGNORE_MOBILITY
 
-	/// Icon state to use when capped
-	var/icon_capped
-	/// Icon state to use when uncapped
-	var/icon_uncapped
-	/// If true, a coloured overlay is applied to display the currently selected colour
-	var/overlay_paint_colour = FALSE
-
-	/// Crayon overlay to use if placed into a crayon box
-	var/crayon_color = "red"
 	/// Current paint colour
 	var/paint_color = COLOR_RED
-	///How strong the outline should be when drawing around something.
-	var/outline_strength = 0.5
 
 	/// Contains chosen symbol to draw
 	var/drawtype
@@ -69,9 +53,6 @@
 	var/instant = FALSE
 	/// If true, this deletes itself when empty
 	var/self_contained = TRUE
-
-	/// Whether or not you can eat this. Doesn't mean it is a good idea to eat it.
-	var/edible = TRUE
 
 	/// Reagents which are applied to things you use this on, or yourself if you eat it
 	var/list/reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5)
@@ -198,8 +179,31 @@
 	/// Combined lists
 	var/static/list/all_drawables = graffiti + symbols + drawings + oriented + runes + graffiti_large_h
 
-/obj/item/toy/crayon/proc/isValidSurface(surface)
+/obj/item/toy/stencil_tool/proc/isValidSurface(surface)
 	return isfloorturf(surface)
+
+/obj/item/toy/crayon
+	parent_type = /obj/item/toy/stencil_tool
+	name = "crayon"
+	desc = "A colourful crayon. Looks tasty. Mmmm..."
+	icon = 'icons/obj/art/crayons.dmi'
+	icon_state = "crayonred"
+	worn_icon_state = "crayon"
+	attack_verb_continuous = list("attacks", "colours")
+	attack_verb_simple = list("attack", "colour")
+
+	/// Icon state to use when capped
+	var/icon_capped
+	/// Icon state to use when uncapped
+	var/icon_uncapped
+	/// If true, a coloured overlay is applied to display the currently selected colour
+	var/overlay_paint_colour = FALSE
+	/// Crayon overlay to use if placed into a crayon box
+	var/crayon_color = "red"
+	/// How strong the outline should be when drawing around something.
+	var/outline_strength = 0.5
+	/// Whether or not you can eat this. Doesn't mean it is a good idea to eat it.
+	var/edible = TRUE
 
 /obj/item/toy/crayon/suicide_act(mob/living/user)
 	user.visible_message(span_suicide("[user] is jamming [src] up [user.p_their()] nose and into [user.p_their()] brain. Кажется, [user.ru_p_they()] пытается совершить самоубийство!"))
@@ -248,7 +252,7 @@
  * Sets charges_left in infinite crayons to 100 for spawning reagents.
  * Spawns reagents in crayons based on the amount of charges_left if not spawned yet.
  */
-/obj/item/toy/crayon/proc/refill()
+/obj/item/toy/stencil_tool/proc/refill()
 	if(charges == INFINITE_CHARGES)
 		charges_left = 100
 	else
@@ -277,7 +281,7 @@
  * * requires_full - Seems to transfer its data to the same argument on check_empty(). I'm not sure tho.
  * * override_infinity - if TRUE stops infinite crayons from refilling.
  */
-/obj/item/toy/crayon/proc/use_charges(mob/user, amount = 1, requires_full = TRUE, override_infinity = FALSE)
+/obj/item/toy/stencil_tool/proc/use_charges(mob/user, amount = 1, requires_full = TRUE, override_infinity = FALSE)
 	if(charges == INFINITE_CHARGES && !override_infinity)
 		refill()
 		return TRUE
@@ -295,7 +299,7 @@
  * * requires_full - if TRUE and charges_left < amount it will balloon_alert you. Used just for borgs spraycan it seems.
  * * override_infinity - if TRUE it will override checks for infinite crayons.
  */
-/obj/item/toy/crayon/proc/check_empty(mob/user, amount = 1, requires_full = TRUE, override_infinity = FALSE)
+/obj/item/toy/stencil_tool/proc/check_empty(mob/user, amount = 1, requires_full = TRUE, override_infinity = FALSE)
 	if(QDELETED(src))
 		return TRUE
 
@@ -314,10 +318,14 @@
 
 	return FALSE
 
-/obj/item/toy/crayon/ui_state(mob/user)
+/obj/item/toy/stencil_tool/ui_state(mob/user)
 	return GLOB.hands_state
 
-/obj/item/toy/crayon/ui_interact(mob/user, datum/tgui/ui)
+/// Stencils this tool offers for selection, including any supported random categories.
+/obj/item/toy/stencil_tool/proc/get_stencil_choices()
+	return all_drawables + randoms
+
+/obj/item/toy/stencil_tool/ui_interact(mob/user, datum/tgui/ui)
 	if (!actually_paints)
 		return
 	// tgui is a plague upon this codebase
@@ -327,7 +335,7 @@
 		ui = new(user, src, "Crayon", name)
 		ui.open()
 
-/obj/item/toy/crayon/proc/staticDrawables(is_literate_user)
+/obj/item/toy/stencil_tool/proc/staticDrawables(is_literate_user)
 	. = list()
 
 	var/list/g_items = list()
@@ -368,7 +376,7 @@
 				continue
 		rand_items += list(list("item" = i))
 
-/obj/item/toy/crayon/ui_data(mob/user)
+/obj/item/toy/stencil_tool/ui_data(mob/user)
 	var/list/crayon_drawables
 	var/is_literate_user = user.is_literate()
 
@@ -386,7 +394,7 @@
 	.["selected_color"] = GLOB.pipe_color_name[paint_color] || paint_color
 	.["paint_colors"] = GLOB.pipe_paint_colors
 
-/obj/item/toy/crayon/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
+/obj/item/toy/stencil_tool/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()
 	if(.)
 		return
@@ -398,13 +406,13 @@
 				. = TRUE
 		if("select_stencil")
 			var/stencil = params["item"]
-			if(stencil in (all_drawables + randoms))
-				drawtype = stencil
-				. = TRUE
-				text_buffer = ""
+			if(!(stencil in get_stencil_choices()))
+				return
+			drawtype = stencil
+			. = TRUE
+			text_buffer = ""
 			if(stencil in graffiti_large_h)
 				paint_mode = PAINT_LARGE_HORIZONTAL
-				text_buffer = ""
 			else
 				paint_mode = PAINT_NORMAL
 		if("custom_color")
@@ -429,26 +437,26 @@
 			drawtype = "a"
 	update_appearance()
 
-/obj/item/toy/crayon/proc/crayon_text_strip(text)
+/obj/item/toy/stencil_tool/proc/crayon_text_strip(text)
 	text = copytext(text, 1, MAX_MESSAGE_LEN)
 	var/static/regex/crayon_regex = new /regex(@"[^\wА-Яа-яЁё!?,.=&%#+/\-]", "ig") // BANDASTATION EDIT - Russian Crayons
 	return LOWER_TEXT(crayon_regex.Replace(text, ""))
 
 /// Is this a valid object for use_on to run on?
-/obj/item/toy/crayon/proc/can_use_on(atom/target, mob/user, list/modifiers)
+/obj/item/toy/stencil_tool/proc/can_use_on(atom/target, mob/user, list/modifiers)
 	if(!isturf(target) && !istype(target, /obj/effect/decal/cleanable))
 		return FALSE
 	return TRUE
 
 // BANDASTATION ADD START - Russian Crayons
-/obj/item/toy/crayon/proc/get_unicode_letter(letter)
+/obj/item/toy/stencil_tool/proc/get_unicode_letter(letter)
 	var/char_code = text2ascii(letter)
 	if((char_code >= 1072 && char_code <= 1103) || char_code == 1105)
 		return "u[char_code]"
 // BANDASTATION ADD END - Russian Crayons
 
 /// Attempts to color the target.
-/obj/item/toy/crayon/proc/use_on(atom/target, mob/user, list/modifiers)
+/obj/item/toy/stencil_tool/proc/use_on(atom/target, mob/user, list/modifiers)
 	var/static/list/punctuation = list("!","?",".",",","/","+","-","=","%","#","&")
 
 	if(istype(target, /obj/effect/decal/cleanable))
@@ -561,24 +569,19 @@
 		var/obj/effect/decal/cleanable/crayon/created_art
 		switch(paint_mode)
 			if(PAINT_NORMAL)
-				created_art = new(target, paint_color, drawing, temp, graf_rot)
+				created_art = place_drawing(target, drawing, temp, graf_rot, user, istagger)
 				created_art.pixel_x = clickx
 				created_art.pixel_y = clicky
 			if(PAINT_LARGE_HORIZONTAL)
 				var/turf/left = locate(target.x-1,target.y,target.z)
 				var/turf/right = locate(target.x+1,target.y,target.z)
 				if(isValidSurface(left) && isValidSurface(right))
-					created_art = new(left, paint_color, drawing, temp, graf_rot, PAINT_LARGE_HORIZONTAL_ICON)
+					place_drawing(left, drawing, temp, graf_rot, user, istagger, PAINT_LARGE_HORIZONTAL_ICON)
 					affected_turfs += left
 					affected_turfs += right
 				else
 					balloon_alert(user, "no room!")
 					return ITEM_INTERACT_BLOCKING
-		created_art.add_hiddenprint(user)
-		if(istagger)
-			created_art.AddElement(/datum/element/art, GOOD_ART)
-		else
-			created_art.AddElement(/datum/element/art, BAD_ART)
 
 	if(!instant)
 		to_chat(user, span_notice("You finish drawing \the [temp]."))
@@ -602,8 +605,15 @@
 	check_empty(user)
 	return ITEM_INTERACT_SUCCESS
 
+/// Place the chosen stencil after the drawing action has completed and charges have been spent.
+/obj/item/toy/stencil_tool/proc/place_drawing(turf/location, drawing, drawing_name, rotation, mob/user, is_tagger, icon_override)
+	var/obj/effect/decal/cleanable/crayon/art = new(location, paint_color, drawing, drawing_name, rotation, icon_override)
+	art.add_hiddenprint(user)
+	art.AddElement(/datum/element/art, is_tagger ? GOOD_ART : BAD_ART)
+	return art
+
 ///Checks if the user is still adjacent to the target (used for do_after extra_checks)
-/obj/item/toy/crayon/proc/adjacency_check(mob/user, atom/target)
+/obj/item/toy/stencil_tool/proc/adjacency_check(mob/user, atom/target)
 	if(!user.Adjacent(target))
 		user.balloon_alert(user, "moved too far away!")
 		return FALSE
@@ -651,6 +661,40 @@
 	crayon_color = "red"
 	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/red/crayon = 1.5)
 	dye_color = DYE_RED
+
+/// A one-tile floor marker using the crayon stencil and text controls.
+/obj/item/toy/stencil_tool/uv_marker
+	name = "UV marker"
+	desc = "Writes invisible signs on floors that fluoresce turquoise under UV. Use it in hand to choose a stencil, then face the direction you want the arrow to point."
+	icon = 'icons/obj/service/bureaucracy.dmi'
+	icon_state = "pen_blue"
+	inhand_icon_state = "pen"
+	worn_icon_state = "pen"
+	paint_color = COLOR_DISPLAY_CYAN
+	reagent_contents = list(/datum/reagent/colorful_reagent/powder/invisible = 1)
+
+/obj/item/toy/stencil_tool/uv_marker/Initialize(mapload)
+	. = ..()
+	drawtype = "arrow"
+	refill()
+
+/obj/item/toy/stencil_tool/uv_marker/staticDrawables(is_literate_user)
+	var/list/items = list()
+	for(var/stencil in get_stencil_choices())
+		items += list(list("item" = stencil))
+	return list(list("name" = "Signs", "items" = items))
+
+/obj/item/toy/stencil_tool/uv_marker/get_stencil_choices()
+	var/static/list/stencils = symbols + oriented + list("x")
+	return stencils
+
+/obj/item/toy/stencil_tool/uv_marker/interact_with_atom(atom/target, mob/living/user, list/modifiers)
+	if(check_allowed_items(target) && can_use_on(target, user, modifiers))
+		return use_on(target, user, modifiers)
+	return NONE
+
+/obj/item/toy/stencil_tool/uv_marker/place_drawing(turf/location, drawing, drawing_name, rotation, mob/user, is_tagger, icon_override)
+	return new /obj/effect/decal/cleanable/crayon/uv_sign(location, paint_color, drawing, drawing_name, rotation)
 
 /obj/item/toy/crayon/orange
 	name = "orange crayon"

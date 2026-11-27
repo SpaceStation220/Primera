@@ -44,6 +44,13 @@
 ///Called when turf no longer blocks light from passing through
 #define COMSIG_TURF_NO_LONGER_BLOCK_LIGHT "turf_no_longer_block_light"
 
+/// From /turf/proc/recalculate_directional_opacity after a turf or a movable changes which directions block sight.
+#define COMSIG_TURF_DIRECTIONAL_OPACITY_CHANGED "turf_directional_opacity_changed"
+/// Sent when the intensity of a forensic UV source on this turf changes.
+#define COMSIG_TURF_UV_CHANGED "turf_uv_changed"
+/// Query visible forensic UV sources: (list/intensities), each source appends its intensity in [1, 255].
+#define COMSIG_TURF_CHECK_UV "turf_check_uv"
+
 ///from /turf/proc/attempt_lattice_replacement() : (list/post_successful_replacement_callbacks)
 /// `post_successful_replacement_callbacks` is a list that signal handlers can mutate to append `/datum/callback` objects.
 /// They will be called with the new catwalk if it is actually created.

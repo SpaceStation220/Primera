@@ -134,13 +134,16 @@ GLOBAL_LIST_EMPTY(security_officer_distribution)
 	if(dep_trim)
 		var/obj/item/card/id/worn_id = spawning.get_idcard(hand_first = FALSE)
 		SSid_access.apply_trim_to_card(worn_id, dep_trim)
+		if(spawning.mind?.assigned_job_title)
+			worn_id.assignment = spawning.mind.get_job_title()
+			worn_id.update_label()
 		spawning.update_ID_card()
 
 		// Update PDA to match new trim.
 		var/obj/item/modular_computer/pda/pda = spawning.get_item_by_slot(ITEM_SLOT_BELT)
-		var/assignment = worn_id.get_trim_assignment()
+		var/assignment = worn_id.assignment
 		if(istype(pda) && !isnull(assignment))
-			pda.imprint_id(spawning.real_name, assignment)
+			pda.imprint_id(spawning.real_name, assignment, worn_id.get_trim_assignment())
 
 	var/spawn_point = pick(LAZYACCESS(GLOB.department_security_spawns, department))
 

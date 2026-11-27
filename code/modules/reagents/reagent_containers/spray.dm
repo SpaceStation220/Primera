@@ -180,6 +180,12 @@ GAME_VERB_SRC(/obj/item/reagent_containers/spray, empty, usr, "Empty Spray Bottl
 	if(stream_mode == 0)
 		current_range = spray_range
 
+/obj/item/reagent_containers/spray/fluorescein
+	name = "fluorescein spray"
+	desc = "Spray a washed surface, then illuminate it with a forensic UV flashlight to reveal traces of blood."
+	volume = 100
+	list_reagents = list(/datum/reagent/fluorescein = 100)
+
 //space cleaner
 /obj/item/reagent_containers/spray/cleaner
 	name = "space cleaner"

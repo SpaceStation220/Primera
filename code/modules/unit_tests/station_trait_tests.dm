@@ -93,9 +93,9 @@
 			TEST_ASSERT(!(ACCESS_CENT_GENERAL in card.GetAccess()), "[job.title] inherited Central Command access from the faction card.")
 
 	var/obj/item/card/id/advanced/reprinted_card = allocate(/obj/item/card/id/advanced)
-	SSid_access.apply_trim_to_card(reprinted_card, /datum/id_trim/job/donor/waiter)
-	reprinted_card.job_variant_title = "Хост сервиса"
-	TEST_ASSERT_EQUAL(reprinted_card.get_trim_assignment(), "Хост сервиса", "The issued card hid the selected job title.")
+	SSid_access.apply_trim_to_card(reprinted_card, /datum/id_trim/job/donor/barber)
+	reprinted_card.job_variant_title = "Стилист"
+	TEST_ASSERT_EQUAL(reprinted_card.get_trim_assignment(), "Стилист", "The issued card hid the selected job title.")
 	SSid_access.apply_trim_to_card(reprinted_card, /datum/id_trim/job/assistant)
 	TEST_ASSERT_EQUAL(reprinted_card.get_trim_assignment(), reprinted_card.trim.assignment, "Reprinting a card retained its old job variant.")
 

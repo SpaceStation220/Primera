@@ -1,6 +1,6 @@
 /datum/job/donor/barber
 	title = "Barber"
-	alternate_titles = list("Парикмахер", "Стилист", "Цирюльник", "Визажист")
+	alternate_titles = list("Парикмахер", "Стилист", "Цирюльник")
 	description = "Стригите и брейте посетителей, подбирайте им причёски и откройте собственную парикмахерскую."
 	config_tag = "BARBER"
 	display_order = JOB_DISPLAY_ORDER_DONOR_BARBER
@@ -35,7 +35,7 @@
 
 /datum/job/donor/waiter
 	title = "Waiter"
-	alternate_titles = list("Официант", "Хост сервиса")
+	alternate_titles = list("Официант")
 	description = "Принимайте заказы, подавайте блюда и напитки и помогайте поварам и бармену обслуживать экипаж."
 	config_tag = "WAITER"
 	display_order = JOB_DISPLAY_ORDER_DONOR_WAITER
@@ -79,7 +79,7 @@
 
 /datum/job/donor/administrator
 	title = "Administrator"
-	alternate_titles = list("Сервис-администратор", "Сервис-управитель", "Сервис-менеджер")
+	alternate_titles = list("Сервис-администратор", "Сервис-менеджер")
 	description = "Помогайте главе персонала координировать отдел обслуживания, поддерживайте работу заведений и устраивайте мероприятия для экипажа."
 	config_tag = "SERVICE_ADMINISTRATOR"
 	display_order = JOB_DISPLAY_ORDER_DONOR_ADMINISTRATOR
@@ -127,7 +127,7 @@
 
 /datum/job/donor/guard
 	title = "Guard"
-	alternate_titles = list("Охранник сервиса", "Сторож сервиса", "Вышибала")
+	alternate_titles = list("Охранник сервиса", "Вышибала")
 	description = "Следите за порядком в баре и на кухне. Удаляйте нарушителей из заведения и вызывайте службу безопасности, если нужна её помощь."
 	config_tag = "SERVICE_GUARD"
 	display_order = JOB_DISPLAY_ORDER_DONOR_GUARD
@@ -172,7 +172,7 @@
 
 /datum/job/donor/dealer
 	title = "Dealer"
-	alternate_titles = list("Торговец", "Независимый торговец", "Барахольщик", "Коммерсант")
+	alternate_titles = list("Торговец", "Независимый торговец")
 	description = "Откройте торговую точку, скупайте и перепродавайте товары экипажу. Принимайте переводы через NT Pay."
 	config_tag = "DEALER"
 	display_order = JOB_DISPLAY_ORDER_DONOR_DEALER
@@ -214,7 +214,7 @@
 
 /datum/job/donor/banker
 	title = "Banker"
-	alternate_titles = list("Банкир", "Независимый банкир", "Корпорат", "Бизнесмен")
+	alternate_titles = list("Банкир", "Корпорат", "Бизнесмен")
 	description = "Вложите стартовый капитал в своё дело. Откройте банк или мастерскую, нанимайте работников и заключайте сделки с экипажем."
 	config_tag = "BANKER"
 	display_order = JOB_DISPLAY_ORDER_DONOR_BANKER

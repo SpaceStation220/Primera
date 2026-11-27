@@ -43,6 +43,47 @@
 /obj/effect/decal/cleanable/crayon/NeverShouldHaveComeHere(turf/here_turf)
 	return isgroundlessturf(here_turf)
 
+/// Fluorescent ink is both invisible and unselectable until the floor receives forensic UV.
+/obj/effect/decal/cleanable/crayon/uv_sign
+	name = "fluorescent sign"
+	// The generic blocker would capture the default rune before the crayon selects its stencil.
+	blocks_emissive = EMISSIVE_BLOCK_NONE
+	alpha = 0
+	invisibility = INVISIBILITY_ABSTRACT
+	/// Incident UV before visible-light washout.
+	var/uv_intensity = 0
+
+/obj/effect/decal/cleanable/crayon/uv_sign/Initialize(mapload, main, type, e_name, graf_rot, alt_icon, desc_override, color_strength)
+	. = ..()
+	if(. == INITIALIZE_HINT_QDEL)
+		return
+	add_overlay(emissive_appearance(icon, icon_state, src, effect_type = EMISSIVE_NO_BLOOM))
+	var/static/list/connections = list(COMSIG_TURF_UV_CHANGED = PROC_REF(refresh_uv))
+	AddElement(/datum/element/connect_loc, connections)
+	RegisterSignal(src, COMSIG_MOVABLE_MOVED, PROC_REF(refresh_uv))
+	refresh_uv()
+
+/obj/effect/decal/cleanable/crayon/uv_sign/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/obj/effect/decal/cleanable/crayon/uv_sign/proc/refresh_uv()
+	SIGNAL_HANDLER
+	var/turf/floor = loc
+	var/intensity = isturf(floor) ? floor.get_forensic_uv_intensity() : 0
+	if(!intensity && uv_intensity)
+		STOP_PROCESSING(SSobj, src)
+	else if(intensity && !uv_intensity)
+		START_PROCESSING(SSobj, src)
+	uv_intensity = intensity
+	invisibility = intensity ? 0 : INVISIBILITY_ABSTRACT
+	alpha = intensity ? floor.get_forensic_uv_alpha(intensity) : 0
+
+/obj/effect/decal/cleanable/crayon/uv_sign/process(seconds_per_tick)
+	var/turf/floor = loc
+	if(isturf(floor))
+		alpha = floor.get_forensic_uv_alpha(uv_intensity)
+
 /obj/effect/decal/cleanable/crayon/proc/on_painted(datum/source, mob/user, obj/item/toy/crayon/spraycan/spraycan, is_dark_color)
 	SIGNAL_HANDLER
 	var/cost = spraycan.all_drawables[icon_state] || CRAYON_COST_DEFAULT

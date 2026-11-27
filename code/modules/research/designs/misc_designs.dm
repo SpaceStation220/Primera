@@ -697,6 +697,14 @@
 
 // Security
 
+/datum/design/flashlight/forensic_uv
+	name = "Forensic UV Flashlight"
+	desc = "Reveals fluorescent ink and fluorescein-treated blood traces."
+	build_type = PROTOLATHE
+	build_path = /obj/item/flashlight/forensic_uv
+	category = list(RND_CATEGORY_EQUIPMENT + RND_SUBCATEGORY_EQUIPMENT_SECURITY)
+	departmental_flags = DEPARTMENT_BITFLAG_SECURITY
+
 /datum/design/seclite
 	name = "Seclite"
 	desc = "A robust flashlight used by security."

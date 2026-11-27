@@ -44,11 +44,14 @@
 /datum/supply_pack/security/forensics
 	name = "Forensics Crate"
 	desc = "Stay hot on the criminal's heels with Nanotrasen's Detective Essentials™. \
-		Contains a forensics scanner, six evidence bags, camera, special board for evidences, tape recorder, stick of chalk, \
+		Contains a forensics scanner, UV flashlight, UV marker, fluorescein spray, six evidence bags, camera, special board for evidences, tape recorder, stick of chalk, \
 		and of course, a fedora."
 	cost = CARGO_CRATE_VALUE * 2.5
 	access_view = ACCESS_MORGUE
 	contains = list(/obj/item/detective_scanner,
+					/obj/item/flashlight/forensic_uv,
+					/obj/item/toy/stencil_tool/uv_marker,
+					/obj/item/reagent_containers/spray/fluorescein,
 					/obj/item/storage/box/evidence,
 					/obj/item/camera,
 					/obj/item/taperecorder,

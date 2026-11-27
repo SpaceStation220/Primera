@@ -1,0 +1,6 @@
+forensic_uv.dmi
+  Source: DaedalusDock PR #1390, submitted by Kapu1178
+  https://github.com/DaedalusDock/daedalusdock/pull/1390
+  Source file: icons/obj/device.dmi at cc389f61a155492db21e20e92914a632041a268b
+  States uv_off and uv_on extracted unchanged and renamed uv and uv-on for BandaStation.
+  License: CC BY-SA 3.0, https://creativecommons.org/licenses/by-sa/3.0/

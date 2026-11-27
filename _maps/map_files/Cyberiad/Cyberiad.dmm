@@ -40877,6 +40877,7 @@
 "jPV" = (
 /obj/structure/closet/cabinet,
 /obj/item/storage/box/evidence,
+/obj/item/toy/stencil_tool/uv_marker,
 /obj/item/clothing/under/suit/tan,
 /turf/open/floor/plating,
 /area/station/maintenance/port/greater)
