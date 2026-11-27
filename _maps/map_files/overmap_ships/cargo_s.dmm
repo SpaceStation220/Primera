@@ -1,6 +1,7 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
 "aa" = (
-/obj/machinery/light/directional/west,
+/obj/structure/cable,
+/obj/machinery/airalarm/directional/west,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "ab" = (
@@ -25,14 +26,10 @@
 /turf/open/floor/iron/dark/textured,
 /area/shuttle/stationtrauma_space/cargo_s)
 "cD" = (
-/obj/structure/cable,
-/obj/machinery/power/port_gen/pacman/ship{
-	active = 1;
-	anchored = 1;
-	sheets = 40
-	},
-/obj/machinery/airalarm/directional/west,
 /obj/machinery/light/directional/south,
+/obj/machinery/atmospherics/components/tank/air/layer4{
+	dir = 1
+	},
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s)
 "cH" = (
@@ -55,16 +52,15 @@
 	req_access = list("cargo");
 	start_charge = 100
 	},
+/obj/machinery/atmospherics/components/binary/pump/on/layer4{
+	dir = 1;
+	target_pressure = 506.625
+	},
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s)
 "gM" = (
 /obj/effect/turf_decal/loading_area,
 /turf/open/floor/iron/dark/textured,
-/area/shuttle/stationtrauma_space/cargo_s)
-"hC" = (
-/obj/structure/cable,
-/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
-/turf/open/floor/iron,
 /area/shuttle/stationtrauma_space/cargo_s)
 "ic" = (
 /obj/machinery/computer/stationtrauma_space_navigation{
@@ -109,8 +105,10 @@
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "pH" = (
 /obj/structure/cable,
-/obj/machinery/atmospherics/components/tank/air/layer4{
-	dir = 1
+/obj/machinery/power/port_gen/pacman/ship{
+	active = 1;
+	anchored = 1;
+	sheets = 40
 	},
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s)
@@ -127,12 +125,32 @@
 	dir = 8
 	},
 /obj/structure/cable,
+/obj/machinery/light/directional/south,
+/turf/open/floor/iron/dark,
+/area/shuttle/stationtrauma_space/cargo_s/bridge)
+"qT" = (
+/obj/structure/chair/comfy/shuttle{
+	dir = 1
+	},
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/machinery/power/apc/auto_name/directional/east{
+	req_access = list("cargo");
+	start_charge = 100
+	},
+/obj/structure/cable,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "rY" = (
 /obj/structure/cable,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/turf/open/floor/iron/dark,
+/area/shuttle/stationtrauma_space/cargo_s/bridge)
+"uy" = (
+/obj/structure/cable,
+/obj/machinery/atmospherics/components/unary/vent_scrubber/on/layer2{
+	dir = 1
+	},
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "uH" = (
@@ -155,7 +173,6 @@
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "wc" = (
-/obj/machinery/airalarm/directional/west,
 /obj/machinery/telecomms/allinone/ship,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
@@ -172,7 +189,6 @@
 "Ad" = (
 /obj/effect/turf_decal/loading_area,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
-/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /turf/open/floor/iron/dark/textured,
 /area/shuttle/stationtrauma_space/cargo_s)
 "Ap" = (
@@ -209,15 +225,25 @@
 "EZ" = (
 /obj/machinery/holopad/ship,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/structure/cable,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "Ho" = (
+/obj/effect/turf_decal/loading_area,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/turf/open/floor/iron/dark/textured,
+/area/shuttle/stationtrauma_space/cargo_s)
+"IO" = (
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/obj/machinery/airalarm/directional/south,
+/turf/open/floor/iron,
+/area/shuttle/stationtrauma_space/cargo_s)
+"Jy" = (
 /obj/structure/cable,
-/obj/machinery/atmospherics/components/binary/pump/on/layer4{
-	dir = 1;
-	target_pressure = 506.625
-	},
-/turf/open/floor/iron/dark,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/turf/open/floor/iron,
 /area/shuttle/stationtrauma_space/cargo_s)
 "JW" = (
 /turf/open/space/basic,
@@ -290,23 +316,8 @@
 /area/shuttle/stationtrauma_space/cargo_s)
 "UO" = (
 /obj/structure/cable,
-/obj/machinery/atmospherics/components/unary/vent_scrubber/on/layer2{
-	dir = 1
-	},
 /turf/open/floor/iron/dark,
-/area/shuttle/stationtrauma_space/cargo_s/bridge)
-"Xl" = (
-/obj/structure/chair/comfy/shuttle{
-	dir = 1
-	},
-/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
-/obj/machinery/power/apc/auto_name/directional/east{
-	req_access = list("cargo");
-	start_charge = 100
-	},
-/obj/structure/cable,
-/turf/open/floor/iron/dark,
-/area/shuttle/stationtrauma_space/cargo_s/bridge)
+/area/shuttle/stationtrauma_space/cargo_s)
 "XV" = (
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
@@ -368,7 +379,7 @@ gM
 gM
 gM
 gM
-gM
+Ad
 gF
 cD
 yI
@@ -387,8 +398,8 @@ Bn
 Bn
 zN
 Bn
-hC
-Ho
+Jy
+UO
 pH
 yI
 RX
@@ -406,7 +417,7 @@ ZQ
 gM
 lB
 gM
-Ad
+Ho
 qH
 Km
 yI
@@ -418,14 +429,14 @@ JW
 qd
 om
 PM
-UO
+uy
 yI
 XV
 XV
 XV
 KB
 XV
-XV
+IO
 yI
 yI
 yI
@@ -436,7 +447,7 @@ JW
 JW
 Lx
 ab
-Xl
+qT
 eh
 yI
 gM
