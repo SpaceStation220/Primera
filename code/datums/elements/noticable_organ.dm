@@ -67,7 +67,8 @@
 	. = ..()
 	if(!.)
 		return FALSE
-	if(examined.ai_controller?.ai_status == AI_STATUS_ON)
+	var/examined_status = examined.ai_controller?.ai_status
+	if(examined_status == AI_STATUS_ON || examined_status == AI_STATUS_ON_LOW)
 		if(!examined.dna.species.ai_controlled_species)
 			return TRUE
 	return FALSE

@@ -4,3 +4,4 @@ AI_CONTROLLER_SUBSYSTEM_DEF(low_priority_ai_controllers)
 	ss_flags = parent_type::ss_flags | SS_BACKGROUND | SS_NO_INIT
 	planning_status = AI_STATUS_ON_LOW
 	priority = FIRE_PRIORITY_NPC_LOW
+	wait = 1 SECONDS

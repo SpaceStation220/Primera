@@ -123,4 +123,71 @@
 
 	TEST_ASSERT(!controller.ai_movement.moving_controllers[controller], "Tamed monkey pursued a weapon while idle")
 
+/// Base fixture for AI LOD tests so spatial client grid tracking is always cleaned up on teardown.
+/datum/unit_test/ai_lod
+	abstract_type = /datum/unit_test/ai_lod
+	var/mob/living/watcher
+
+/datum/unit_test/ai_lod/Destroy()
+	if(watcher)
+		watcher.clear_important_client_contents()
+		watcher = null
+	return ..()
+
+/// Unwatched station AI must drop to low priority without cancelling its active plan, and wake immediately when a living client enters its cells.
+/datum/unit_test/ai_lod/station_priority_transitions/Run()
+	TEST_ASSERT_EQUAL(SSlow_priority_ai_controllers.wait, 1 SECONDS, "Low priority AI subsystem wait should be 1 SECONDS")
+	TEST_ASSERT(SSlow_priority_ai_controllers.wait > SSai_controllers.wait, "Low priority AI subsystem must tick slower than high priority")
+
+	var/turf/station_turf
+	for(var/area_type in GLOB.the_station_areas)
+		var/turf/candidate = get_first_open_turf_in_area(GLOB.areas_by_type[area_type])
+		if(candidate && istype(get_area(candidate), /area/station))
+			station_turf = candidate
+			break
+	TEST_ASSERT_NOTNULL(station_turf, "Failed to find an open station turf for AI LOD test")
+
+	var/mob/living/basic/mouse/station_mouse = allocate(/mob/living/basic/mouse, station_turf)
+	var/datum/ai_controller/controller = station_mouse.ai_controller
+	TEST_ASSERT_EQUAL(controller.ai_status, AI_STATUS_ON_LOW, "Unwatched station mob did not start in AI_STATUS_ON_LOW")
+	TEST_ASSERT(controller in SSai_controllers.ai_controllers_by_status[AI_STATUS_ON_LOW], "Unwatched station mob missing from low priority status list")
+
+	controller.replace_behavior_nodes(list(/datum/bt_node/ai_behavior/unit_test_abort_probe))
+	var/datum/bt_node/ai_behavior/unit_test_abort_probe/probe = controller.behavior_nodes[1]
+	controller.SelectBehaviors(1)
+	TEST_ASSERT(probe.running, "Probe behavior did not start running before priority transition")
+
+	watcher = allocate(/mob/living/carbon/human/consistent, run_loc_floor_bottom_left)
+	watcher.enable_client_mobs_in_contents()
+	TEST_ASSERT_EQUAL(controller.ai_status, AI_STATUS_ON_LOW, "Distant off-z client promoted station mob prematurely")
+
+	watcher.forceMove(station_turf)
+	TEST_ASSERT_EQUAL(controller.ai_status, AI_STATUS_ON, "Station mob did not wake to AI_STATUS_ON when client entered its cell")
+	TEST_ASSERT(controller in SSai_controllers.ai_controllers_by_status[AI_STATUS_ON], "Woken station mob missing from high priority status list")
+	TEST_ASSERT(probe.running, "Promoting AI_STATUS_ON_LOW to AI_STATUS_ON stopped the active behavior")
+	TEST_ASSERT_EQUAL(probe.finish_count, 0, "Promoting AI_STATUS_ON_LOW to AI_STATUS_ON cancelled the active plan")
+
+	watcher.forceMove(run_loc_floor_bottom_left)
+	TEST_ASSERT_EQUAL(controller.ai_status, AI_STATUS_ON_LOW, "Station mob did not return to AI_STATUS_ON_LOW after client left its cells")
+	TEST_ASSERT(probe.running, "Downgrading AI_STATUS_ON to AI_STATUS_ON_LOW stopped the active behavior")
+	TEST_ASSERT_EQUAL(probe.finish_count, 0, "Downgrading AI_STATUS_ON to AI_STATUS_ON_LOW cancelled the active plan")
+
+/// Sleeping off-station AI moving across cells into range of a stationary client must wake to AI_STATUS_ON.
+/datum/unit_test/ai_lod/offstation_move_wakes_sleep/Run()
+	var/far_x = run_loc_floor_bottom_left.x + SPATIAL_GRID_CELLSIZE * 2
+	if(far_x > world.maxx)
+		far_x = run_loc_floor_bottom_left.x - SPATIAL_GRID_CELLSIZE * 2
+	var/turf/far_turf = locate(far_x, run_loc_floor_bottom_left.y, run_loc_floor_bottom_left.z)
+	TEST_ASSERT_NOTNULL(far_turf, "Failed to find an off-station turf outside the client cell window")
+
+	watcher = allocate(/mob/living/carbon/human/consistent, run_loc_floor_bottom_left)
+	watcher.enable_client_mobs_in_contents()
+
+	var/mob/living/basic/mouse/wild_mouse = allocate(/mob/living/basic/mouse, far_turf)
+	var/datum/ai_controller/controller = wild_mouse.ai_controller
+	TEST_ASSERT_EQUAL(controller.ai_status, AI_STATUS_OFF, "Unwatched off-station mob did not sleep at AI_STATUS_OFF")
+
+	wild_mouse.forceMove(run_loc_floor_top_right)
+	TEST_ASSERT_EQUAL(controller.ai_status, AI_STATUS_ON, "Off-station mob did not wake when moved into a stationary client's cell")
+
 #undef TEST_BB_BT_GATE
