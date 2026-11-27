@@ -4,12 +4,12 @@
  * cost the same as cardinal moves currently, so paths may look a bit strange, but should still be optimal.
  */
 
-/// A helper macro for JPS, for telling when a node has forced neighbors that need expanding
-/// Only usable in the context of the jps datum because of the datum vars it relies on
-/// Checks if we are deviating from our "running" directions
-#define STEP_NOT_HERE_BUT_THERE(cur_turf, dirA, dirB) ((!CAN_STEP(cur_turf, get_step(cur_turf, dirA), simulated_only, pass_info, avoid) && CAN_STEP(cur_turf, get_step(cur_turf, dirB), simulated_only, pass_info, avoid)))
-/// Checks if a border object stops our parent from reaching a turf we CAN reach
-#define TURF_CANT_WE_CAN(parent_turf, dir_parent, cur_turf, dur_cur) ((!CAN_STEP(parent_turf, get_step(parent_turf, dir_parent), simulated_only, pass_info, avoid) && CAN_STEP(cur_turf, get_step(cur_turf, dur_cur), simulated_only, pass_info, avoid)))
+/// Reads cached edge passability (bits 0..9 tested, bits 10..19 passable) or computes and caches on miss
+#define JPS_LINK_OK(cur_turf, dir, next_turf) \
+	((step_cache[cur_turf] & (1 << ((dir) - 1))) ? (step_cache[cur_turf] & (1 << ((dir) + 9))) : cache_link_passable(cur_turf, dir, next_turf))
+/// JPS-local CAN_STEP using pre-resolved next_turf, cached space_type_cache, and intra-tick 20-bit step_cache
+#define JPS_CAN_STEP(cur_turf, dir, next_turf, space_types) \
+	(next_turf && !next_turf.density && !(simulated_only && space_types[next_turf.type]) && (next_turf != avoid) && JPS_LINK_OK(cur_turf, dir, next_turf))
 
 
 /// The JPS Node datum represents a turf that we find interesting enough to add to the open list and possibly search for new tiles from
@@ -68,6 +68,10 @@
 	var/list/path
 	///An assoc list that serves as the closed list. Key is the turf, points to true if we've seen it before
 	var/list/found_turfs
+	/// Intra-tick 20-bit edge passability cache (bits 0..9 tested dir mask, bits 10..19 passable dir mask)
+	var/list/step_cache
+	/// world.time when step_cache was populated; resets cleanly after CHECK_TICK yields
+	var/step_cache_time = -1
 
 	/// How far away we have to get to the end target before we can call it quits
 	var/mintargetdist = 0
@@ -89,12 +93,15 @@
 	end = get_turf(goal)
 	open = new /datum/heap(/proc/HeapPathWeightCompare)
 	found_turfs = list()
+	step_cache = list()
+	step_cache_time = world.time
 
 /datum/pathfind/jps/Destroy(force)
 	. = ..()
 	requester = null
 	end = null
 	open = null
+	step_cache = null
 
 /datum/pathfind/jps/start()
 	start = start || get_turf(requester)
@@ -121,6 +128,12 @@
 		return .
 	if(QDELETED(requester))
 		return FALSE
+	if(step_cache_time != world.time)
+		step_cache.Cut()
+		step_cache_time = world.time
+
+	var/static/list/cardinal_dirs = list(EAST, WEST, NORTH, SOUTH)
+	var/static/list/diagonal_dirs = list(NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST)
 
 	while(!open.is_empty() && !path)
 		var/datum/jps_node/current_processed_node = open.pop() //get the lower f_value turf in the open list
@@ -128,10 +141,10 @@
 			continue
 
 		var/turf/current_turf = current_processed_node.tile
-		for(var/scan_direction in list(EAST, WEST, NORTH, SOUTH))
+		for(var/scan_direction in cardinal_dirs)
 			lateral_scan_spec(current_turf, scan_direction, current_processed_node)
 
-		for(var/scan_direction in list(NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST))
+		for(var/scan_direction in diagonal_dirs)
 			diag_scan_spec(current_turf, scan_direction, current_processed_node)
 
 		// Stable, we'll just be back later
@@ -142,6 +155,7 @@
 /datum/pathfind/jps/finished()
 	//we're done! turn our reversed path (end to start) into a path (start to end)
 	found_turfs = null
+	step_cache = null
 	QDEL_NULL(open)
 
 	var/list/path = src.path || list()
@@ -169,6 +183,25 @@
 			path.Add(iter_turf)
 		unwind_node = unwind_node.previous_node
 
+/// Computes link passability on step_cache miss and packs cardinal/diagonal results into step_cache[cur_turf].
+/datum/pathfind/jps/proc/cache_link_passable(turf/cur_turf, dir, turf/next_turf)
+	var/tbit = 1 << (dir - 1)
+	var/ok
+	if(dir & (dir - 1))
+		var/dir_a = dir & 3
+		var/dir_b = dir & 12
+		var/turf/mid_a = get_step(cur_turf, dir_a)
+		var/turf/mid_b = get_step(cur_turf, dir_b)
+		ok = (!mid_a.density && JPS_LINK_OK(cur_turf, dir_a, mid_a) && JPS_LINK_OK(mid_a, dir_b, next_turf)) \
+			|| (!mid_b.density && JPS_LINK_OK(cur_turf, dir_b, mid_b) && JPS_LINK_OK(mid_b, dir_a, next_turf))
+	else
+		ok = !cur_turf.LinkBlockedWithAccess(next_turf, pass_info)
+	var/mask = (step_cache[cur_turf] || 0) | tbit
+	if(ok)
+		mask |= (tbit << 10)
+	step_cache[cur_turf] = mask
+	return ok
+
 /**
  * For performing lateral scans from a given starting turf.
  *
@@ -187,7 +220,11 @@
 
 	var/turf/current_turf = original_turf
 	var/turf/lag_turf = original_turf
-	var/datum/can_pass_info/pass_info = src.pass_info
+	var/list/space_types = SSpathfinder.space_type_cache
+	var/side_dir_a = (heading & (NORTH|SOUTH)) ? WEST : NORTH
+	var/side_dir_b = REVERSE_DIR(side_dir_a)
+	var/diag_dir_a = heading | side_dir_a
+	var/diag_dir_b = heading | side_dir_b
 
 	while(TRUE)
 		if(path)
@@ -195,7 +232,7 @@
 		lag_turf = current_turf
 		current_turf = get_step(current_turf, heading)
 		steps_taken++
-		if(!CAN_STEP(lag_turf, current_turf, simulated_only, pass_info, avoid))
+		if(!JPS_CAN_STEP(lag_turf, heading, current_turf, space_types))
 			return
 
 		if(current_turf == end || (mintargetdist && (get_dist(current_turf, end) <= mintargetdist) && !diagonally_blocked(current_turf, end)))
@@ -213,24 +250,15 @@
 			return
 
 		var/interesting = FALSE // have we found a forced neighbor that would make us add this turf to the open list?
-
-		switch(heading)
-			if(NORTH)
-				if(STEP_NOT_HERE_BUT_THERE(current_turf, WEST, NORTHWEST) || STEP_NOT_HERE_BUT_THERE(current_turf, EAST, NORTHEAST) \
-					|| TURF_CANT_WE_CAN(get_step(current_turf, EAST), NORTH, current_turf, NORTHEAST) || TURF_CANT_WE_CAN(get_step(current_turf, WEST), NORTH, current_turf, NORTHWEST))
-					interesting = TRUE
-			if(SOUTH)
-				if(STEP_NOT_HERE_BUT_THERE(current_turf, WEST, SOUTHWEST) || STEP_NOT_HERE_BUT_THERE(current_turf, EAST, SOUTHEAST) \
-					|| TURF_CANT_WE_CAN(get_step(current_turf, EAST), SOUTH, current_turf, SOUTHEAST) || TURF_CANT_WE_CAN(get_step(current_turf, WEST), SOUTH, current_turf, SOUTHWEST))
-					interesting = TRUE
-			if(EAST)
-				if(STEP_NOT_HERE_BUT_THERE(current_turf, NORTH, NORTHEAST) || STEP_NOT_HERE_BUT_THERE(current_turf, SOUTH, SOUTHEAST) \
-					|| TURF_CANT_WE_CAN(get_step(current_turf, SOUTH), EAST, current_turf, SOUTHEAST) || TURF_CANT_WE_CAN(get_step(current_turf, NORTH), EAST, current_turf, NORTHEAST))
-					interesting = TRUE
-			if(WEST)
-				if(STEP_NOT_HERE_BUT_THERE(current_turf, NORTH, NORTHWEST) || STEP_NOT_HERE_BUT_THERE(current_turf, SOUTH, SOUTHWEST) \
-					|| TURF_CANT_WE_CAN(get_step(current_turf, SOUTH), WEST, current_turf, SOUTHWEST) || TURF_CANT_WE_CAN(get_step(current_turf, NORTH), WEST, current_turf, NORTHWEST))
-					interesting = TRUE
+		var/turf/side_turf = get_step(current_turf, side_dir_a)
+		var/turf/diag_turf = get_step(current_turf, diag_dir_a)
+		if(diag_turf && (!JPS_CAN_STEP(current_turf, side_dir_a, side_turf, space_types) || !JPS_CAN_STEP(side_turf, heading, diag_turf, space_types)) && JPS_CAN_STEP(current_turf, diag_dir_a, diag_turf, space_types))
+			interesting = TRUE
+		else
+			side_turf = get_step(current_turf, side_dir_b)
+			diag_turf = get_step(current_turf, diag_dir_b)
+			if(diag_turf && (!JPS_CAN_STEP(current_turf, side_dir_b, side_turf, space_types) || !JPS_CAN_STEP(side_turf, heading, diag_turf, space_types)) && JPS_CAN_STEP(current_turf, diag_dir_b, diag_turf, space_types))
+				interesting = TRUE
 
 		if(interesting)
 			var/datum/jps_node/newnode = new(current_turf, parent_node, steps_taken)
@@ -253,7 +281,15 @@
 	var/steps_taken = 0
 	var/turf/current_turf = original_turf
 	var/turf/lag_turf = original_turf
-	var/datum/can_pass_info/pass_info = src.pass_info
+	var/list/space_types = SSpathfinder.space_type_cache
+	var/ns_dir = heading & (NORTH|SOUTH)
+	var/ew_dir = heading & (EAST|WEST)
+	var/back_ns = REVERSE_DIR(ns_dir)
+	var/back_ew = REVERSE_DIR(ew_dir)
+	var/diag_ew = ns_dir | back_ew
+	var/diag_ns = ew_dir | back_ns
+	var/sub_first_dir = ns_dir == SOUTH ? ns_dir : ew_dir
+	var/sub_second_dir = sub_first_dir == ns_dir ? ew_dir : ns_dir
 
 	while(TRUE)
 		if(path)
@@ -261,7 +297,7 @@
 		lag_turf = current_turf
 		current_turf = get_step(current_turf, heading)
 		steps_taken++
-		if(!CAN_STEP(lag_turf, current_turf, simulated_only, pass_info, avoid))
+		if(!JPS_CAN_STEP(lag_turf, heading, current_turf, space_types))
 			return
 
 		if(current_turf == end || (mintargetdist && (get_dist(current_turf, end) <= mintargetdist) && !diagonally_blocked(current_turf, end)))
@@ -279,32 +315,19 @@
 
 		var/interesting = FALSE // have we found a forced neighbor that would make us add this turf to the open list?
 		var/datum/jps_node/possible_child_node // otherwise, did one of our lateral subscans turn up something?
-
-		switch(heading)
-			if(NORTHWEST)
-				if(STEP_NOT_HERE_BUT_THERE(current_turf, EAST, NORTHEAST) || STEP_NOT_HERE_BUT_THERE(current_turf, SOUTH, SOUTHWEST) \
-					|| TURF_CANT_WE_CAN(lag_turf, NORTH, current_turf, EAST) || TURF_CANT_WE_CAN(lag_turf, WEST, current_turf, SOUTH))
-					interesting = TRUE
-				else
-					possible_child_node = (lateral_scan_spec(current_turf, WEST) || lateral_scan_spec(current_turf, NORTH))
-			if(NORTHEAST)
-				if(STEP_NOT_HERE_BUT_THERE(current_turf, WEST, NORTHWEST) || STEP_NOT_HERE_BUT_THERE(current_turf, SOUTH, SOUTHEAST) \
-					|| TURF_CANT_WE_CAN(lag_turf, NORTH, current_turf, WEST) || TURF_CANT_WE_CAN(lag_turf, EAST, current_turf, SOUTH))
-					interesting = TRUE
-				else
-					possible_child_node = (lateral_scan_spec(current_turf, EAST) || lateral_scan_spec(current_turf, NORTH))
-			if(SOUTHWEST)
-				if(STEP_NOT_HERE_BUT_THERE(current_turf, EAST, SOUTHEAST) || STEP_NOT_HERE_BUT_THERE(current_turf, NORTH, NORTHWEST) \
-					|| TURF_CANT_WE_CAN(lag_turf, SOUTH, current_turf, EAST) || TURF_CANT_WE_CAN(lag_turf, WEST, current_turf, NORTH))
-					interesting = TRUE
-				else
-					possible_child_node = (lateral_scan_spec(current_turf, SOUTH) || lateral_scan_spec(current_turf, WEST))
-			if(SOUTHEAST)
-				if(STEP_NOT_HERE_BUT_THERE(current_turf, WEST, SOUTHWEST) || STEP_NOT_HERE_BUT_THERE(current_turf, NORTH, NORTHEAST) \
-					|| TURF_CANT_WE_CAN(lag_turf, SOUTH, current_turf, WEST) || TURF_CANT_WE_CAN(lag_turf, EAST, current_turf, NORTH))
-					interesting = TRUE
-				else
-					possible_child_node = (lateral_scan_spec(current_turf, SOUTH) || lateral_scan_spec(current_turf, EAST))
+		var/turf/back_ew_turf = get_step(current_turf, back_ew)
+		var/turf/diag_ew_turf = get_step(current_turf, diag_ew)
+		var/turf/back_ns_turf = get_step(current_turf, back_ns)
+		var/turf/diag_ns_turf = get_step(current_turf, diag_ns)
+		if( \
+			(!JPS_CAN_STEP(current_turf, back_ew, back_ew_turf, space_types) && JPS_CAN_STEP(current_turf, diag_ew, diag_ew_turf, space_types)) \
+			|| (!JPS_CAN_STEP(current_turf, back_ns, back_ns_turf, space_types) && JPS_CAN_STEP(current_turf, diag_ns, diag_ns_turf, space_types)) \
+			|| (!JPS_CAN_STEP(lag_turf, ns_dir, back_ew_turf, space_types) && JPS_CAN_STEP(current_turf, back_ew, back_ew_turf, space_types)) \
+			|| (!JPS_CAN_STEP(lag_turf, ew_dir, back_ns_turf, space_types) && JPS_CAN_STEP(current_turf, back_ns, back_ns_turf, space_types)) \
+		)
+			interesting = TRUE
+		else
+			possible_child_node = (lateral_scan_spec(current_turf, sub_first_dir) || lateral_scan_spec(current_turf, sub_second_dir))
 
 		if(interesting || possible_child_node)
 			var/datum/jps_node/newnode = new(current_turf, parent_node, steps_taken)
@@ -315,3 +338,6 @@
 				if(possible_child_node.tile == end || (mintargetdist && (get_dist(possible_child_node.tile, end) <= mintargetdist)))
 					unwind_path(possible_child_node)
 			return
+
+#undef JPS_LINK_OK
+#undef JPS_CAN_STEP

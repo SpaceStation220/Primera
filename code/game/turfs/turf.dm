@@ -77,6 +77,9 @@ GLOBAL_LIST_EMPTY(station_turfs)
 	///Lazylist of movable atoms providing opacity sources.
 	var/list/atom/movable/opacity_sources
 
+	/// Number of directional A* path blockers currently located on this turf.
+	var/tmp/directional_blocker_count = 0
+
 	///the holodeck can load onto this turf if TRUE
 	var/holodeck_compatible = FALSE
 

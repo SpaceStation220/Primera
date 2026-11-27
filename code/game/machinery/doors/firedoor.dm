@@ -756,6 +756,7 @@
 
 /obj/machinery/door/firedoor/border_only/Initialize(mapload)
 	. = ..()
+	AddElement(/datum/element/directional_path_blocker)
 	flags_1 &= ~PREVENT_CLICK_UNDER_1
 	adjust_lights_starting_offset()
 	var/static/list/loc_connections = list(
