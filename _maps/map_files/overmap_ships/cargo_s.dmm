@@ -1,36 +1,24 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
 "aa" = (
 /obj/machinery/light/directional/west,
-/obj/structure/closet/wall/cargo/directional/south{
-	name = "Аварийный и ремонтный запас"
-	},
-/obj/item/tank/internals/emergency_oxygen,
-/obj/item/tank/internals/emergency_oxygen,
-/obj/item/clothing/mask/breath,
-/obj/item/clothing/mask/breath,
-/obj/item/stack/sheet/iron/ten,
-/obj/item/storage/toolbox/mechanical,
-/obj/item/stack/cable_coil,
-/obj/item/stack/sheet/mineral/plasma/five,
-/obj/item/stack/sheet/mineral/plasma/five,
-/obj/item/storage/medkit/regular{
-	pixel_x = 3;
-	pixel_y = 4
-	},
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "ab" = (
 /obj/machinery/computer/stationtrauma_planet_survey,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
-"bR" = (
+"al" = (
 /obj/structure/cable,
-/obj/machinery/power/apc/auto_name/directional/east{
-	req_access = list("cargo");
-	start_charge = 100
-	},
-/turf/open/floor/iron/dark,
-/area/shuttle/stationtrauma_space/cargo_s/bridge)
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/turf/open/floor/iron,
+/area/shuttle/stationtrauma_space/cargo_s)
+"bR" = (
+/obj/effect/turf_decal/loading_area,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/turf/open/floor/iron/dark/textured,
+/area/shuttle/stationtrauma_space/cargo_s)
 "bX" = (
 /obj/effect/turf_decal/loading_area,
 /obj/machinery/light/directional/west,
@@ -50,8 +38,17 @@
 "cH" = (
 /obj/effect/turf_decal/stripes/full,
 /obj/structure/extinguisher_cabinet/directional/east,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
 /turf/open/floor/iron,
 /area/shuttle/stationtrauma_space/cargo_s)
+"eh" = (
+/obj/structure/cable,
+/obj/machinery/stationtrauma_bluespace_drive{
+	charges = 2
+	},
+/turf/open/floor/iron/dark,
+/area/shuttle/stationtrauma_space/cargo_s/bridge)
 "gF" = (
 /obj/structure/cable,
 /obj/machinery/power/apc/auto_name/directional/west{
@@ -64,6 +61,11 @@
 /obj/effect/turf_decal/loading_area,
 /turf/open/floor/iron/dark/textured,
 /area/shuttle/stationtrauma_space/cargo_s)
+"hC" = (
+/obj/structure/cable,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/turf/open/floor/iron,
+/area/shuttle/stationtrauma_space/cargo_s)
 "ic" = (
 /obj/machinery/computer/stationtrauma_space_navigation{
 	use_power = 1
@@ -73,7 +75,6 @@
 "lB" = (
 /obj/docking_port/mobile/stationtrauma_space{
 	area_type = /area/shuttle/stationtrauma_space/cargo_s;
-	dir = 1;
 	name = "Челнок";
 	overmap_x = 1000;
 	ship_class = "small";
@@ -83,20 +84,23 @@
 /obj/effect/turf_decal/stripes/white/line{
 	dir = 1
 	},
-/obj/machinery/atmospherics/pipe/smart/manifold/supply/hidden/layer4{
+/obj/machinery/atmospherics/components/unary/vent_pump/on/layer4{
 	dir = 4
 	},
-/obj/structure/cable,
 /turf/open/floor/iron,
 /area/shuttle/stationtrauma_space/cargo_s)
 "mT" = (
-/obj/machinery/atmospherics/components/unary/vent_scrubber/on/layer2,
-/obj/structure/cable,
-/obj/structure/chair/comfy/shuttle{
-	dir = 1
+/obj/machinery/door/airlock/shuttle/glass{
+	dir = 1;
+	air_tight = 1;
+	name = "Рубка"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/supply/general,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/obj/structure/cable,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /turf/open/floor/iron/dark,
-/area/shuttle/stationtrauma_space/cargo_s/bridge)
+/area/shuttle/stationtrauma_space/cargo_s)
 "om" = (
 /obj/machinery/computer/stationtrauma_transponder{
 	circuit = /obj/item/circuitboard/computer/stationtrauma_transponder/nt/cargo_s
@@ -105,8 +109,8 @@
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "pH" = (
 /obj/structure/cable,
-/obj/machinery/stationtrauma_bluespace_drive{
-	charges = 2
+/obj/machinery/atmospherics/components/tank/air/layer4{
+	dir = 1
 	},
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s)
@@ -115,32 +119,41 @@
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "qH" = (
-/obj/machinery/atmospherics/components/binary/pump/on/layer4{
-	dir = 1;
-	target_pressure = 506.625
-	},
-/obj/structure/cable,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s)
 "qK" = (
-/obj/machinery/atmospherics/pipe/smart/simple/supply/hidden/layer4,
-/obj/structure/cable,
-/turf/closed/wall/mineral/titanium/nodiagonal,
-/area/shuttle/stationtrauma_space/cargo_s)
-"rY" = (
-/obj/machinery/door/airlock/shuttle/glass{
-	dir = 1;
-	air_tight = 1;
-	name = "Рубка"
+/obj/machinery/atmospherics/components/unary/vent_pump/on/layer4{
+	dir = 8
 	},
-/obj/effect/mapping_helpers/airlock/access/all/supply/general,
-/turf/open/floor/iron/dark,
-/area/shuttle/stationtrauma_space/cargo_s)
-"uH" = (
-/obj/effect/turf_decal/loading_area,
 /obj/structure/cable,
-/turf/open/floor/iron/dark/textured,
-/area/shuttle/stationtrauma_space/cargo_s)
+/turf/open/floor/iron/dark,
+/area/shuttle/stationtrauma_space/cargo_s/bridge)
+"rY" = (
+/obj/structure/cable,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/turf/open/floor/iron/dark,
+/area/shuttle/stationtrauma_space/cargo_s/bridge)
+"uH" = (
+/obj/structure/closet/wall/cargo/directional/south{
+	name = "Аварийный и ремонтный запас"
+	},
+/obj/item/storage/medkit/regular{
+	pixel_x = 3;
+	pixel_y = 4
+	},
+/obj/item/stack/sheet/mineral/plasma/five,
+/obj/item/stack/sheet/mineral/plasma/five,
+/obj/item/stack/cable_coil,
+/obj/item/storage/toolbox/mechanical,
+/obj/item/stack/sheet/iron/ten,
+/obj/item/clothing/mask/breath,
+/obj/item/clothing/mask/breath,
+/obj/item/tank/internals/emergency_oxygen,
+/obj/item/tank/internals/emergency_oxygen,
+/turf/open/floor/iron/dark,
+/area/shuttle/stationtrauma_space/cargo_s/bridge)
 "wc" = (
 /obj/machinery/airalarm/directional/west,
 /obj/machinery/telecomms/allinone/ship,
@@ -153,14 +166,14 @@
 /obj/effect/turf_decal/stripes/white/line{
 	dir = 1
 	},
-/obj/machinery/atmospherics/components/unary/vent_pump/on/layer4{
-	dir = 4
-	},
+/obj/structure/cable,
 /turf/open/floor/iron,
 /area/shuttle/stationtrauma_space/cargo_s)
 "Ad" = (
-/obj/machinery/atmospherics/pipe/smart/simple/scrubbers/hidden/layer2,
-/turf/closed/wall/mineral/titanium/nodiagonal,
+/obj/effect/turf_decal/loading_area,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/turf/open/floor/iron/dark/textured,
 /area/shuttle/stationtrauma_space/cargo_s)
 "Ap" = (
 /obj/effect/turf_decal/stripes/white/line{
@@ -172,6 +185,7 @@
 /turf/open/floor/iron,
 /area/shuttle/stationtrauma_space/cargo_s)
 "Bn" = (
+/obj/structure/cable,
 /turf/open/floor/iron,
 /area/shuttle/stationtrauma_space/cargo_s)
 "BX" = (
@@ -194,11 +208,14 @@
 /area/shuttle/stationtrauma_space/cargo_s)
 "EZ" = (
 /obj/machinery/holopad/ship,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "Ho" = (
-/obj/machinery/atmospherics/components/tank/air/layer4{
-	dir = 1
+/obj/structure/cable,
+/obj/machinery/atmospherics/components/binary/pump/on/layer4{
+	dir = 1;
+	target_pressure = 506.625
 	},
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s)
@@ -217,9 +234,8 @@
 /obj/effect/turf_decal/stripes/white/line{
 	dir = 1
 	},
-/obj/machinery/atmospherics/pipe/smart/manifold/scrubbers/hidden/layer2{
-	dir = 8
-	},
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
 /turf/open/floor/iron,
 /area/shuttle/stationtrauma_space/cargo_s)
 "Lx" = (
@@ -233,27 +249,30 @@
 	},
 /obj/effect/mapping_helpers/airlock/access/all/supply/general,
 /obj/effect/turf_decal/stripes/full,
+/obj/effect/mapping_helpers/airlock/cyclelink_helper,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s)
 "PM" = (
-/obj/machinery/atmospherics/components/unary/vent_pump/on/layer4,
-/obj/structure/cable,
 /obj/structure/chair/comfy/shuttle{
 	dir = 1
 	},
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s/bridge)
 "RQ" = (
-/obj/effect/turf_decal/loading_area,
-/obj/machinery/atmospherics/pipe/smart/simple/supply/hidden/layer4,
 /obj/structure/cable,
-/turf/open/floor/iron/dark/textured,
+/turf/closed/wall/mineral/titanium/nodiagonal,
 /area/shuttle/stationtrauma_space/cargo_s)
 "RX" = (
 /obj/machinery/power/shuttle_engine/propulsion,
 /turf/open/floor/plating/airless,
 /area/shuttle/stationtrauma_space/cargo_s/exterior)
 "Tv" = (
+/obj/machinery/atmospherics/components/unary/airlock_pump/unbolt_only{
+	dir = 1
+	},
 /turf/open/floor/iron/dark/textured,
 /area/shuttle/stationtrauma_space/cargo_s)
 "TQ" = (
@@ -264,15 +283,39 @@
 	},
 /obj/effect/mapping_helpers/airlock/access/all/supply/general,
 /obj/effect/turf_decal/stripes/full,
+/obj/effect/mapping_helpers/airlock/cyclelink_helper{
+	dir = 1
+	},
 /turf/open/floor/iron/dark,
 /area/shuttle/stationtrauma_space/cargo_s)
 "UO" = (
 /obj/structure/cable,
+/obj/machinery/atmospherics/components/unary/vent_scrubber/on/layer2{
+	dir = 1
+	},
 /turf/open/floor/iron/dark,
-/area/shuttle/stationtrauma_space/cargo_s)
+/area/shuttle/stationtrauma_space/cargo_s/bridge)
+"Xl" = (
+/obj/structure/chair/comfy/shuttle{
+	dir = 1
+	},
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/machinery/power/apc/auto_name/directional/east{
+	req_access = list("cargo");
+	start_charge = 100
+	},
+/obj/structure/cable,
+/turf/open/floor/iron/dark,
+/area/shuttle/stationtrauma_space/cargo_s/bridge)
 "XV" = (
-/obj/machinery/atmospherics/pipe/smart/simple/scrubbers/hidden/layer2,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
 /turf/open/floor/iron,
+/area/shuttle/stationtrauma_space/cargo_s)
+"ZQ" = (
+/obj/effect/turf_decal/loading_area,
+/obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
+/turf/open/floor/iron/dark/textured,
 /area/shuttle/stationtrauma_space/cargo_s)
 
 (1,1,1) = {"
@@ -299,7 +342,7 @@ JW
 Lx
 Lx
 Lx
-yI
+Lx
 yI
 yI
 yI
@@ -318,14 +361,14 @@ JW
 Lx
 wc
 aa
+uH
 yI
-gM
 bX
 gM
 gM
 gM
 gM
-uH
+gM
 gF
 cD
 yI
@@ -338,14 +381,14 @@ qd
 Cs
 EZ
 rY
-Bn
-Bn
+mT
+al
 Bn
 Bn
 zN
 Bn
-Bn
-UO
+hC
+Ho
 pH
 yI
 RX
@@ -358,14 +401,14 @@ ic
 PM
 qK
 RQ
-RQ
-RQ
-RQ
+bR
+ZQ
+gM
 lB
-RQ
-RQ
+gM
+Ad
 qH
-Ho
+Km
 yI
 RX
 JW
@@ -374,16 +417,16 @@ JW
 JW
 qd
 om
-mT
-Ad
-XV
+PM
+UO
+yI
 XV
 XV
 XV
 KB
 XV
 XV
-Km
+yI
 yI
 yI
 RX
@@ -393,9 +436,9 @@ JW
 JW
 Lx
 ab
-bR
+Xl
+eh
 yI
-gM
 gM
 gM
 gM
@@ -413,7 +456,7 @@ JW
 Lx
 Lx
 Lx
-yI
+Lx
 yI
 yI
 yI
