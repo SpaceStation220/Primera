@@ -364,15 +364,18 @@ multiple modular subtrees with behaviors
 		return
 
 	var/list/cell_collections = our_cells.recalculate_cells(our_turf)
+	var/list/new_cells = cell_collections[1]
+	var/list/old_cells = cell_collections[2]
 
-	for(var/datum/old_grid as anything in cell_collections[2])
+	for(var/datum/old_grid as anything in old_cells)
 		UnregisterSignal(old_grid, list(SPATIAL_GRID_CELL_ENTERED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS), SPATIAL_GRID_CELL_EXITED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS)))
 
-	for(var/datum/spatial_grid_cell/new_grid as anything in cell_collections[1])
+	for(var/datum/spatial_grid_cell/new_grid as anything in new_cells)
 		RegisterSignal(new_grid, SPATIAL_GRID_CELL_ENTERED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS), PROC_REF(on_client_enter))
 		RegisterSignal(new_grid, SPATIAL_GRID_CELL_EXITED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS), PROC_REF(on_client_exit))
 
-	recalculate_idle()
+	if(length(new_cells) || length(old_cells))
+		reset_ai_status()
 
 ///Returns TRUE if a living mob with a client is in one of our tracked spatial grid cells
 /datum/ai_controller/proc/has_nearby_client()
@@ -478,23 +481,24 @@ multiple modular subtrees with behaviors
 
 /**
  * Classifies an active AI controller into a priority tier.
- * Returns AI_STATUS_ON for controllers on station/shuttle territory, with a nearby client,
- * Returns AI_STATUS_ON_LOW for other active controllers unless they have ALWAYS_HIGH_PRIORITY.
- * else its AI_STATUS_OFF
+ * Returns AI_STATUS_ON when a living client is in tracked spatial cells, or when ALWAYS_HIGH_PRIORITY is set on an unwatched-active or station/shuttle controller.
+ * Returns AI_STATUS_ON_LOW for unwatched station/shuttle or RUN_WHILE_UNWATCHED controllers.
+ * Returns AI_STATUS_OFF otherwise.
  */
 /datum/ai_controller/proc/get_active_ai_status()
-	var/turf/pawn_turf = get_turf(pawn)
-	var/area/pawn_area = pawn_turf ? get_area(pawn_turf) : null
-	// AI actually standing on the station or a shuttle always stays high priority
-	if(istype(pawn_area, /area/station) || istype(pawn_area, /area/shuttle))
-		return AI_STATUS_ON
 	if(has_nearby_client())
 		return AI_STATUS_ON
 	if(ai_traits & RUN_WHILE_UNWATCHED)
 		if(ai_traits & ALWAYS_HIGH_PRIORITY)
 			return AI_STATUS_ON
-		else
-			return AI_STATUS_ON_LOW
+		return AI_STATUS_ON_LOW
+	var/turf/pawn_turf = get_turf(pawn)
+	var/area/pawn_area = pawn_turf ? get_area(pawn_turf) : null
+	// Unwatched station and shuttle AI drops to low priority while keeping active plans intact
+	if(istype(pawn_area, /area/station) || istype(pawn_area, /area/shuttle))
+		if(ai_traits & ALWAYS_HIGH_PRIORITY)
+			return AI_STATUS_ON
+		return AI_STATUS_ON_LOW
 	return AI_STATUS_OFF
 
 ///Called when the AI controller pawn changes z levels, we check if there's any clients on the new one and wake up the AI if there is.
