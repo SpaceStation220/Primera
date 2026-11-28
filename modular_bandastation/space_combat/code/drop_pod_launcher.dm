@@ -10,6 +10,8 @@
 	interaction_flags_machine = NONE
 	/// Designation on the console, independent of the capsule currently fitted.
 	var/launcher_number = 1
+	/// Capsule assembled by this rack.
+	var/obj/structure/closet/stationtrauma_drop_pod/pod_type = /obj/structure/closet/stationtrauma_drop_pod
 	/// Sheets in the feed, capped at one capsule.
 	var/iron = 0
 	/// The hull that owns this physical station.
@@ -18,6 +20,9 @@
 	var/datum/weakref/pod_ref
 	/// Stoppable assembly owned by this rack. Iron remains in the feed until the capsule is ready.
 	var/assembly_timer
+
+/obj/machinery/stationtrauma_drop_launcher/nukeops
+	pod_type = /obj/structure/closet/stationtrauma_drop_pod/nukeops
 
 /obj/docking_port/mobile/stationtrauma_space
 	/// Reusable drop-pod launchers connected to the hull.
@@ -117,7 +122,7 @@
 	if(!is_mounted(original_vessel?.resolve()) || !can_assemble())
 		return
 	iron -= ST_DROP_POD_IRON_COST
-	var/obj/structure/closet/stationtrauma_drop_pod/pod = new(get_turf(src))
+	var/obj/structure/closet/stationtrauma_drop_pod/pod = new pod_type(get_turf(src))
 	pod.name = "дроп-под №[launcher_number]"
 	pod_ref = WEAKREF(pod)
 	// The compact cabin fills from the bay without taking half a tile of air.

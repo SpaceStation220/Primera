@@ -17,12 +17,19 @@ GLOBAL_LIST_EMPTY(jam_on_wardec)
 	inhand_icon_state = "nukietalkie"
 	lefthand_file = 'icons/mob/inhands/items/devices_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/items/devices_righthand.dmi'
-	desc = "Use to send a declaration of hostilities to the target, delaying your shuttle departure for 20 minutes while they prepare for your assault.  \
+	desc = "Use to send a declaration of hostilities to the target.  \
 			Such a brazen move will attract the attention of powerful benefactors within the Syndicate, who will supply your team with a massive amount of bonus telecrystals.  \
 			Must be used within five minutes, or your benefactors will lose interest."
 	var/declaring_war = FALSE
 	var/uplink_type = /obj/item/uplink/nuclear
 	var/announcement_sound = 'sound/announcer/alarm/nuke_alarm.ogg'
+	/// The team making this declaration.
+	var/datum/weakref/nuclear_team_ref
+
+/obj/item/nuclear_challenge/examine(mob/user)
+	. = ..()
+	if(nuclear_team_ref && transport_is_ready() && !get_overmap_team())
+		. += span_notice("Declaring war will delay your shuttle's departure by 20 minutes.")
 
 /obj/item/nuclear_challenge/attack_self(mob/living/user)
 	if(!check_allowed(user))
@@ -75,15 +82,28 @@ GLOBAL_LIST_EMPTY(jam_on_wardec)
 	if(!war_declaration)
 		tgui_alert(usr, "Invalid war declaration.", "Poor Choice of Words")
 		return
+	if(!transport_is_ready())
+		tgui_alert(usr, "Wait for the operative transport to be ready.", "Transport Preparing")
+		return
 
-	for(var/obj/item/circuitboard/computer/syndicate_shuttle/board as anything in GLOB.syndicate_shuttle_boards)
-		if(board.challenge_start_time)
+	var/datum/team/nuclear/overmap_team = get_overmap_team()
+	if(overmap_team)
+		if(!isnull(overmap_team.overmap_war_declared_at))
 			tgui_alert(usr, "War has already been declared!", "War Was Declared")
 			return
+	else
+		for(var/obj/item/circuitboard/computer/syndicate_shuttle/board as anything in GLOB.syndicate_shuttle_boards)
+			if(board.challenge_start_time)
+				tgui_alert(usr, "War has already been declared!", "War Was Declared")
+				return
 
 	war_was_declared(memo = war_declaration)
 
 /obj/item/nuclear_challenge/proc/war_was_declared(mob/living/user, memo)
+	var/datum/team/nuclear/overmap_team = get_overmap_team()
+	if(overmap_team)
+		overmap_team.overmap_war_declared_at = world.time
+
 	priority_announce(
 		text = memo,
 		title = "Объявление войны",
@@ -102,8 +122,9 @@ GLOBAL_LIST_EMPTY(jam_on_wardec)
 	CONFIG_SET(number/shuttle_refuel_delay, max(CONFIG_GET(number/shuttle_refuel_delay), CHALLENGE_SHUTTLE_DELAY))
 	SSblackbox.record_feedback("amount", "nuclear_challenge_mode", 1)
 
-	for(var/obj/item/circuitboard/computer/syndicate_shuttle/board as anything in GLOB.syndicate_shuttle_boards)
-		board.challenge_start_time = world.time
+	if(!overmap_team)
+		for(var/obj/item/circuitboard/computer/syndicate_shuttle/board as anything in GLOB.syndicate_shuttle_boards)
+			board.challenge_start_time = world.time
 
 	for(var/obj/machinery/computer/camera_advanced/shuttle_docker/dock as anything in GLOB.jam_on_wardec)
 		dock.jammed = TRUE
@@ -150,6 +171,18 @@ GLOBAL_LIST_EMPTY(jam_on_wardec)
 				C.visible_message(span_notice("[C] coughs up a half-digested telecrystal"),span_notice("You cough up a half-digested telecrystal!"))
 				break
 
+/// Resolve the operative team once its overmap transport has been assigned.
+/obj/item/nuclear_challenge/proc/get_overmap_team()
+	var/datum/team/nuclear/team = nuclear_team_ref?.resolve()
+	if(team?.overmap_ship_ref)
+		return team
+
+/// The roundstart elevator can open before the operative shuttle finishes loading.
+/obj/item/nuclear_challenge/proc/transport_is_ready()
+	if(!SSmapping.current_map?.space_overmap?["nukeops"])
+		return TRUE
+	var/datum/team/nuclear/team = nuclear_team_ref?.resolve()
+	return !team || team.overmap_ship_ref || SSshuttle.getShuttle("syndicate")
 
 /obj/item/nuclear_challenge/proc/check_allowed(mob/living/user)
 	if(declaring_war)
@@ -164,6 +197,22 @@ GLOBAL_LIST_EMPTY(jam_on_wardec)
 	if(world.time - SSticker.round_start_time > CHALLENGE_TIME_LIMIT)
 		to_chat(user, span_boldwarning("It's too late to declare hostilities. Your benefactors are already busy with other schemes. You'll have to make do with what you have on hand."))
 		return FALSE
+	if(!transport_is_ready())
+		to_chat(user, span_boldwarning("Wait for the operative transport to be ready."))
+		return FALSE
+	var/datum/team/nuclear/overmap_team = get_overmap_team()
+	if(overmap_team)
+		var/obj/docking_port/mobile/stationtrauma_space/nukeops/ship = overmap_team.get_overmap_ship()
+		if(!ship)
+			to_chat(user, span_boldwarning("Your shuttle is no longer available."))
+			return FALSE
+		if(overmap_team.overmap_has_departed || ship.overmap?.approach_departing || ship.overmap?.relocating)
+			to_chat(user, span_boldwarning("The shuttle has already been moved! You have forfeit the right to declare war."))
+			return FALSE
+		if(!isnull(overmap_team.overmap_war_declared_at))
+			to_chat(user, span_boldwarning("War has already been declared!"))
+			return FALSE
+		return TRUE
 	for(var/obj/item/circuitboard/computer/syndicate_shuttle/board as anything in GLOB.syndicate_shuttle_boards)
 		if(board.moved)
 			to_chat(user, span_boldwarning("The shuttle has already been moved! You have forfeit the right to declare war."))

@@ -4,6 +4,14 @@
 	map_name = "syndie_cc_small"
 	key = LAZY_TEMPLATE_KEY_NUKIEBASE
 
+/datum/lazy_template/nukie_base/lazy_load()
+	map_name = SSmapping.current_map?.space_overmap?["nukeops"] ? "syndie_cc_small_overmap" : "syndie_cc_small"
+	return ..()
+
+/datum/lazy_template/nukie_elevator/lazy_load()
+	map_name = SSmapping.current_map?.space_overmap?["nukeops_slots"] > 6 ? "nukie_elevator_overmap" : "nukie_elevator"
+	return ..()
+
 /datum/lazy_template/syndie_cc
 	map_dir = "_maps/templates/lazy_templates/ss220"
 	map_name = "syndie_cc"

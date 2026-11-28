@@ -41,6 +41,33 @@
 /obj/structure/closet/stationtrauma_drop_pod/can_close(mob/living/user)
 	return !spent && ..()
 
+/** The assault capsule can carry the team's unsecured warhead together with its normal cargo. */
+/obj/structure/closet/stationtrauma_drop_pod/nukeops
+	desc = "Герметичная десантная капсула на двух человек с креплением для боеголовки «Шершня». Перетащите незакреплённую боеголовку мышью на открытую капсулу. Займите места и закройте люк. Для выхода после посадки откройте люк или попробуйте шагнуть."
+
+/obj/structure/closet/stationtrauma_drop_pod/nukeops/insertion_allowed(atom/movable/inserted)
+	var/obj/machinery/nuclearbomb/syndicate/shershen/warhead = inserted
+	if(!istype(warhead))
+		return ..()
+	if(QDELETED(warhead) || !opened || launched || flight || warhead.anchored || warhead.throwing || warhead.has_buckled_mobs() || is_multi_tile_object(warhead))
+		return FALSE
+	return !warhead.timing && !warhead.exploding && !warhead.exploded && !(locate(/obj/machinery/nuclearbomb/syndicate/shershen) in contents)
+
+/obj/structure/closet/stationtrauma_drop_pod/nukeops/mouse_drop_receive(atom/movable/dropped, mob/living/user, params)
+	var/obj/machinery/nuclearbomb/syndicate/shershen/warhead = dropped
+	if(!istype(warhead))
+		return ..()
+	if(!anchored || !opened || QDELETED(warhead) || !isturf(loc) || !isturf(warhead.loc) || !Adjacent(warhead))
+		return FALSE
+	if(!istype(user) || !isturf(user.loc) || !Adjacent(user) || !warhead.Adjacent(user) || !user.can_perform_action(warhead, NEED_HANDS | FORBID_TELEKINESIS_REACH))
+		return FALSE
+	insert(warhead)
+	if(warhead.loc != src)
+		return FALSE
+	add_fingerprint(user)
+	user.visible_message(span_notice("[user] загружает боеголовку в дроп-под."), span_notice("Вы загружаете боеголовку в дроп-под."))
+	return TRUE
+
 /obj/structure/closet/stationtrauma_drop_pod/get_remote_view_fullscreens(mob/user)
 	if(flight && user.loc == src && isliving(user) && user.stat != DEAD)
 		var/braking = world.time >= flight.arrives_at - ST_DROP_POD_BRAKING_TIME

@@ -197,6 +197,12 @@
 	return GLOB.nukeop_base_start[((team_number - 1) % GLOB.nukeop_base_start.len) + 1]
 
 /datum/antagonist/nukeop/proc/spawn_infiltrator()
+	var/list/overmap_config = SSmapping.current_map?.space_overmap
+	if(infiltrator_id == "infiltrator_basic" && overmap_config?["nukeops"])
+		if(nuke_team?.load_overmap_ship())
+			return
+		message_admins("Не удалось подготовить «Шершень» у базы Синдиката. Вызывается обычный инфильтратор.")
+
 	var/datum/map_template/shuttle/infiltrator/ship = SSmapping.shuttle_templates[infiltrator_id]
 	var/x = (world.maxx - TRANSITIONEDGE - ship.width)
 	var/y = (world.maxy - TRANSITIONEDGE - ship.height)

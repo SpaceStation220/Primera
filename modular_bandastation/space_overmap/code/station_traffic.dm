@@ -194,6 +194,8 @@
 	qdel(src)
 
 /datum/stationtrauma_overmap/space/proc/station_clearance_required(datum/stationtrauma_overmap_site/space/site)
+	if(istype(site, /datum/stationtrauma_overmap_site/space/nukeops_base))
+		return FALSE
 	var/datum/stationtrauma_overmap_sector/space/home = sector
 	return istype(home) && (istype(site, /datum/stationtrauma_overmap_site/space/docking_target) || home.is_station_berth(site))
 

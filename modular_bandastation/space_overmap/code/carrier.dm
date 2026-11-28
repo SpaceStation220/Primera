@@ -165,6 +165,9 @@
 /datum/stationtrauma_overmap/space/knows_site(datum/stationtrauma_overmap_site/site)
 	if(site && site == biosignature_waypoint)
 		return TRUE
+	var/datum/stationtrauma_overmap_site/space/nukeops_berth/private_berth = site
+	if(istype(private_berth))
+		return !QDELETED(private_berth) && sites[private_berth.id] == private_berth && !QDELETED(vessel) && private_berth.ship_ref?.resolve() == vessel
 	var/datum/stationtrauma_overmap_site/space/destination = site
 	if(istype(destination) && destination.host)
 		return !QDELETED(site) && sites[site.id] == site && can_use_carrier_site(destination)

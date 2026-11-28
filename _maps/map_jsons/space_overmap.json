@@ -52,6 +52,8 @@
 	"height_autosetup": true,
 	"space_overmap": {
 		"station_id": "cyberiad",
+		"nukeops": true,
+		"nukeops_slots": 10,
 		"ships": [
 			{
 				"template": "_maps/map_files/overmap_ships/pocketrocket.dmm"

@@ -93,7 +93,9 @@
 /obj/machinery/atmospherics/components/unary/vent_pump/on/layer4{
 	dir = 4
 	},
-/obj/machinery/power/apc/auto_name/directional/north,
+/obj/machinery/power/apc/auto_name/directional/north{
+	start_charge = 100
+	},
 /obj/effect/mapping_helpers/apc/syndicate_access,
 /turf/open/floor/mineral/plastitanium,
 /area/shuttle/stationtrauma_space/syndi/armory)
@@ -228,7 +230,9 @@
 /obj/structure/cable,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
-/obj/machinery/power/apc/auto_name/directional/south,
+/obj/machinery/power/apc/auto_name/directional/south{
+	start_charge = 100
+	},
 /obj/effect/mapping_helpers/apc/syndicate_access,
 /turf/open/floor/mineral/plastitanium,
 /area/shuttle/stationtrauma_space/syndi)
@@ -278,7 +282,7 @@
 /turf/closed/wall/mineral/plastitanium/nodiagonal,
 /area/shuttle/stationtrauma_space/syndi)
 "bn" = (
-/obj/machinery/stationtrauma_drop_launcher{
+/obj/machinery/stationtrauma_drop_launcher/nukeops{
 	launcher_number = 1;
 	iron = 10
 	},
@@ -286,7 +290,7 @@
 /turf/open/floor/mineral/plastitanium,
 /area/shuttle/stationtrauma_space/syndi)
 "bo" = (
-/obj/machinery/stationtrauma_drop_launcher{
+/obj/machinery/stationtrauma_drop_launcher/nukeops{
 	launcher_number = 2;
 	iron = 10
 	},
@@ -299,7 +303,7 @@
 /turf/open/floor/mineral/plastitanium,
 /area/shuttle/stationtrauma_space/syndi)
 "bq" = (
-/obj/docking_port/mobile/stationtrauma_space{
+/obj/docking_port/mobile/stationtrauma_space/nukeops{
 	name = "Шершень";
 	shuttle_id = "syndi";
 	area_type = /area/shuttle/stationtrauma_space/syndi;
@@ -321,7 +325,7 @@
 /turf/open/floor/mineral/plastitanium,
 /area/shuttle/stationtrauma_space/syndi)
 "bs" = (
-/obj/machinery/stationtrauma_drop_launcher{
+/obj/machinery/stationtrauma_drop_launcher/nukeops{
 	launcher_number = 3;
 	iron = 10
 	},
@@ -329,7 +333,7 @@
 /turf/open/floor/mineral/plastitanium,
 /area/shuttle/stationtrauma_space/syndi)
 "bt" = (
-/obj/machinery/stationtrauma_drop_launcher{
+/obj/machinery/stationtrauma_drop_launcher/nukeops{
 	launcher_number = 4;
 	iron = 10
 	},
@@ -357,7 +361,9 @@
 /obj/machinery/atmospherics/components/unary/vent_scrubber/on/layer2{
 	dir = 8
 	},
-/obj/machinery/power/apc/auto_name/directional/south,
+/obj/machinery/power/apc/auto_name/directional/south{
+	start_charge = 100
+	},
 /obj/effect/mapping_helpers/apc/syndicate_access,
 /obj/machinery/light/cold/directional/east,
 /turf/open/floor/iron/white/smooth_large,
@@ -378,7 +384,9 @@
 /area/shuttle/stationtrauma_space/syndi)
 "bD" = (
 /obj/structure/cable,
-/obj/machinery/power/apc/auto_name/directional/south,
+/obj/machinery/power/apc/auto_name/directional/south{
+	start_charge = 100
+	},
 /obj/effect/mapping_helpers/apc/syndicate_access,
 /obj/structure/table,
 /obj/machinery/microwave,
@@ -480,9 +488,12 @@
 "bX" = (
 /obj/structure/cable,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
-/obj/machinery/power/apc/auto_name/directional/south,
+/obj/machinery/power/apc/auto_name/directional/south{
+	start_charge = 100
+	},
 /obj/effect/mapping_helpers/apc/syndicate_access,
 /obj/machinery/computer/stationtrauma_drop_pod_console{
+	desc = "Управляет сборкой десантных капсул. Если причал M занят, подлетите к Кибериаде и выберите её на этой консоли, пока корабль в свободном полёте, а станция в пределах дальности пуска. Одна капсула вмещает двух человек. Незакреплённую боеголовку можно перетащить на открытую капсулу перед посадкой экипажа.";
 	dir = 1
 	},
 /turf/open/floor/mineral/plastitanium/red,
@@ -586,7 +597,9 @@
 /turf/open/floor/mineral/plastitanium/red,
 /area/shuttle/stationtrauma_space/syndi/bridge)
 "cp" = (
-/obj/machinery/computer/stationtrauma_space_navigation,
+/obj/machinery/computer/stationtrauma_space_navigation{
+	desc = "Орбитальная карта, управление тягой и стыковкой корабля. Если причал M занят, выберите «Кибериада — внешняя высадка», сблизьтесь с точкой и остановитесь для стыковки. Выход в открытый космос находится в оружейной."
+	},
 /turf/open/floor/mineral/plastitanium/red,
 /area/shuttle/stationtrauma_space/syndi/bridge)
 "cq" = (
@@ -630,7 +643,9 @@
 /obj/structure/cable,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/cyan/hidden/layer5,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
-/obj/machinery/power/apc/auto_name/directional/north,
+/obj/machinery/power/apc/auto_name/directional/north{
+	start_charge = 100
+	},
 /obj/effect/mapping_helpers/apc/syndicate_access,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/dark/hidden,
 /turf/open/floor/mineral/plastitanium,
@@ -785,7 +800,9 @@
 /area/shuttle/stationtrauma_space/syndi)
 "Mb" = (
 /obj/structure/cable,
-/obj/machinery/power/apc/auto_name/directional/north,
+/obj/machinery/power/apc/auto_name/directional/north{
+	start_charge = 100
+	},
 /obj/effect/mapping_helpers/apc/syndicate_access,
 /turf/open/floor/engine,
 /area/shuttle/stationtrauma_space/syndi/engineering/reactor)
@@ -821,6 +838,20 @@
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /turf/open/floor/mineral/plastitanium,
 /area/shuttle/stationtrauma_space/syndi/engineering)
+"af" = (
+/obj/machinery/nuclearbomb/syndicate/shershen,
+/obj/machinery/light/cold/directional/west,
+/turf/open/floor/mineral/plastitanium,
+/area/shuttle/stationtrauma_space/syndi)
+"ag" = (
+/obj/machinery/stationtrauma_drop_launcher/nukeops{
+	launcher_number = 5;
+	iron = 10
+	},
+/obj/effect/turf_decal/stripes/box,
+/obj/machinery/light/cold/directional/east,
+/turf/open/floor/mineral/plastitanium,
+/area/shuttle/stationtrauma_space/syndi)
 
 (1,1,1) = {"
 aa
@@ -998,7 +1029,7 @@ ce
 bX
 bS
 bL
-bz
+af
 bp
 bd
 bm
@@ -1040,7 +1071,7 @@ cg
 bZ
 bS
 bM
-bB
+ag
 br
 bg
 bm
