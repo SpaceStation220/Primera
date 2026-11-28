@@ -10,6 +10,8 @@
 	var/save_for_character = FALSE
 	var/phase = "draft"
 	var/side
+	/// Project the selected side onto the other three only when the artist requests it.
+	var/all_views = FALSE
 	var/revision = 0
 	var/draw_rejected = 0
 	var/draw_rejected_revision
@@ -85,7 +87,7 @@
 
 /// Build a same-size binary mask once per view, in the editor's top-left row order.
 /datum/tattoo_session/proc/set_view(new_side)
-	if(!(new_side in GLOB.cardinals) || bitmap != empty_bitmap || limb.has_drawn_tattoo())
+	if(!(new_side in GLOB.cardinals) || bitmap != empty_bitmap || limb.has_drawn_tattoo(all_views ? null : new_side))
 		return FALSE
 	var/icon/mask = limb.tattoo_skin_icon(new_side)
 	if(!mask)
@@ -208,7 +210,10 @@
 /datum/tattoo_session/ui_data(mob/user)
 	var/can_save = !practice && user == customer && !isnull(customer.get_tattoo_preferences())
 	var/can_edit_stencils = user == artist && phase == "draft"
-	var/list/occupied = limb.has_drawn_tattoo() ? GLOB.cardinals.Copy() : list()
+	var/list/occupied = list()
+	for(var/direction in GLOB.cardinals)
+		if(limb.has_drawn_tattoo(direction))
+			occupied += direction
 	return list(
 		"role" = user == artist ? "artist" : "client",
 		"practice" = practice,
@@ -217,6 +222,7 @@
 		"phase" = phase,
 		"zone" = ru_parse_zone(limb.body_zone, declent = NOMINATIVE),
 		"direction" = side,
+		"allViews" = all_views,
 		"targetName" = customer.name,
 		"body" = body_png,
 		"mask" = mask_png,
@@ -255,6 +261,19 @@
 		if("cancel")
 			qdel(src)
 			return FALSE
+		if("set_all_views")
+			var/enabled = params["enabled"]
+			if(user != artist || phase != "draft" || !isnum(params["revision"]) || params["revision"] != revision)
+				return FALSE
+			if(!isnum(enabled) || !(enabled in list(FALSE, TRUE)))
+				return FALSE
+			if(enabled == all_views)
+				return TRUE
+			if(enabled && limb.has_drawn_tattoo())
+				machine.balloon_alert(user, "один из ракурсов уже занят")
+				return FALSE
+			all_views = enabled
+			revision++
 		if("direction")
 			if(user == artist && phase == "draft")
 				if(set_view(params["direction"]))
@@ -290,18 +309,22 @@
 		if("review")
 			if(user != artist || phase != "draft" || bitmap == empty_bitmap)
 				return FALSE
-			if(limb.has_drawn_tattoo())
+			if(("revision" in params) && params["revision"] != revision)
+				return TRUE
+			if(limb.has_drawn_tattoo(all_views ? null : side))
 				machine.balloon_alert(user, "здесь уже есть татуировка")
 				return FALSE
 			var/datum/tattoo_design/design = new
-			if(!design.prepare(limb, side, bitmap, palette, all_views = TRUE))
+			if(!design.prepare(limb, side, bitmap, palette, all_views = all_views))
 				qdel(design)
 				machine.balloon_alert(user, "эскиз не подходит участку")
 				return FALSE
 			if(!design.ink_is_exposed(limb))
 				qdel(design)
-				machine.balloon_alert(user, "откройте кожу со всех сторон")
+				machine.balloon_alert(user, all_views ? "откройте кожу со всех сторон" : "откройте выбранный участок кожи")
 				return FALSE
+			if(!all_views)
+				design.view_previews = list(list("direction" = side, "image" = design.examine_image_url))
 			reviewed = design
 			phase = "review"
 			revision++
@@ -341,7 +364,7 @@
 /datum/tattoo_session/proc/start_application()
 	if(phase != "applying" || !reviewed || motor_sound || limb.owner != customer)
 		return FALSE
-	if(machine.tattoo_supply_error(customer) || !reviewed.ink_is_exposed(limb) || limb.has_drawn_tattoo())
+	if(machine.tattoo_supply_error(customer) || !reviewed.ink_is_exposed(limb) || limb.has_drawn_tattoo(reviewed.all_views ? null : reviewed.side))
 		return FALSE
 	if(machine.supply_customer?.resolve() != customer)
 		machine.supply_customer = WEAKREF(customer)

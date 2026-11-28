@@ -45,6 +45,7 @@ type StudioData = SessionData & {
   drawRejected?: number;
   drawRejectedRevision?: number | null;
   occupied?: Dir[];
+  allViews?: BooleanLike;
   tattooViews?: { direction: Dir; image: string }[] | null;
   stencils?: Stencil[] | null;
   stencilLimit?: number;
@@ -642,66 +643,85 @@ function Studio() {
   return (
     <>
       <Section title={`${data.targetName} · ${data.zone}`}>
-        {views?.length ? (
-          <>
-            <Box mb={0.5}>Один эскиз для всех ракурсов</Box>
-            <Stack>
-              {directions.map(([dir, label]) => {
-                const view = views.find((entry) => entry.direction === dir);
-                if (!view) return null;
-                return (
-                  <Stack.Item
-                    key={dir}
-                    grow
-                    basis={0}
-                    minWidth={0}
-                    textAlign="center"
-                  >
-                    <img
-                      src={view.image}
-                      alt={`Татуировка · ${label}`}
-                      style={{
-                        width: '100%',
-                        height: 82,
-                        objectFit: 'contain',
-                        imageRendering: 'pixelated',
-                      }}
-                    />
-                    <Box color="label">{label}</Box>
-                  </Stack.Item>
-                );
-              })}
-            </Stack>
-          </>
+        {choosing ? (
+          <Box mb={0.5}>
+            <Button.Checkbox
+              {...{ role: 'checkbox' }}
+              aria-checked={!!data.allViews}
+              checked={!!data.allViews}
+              disabled={busy || (!data.allViews && occupied.length > 0)}
+              tooltip={
+                !data.allViews && occupied.length > 0
+                  ? 'Для нанесения на все стороны нужны четыре свободных ракурса'
+                  : undefined
+              }
+              onClick={() =>
+                act('set_all_views', {
+                  enabled: data.allViews ? 0 : 1,
+                  revision: data.revision,
+                })
+              }
+            >
+              Нанести на все стороны
+            </Button.Checkbox>
+          </Box>
         ) : (
-          <>
-            {choosing && (
-              <Box mb={0.5} color="label">
-                Ракурс эскиза. Готовая татуировка будет видна при повороте.
-              </Box>
-            )}
-            {directions.map(([dir, label]) => (
-              <Button
-                key={dir}
-                selected={dir === data.direction}
-                disabled={
-                  !choosing ||
-                  occupied.includes(dir) ||
-                  hasInk ||
-                  busy ||
-                  dir === data.direction
-                }
-                tooltip={
-                  occupied.includes(dir)
-                    ? 'На этой стороне уже есть татуировка'
-                    : undefined
-                }
-                onClick={() => act('direction', { direction: dir })}
-              >
-                {label}
-              </Button>
-            ))}
-          </>
+          <Box mb={0.5}>
+            {data.allViews
+              ? 'Один эскиз для всех ракурсов'
+              : `Только выбранная сторона · ${directions.find(([dir]) => dir === data.direction)?.[1] || ''}`}
+          </Box>
+        )}
+        {views?.length ? (
+          <Stack>
+            {directions.map(([dir, label]) => {
+              const view = views.find((entry) => entry.direction === dir);
+              if (!view) return null;
+              return (
+                <Stack.Item
+                  key={dir}
+                  grow
+                  basis={0}
+                  minWidth={0}
+                  textAlign="center"
+                >
+                  <img
+                    src={view.image}
+                    alt={`Татуировка · ${label}`}
+                    style={{
+                      width: '100%',
+                      height: 82,
+                      objectFit: 'contain',
+                      imageRendering: 'pixelated',
+                    }}
+                  />
+                  <Box color="label">{label}</Box>
+                </Stack.Item>
+              );
+            })}
+          </Stack>
+        ) : (
+          choosing &&
+          directions.map(([dir, label]) => (
+            <Button
+              key={dir}
+              selected={dir === data.direction}
+              disabled={
+                occupied.includes(dir) ||
+                hasInk ||
+                busy ||
+                dir === data.direction
+              }
+              tooltip={
+                occupied.includes(dir)
+                  ? 'На этой стороне уже есть татуировка'
+                  : undefined
+              }
+              onClick={() => act('direction', { direction: dir })}
+            >
+              {label}
+            </Button>
+          ))
         )}
       </Section>
       <Stack>
@@ -896,7 +916,7 @@ function Studio() {
             <Button
               color="good"
               disabled={!surface || !hasInk || busy}
-              onClick={() => act('review')}
+              onClick={() => act('review', { revision: data.revision })}
             >
               {data.practice ? 'Проверить эскиз' : 'Показать на согласование'}
             </Button>
