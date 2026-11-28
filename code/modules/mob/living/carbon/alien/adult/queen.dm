@@ -101,8 +101,16 @@
 	made_structure_type = /obj/structure/alien/egg
 
 /datum/action/cooldown/alien/make_structure/lay_egg/Activate(atom/target)
+	// BANDASTATION EDIT START
+	if(!prepare_hive_egg())
+		return FALSE
+	// BANDASTATION EDIT END
 	. = ..()
-	owner.visible_message(span_alertalien("[owner] lays an egg!"))
+	// BANDASTATION EDIT START
+	if(.)
+		playsound(owner, 'sound/effects/splat.ogg', 50, TRUE)
+		owner.visible_message(span_alertalien("[owner] откладывает яйцо!"))
+	// BANDASTATION EDIT END
 
 //Button to let queen choose her praetorian.
 /datum/action/cooldown/alien/promote

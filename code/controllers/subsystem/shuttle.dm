@@ -326,6 +326,11 @@ SUBSYSTEM_DEF(shuttle)
 /// Check if we can call the evac shuttle.
 /// Returns TRUE if we can. Otherwise, returns a string detailing the problem.
 /datum/controller/subsystem/shuttle/proc/canEvac()
+	// BANDASTATION EDIT START
+	var/xeno_block_reason = xeno_shuttle_call_block_reason()
+	if(xeno_block_reason)
+		return xeno_block_reason
+	// BANDASTATION EDIT END
 	var/shuttle_refuel_delay = CONFIG_GET(number/shuttle_refuel_delay)
 	if(world.time - SSticker.round_start_time < shuttle_refuel_delay)
 		return "Эвакуационный шаттл на дозаправке. Следующий вызов будет доступен в течении [DisplayTimeText(shuttle_refuel_delay - (world.time - SSticker.round_start_time))]."
@@ -471,6 +476,10 @@ SUBSYSTEM_DEF(shuttle)
 /datum/controller/subsystem/shuttle/proc/can_recall(mob/user)
 	if(isnull(emergency) || emergency.mode != SHUTTLE_CALL)
 		return FALSE
+	// BANDASTATION EDIT START
+	if(GLOB.xeno_evacuation?.blocks_recall())
+		return FALSE
+	// BANDASTATION EDIT END
 
 	var/is_admin = !!user?.client?.holder
 	if(is_admin)
