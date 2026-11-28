@@ -10,6 +10,8 @@
 	layer = ABOVE_WINDOW_LAYER
 	custom_materials = list(/datum/material/iron = SHEET_MATERIAL_AMOUNT * 7, /datum/material/glass = SHEET_MATERIAL_AMOUNT * 4)
 	subsystem_type = /datum/controller/subsystem/processing/digital_clock
+	/// Last rendered station hh:mm string so unchanged minutes do not rebuild overlays.
+	var/last_display_time
 
 /obj/item/wallframe/digital_clock
 	name = "digital clock frame"
@@ -56,6 +58,7 @@
 		playsound(loc, 'sound/items/deconstruct.ogg', 50, vary = TRUE)
 		balloon_alert(user, "reset")
 		obj_flags &= ~EMAGGED
+		last_display_time = null
 		return TRUE
 
 /obj/machinery/digital_clock/emag_act(mob/user, obj/item/card/emag/emag_card)
@@ -87,7 +90,12 @@
 /obj/machinery/digital_clock/process(seconds_per_tick)
 	if(machine_stat & NOPOWER)
 		return
-	update_appearance()
+	if(!(obj_flags & EMAGGED))
+		var/current_time = round_timestamp(format = "hh:mm")
+		if(current_time == last_display_time)
+			return
+		last_display_time = current_time
+	update_appearance(UPDATE_OVERLAYS)
 
 
 /obj/machinery/digital_clock/update_appearance(updates=ALL)

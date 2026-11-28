@@ -10,6 +10,8 @@
 	var/datum/callback/on_contact
 	/// Are we currently working?
 	var/active = TRUE
+	/// Whether every attracted typepath is an /obj/item subtype for C++-side range filtering.
+	var/items_only = FALSE
 
 /datum/component/magnet/Initialize(
 	pull_range = 5,
@@ -27,6 +29,11 @@
 	src.attracted_typecache = typecacheof(attracted_typecache)
 	src.on_pulled = on_pulled
 	src.on_contact = on_contact
+	items_only = TRUE
+	for(var/typepath in src.attracted_typecache)
+		if(!ispath(typepath, /obj/item))
+			items_only = FALSE
+			break
 
 /datum/component/magnet/RegisterWithParent()
 	. = ..()
@@ -55,16 +62,39 @@
 		START_PROCESSING(SSdcs, src)
 
 /datum/component/magnet/process(seconds_per_tick)
-	for (var/atom/movable/thing in orange(pull_range, parent))
-		if (!is_type_in_typecache(thing, attracted_typecache))
+	var/list/cache = attracted_typecache
+	var/atom/magnet_parent = parent
+	if (items_only)
+		for (var/obj/item/thing in orange(pull_range, magnet_parent))
+			if (!cache[thing.type])
+				continue
+			pull_candidate(thing, magnet_parent)
+			if (QDELETED(src))
+				return
+			CHECK_TICK
+		return
+	for (var/atom/movable/thing in orange(pull_range, magnet_parent))
+		if (!is_type_in_typecache(thing, cache))
 			continue
-		var/range = get_dist(thing, parent)
-		if (range == 0)
-			continue
-		if (range == 1 && !isnull(on_contact))
-			on_contact.Invoke(thing)
-			continue
-		var/moved = thing.Move(get_step_towards(thing, parent))
-		if (moved && !isnull(on_pulled))
-			on_pulled.Invoke(thing)
+		pull_candidate(thing, magnet_parent)
+		if (QDELETED(src))
+			return
 		CHECK_TICK
+
+/**
+ * Pulls a single attracted candidate one step toward `magnet_parent`, or triggers contact if adjacent.
+ *
+ * Arguments:
+ * * thing - Candidate atom matched against `attracted_typecache`.
+ * * magnet_parent - Host atom exerting the pull.
+ */
+/datum/component/magnet/proc/pull_candidate(atom/movable/thing, atom/magnet_parent)
+	var/range = get_dist(thing, magnet_parent)
+	if (range == 0)
+		return
+	if (range == 1 && !isnull(on_contact))
+		on_contact.Invoke(thing)
+		return
+	var/moved = thing.Move(get_step_towards(thing, magnet_parent))
+	if (moved && !isnull(on_pulled))
+		on_pulled.Invoke(thing)
