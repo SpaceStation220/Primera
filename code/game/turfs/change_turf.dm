@@ -81,7 +81,6 @@ GLOBAL_LIST_INIT(blacklisted_automated_baseturfs, typecacheof(list(
 	var/old_lighting_corner_SW = lighting_corner_SW
 	var/old_lighting_corner_NW = lighting_corner_NW
 	var/old_directional_opacity = directional_opacity
-	var/old_directional_blocker_count = directional_blocker_count
 	var/old_rcd_memory = rcd_memory
 	var/old_explosion_throw_details = explosion_throw_details
 	var/old_opacity = opacity
@@ -109,10 +108,8 @@ GLOBAL_LIST_INIT(blacklisted_automated_baseturfs, typecacheof(list(
 	var/list/old_listen_lookup = _listen_lookup?.Copy()
 	var/list/old_signal_procs = _signal_procs?.Copy()
 	var/carryover_turf_flags = (RESERVATION_TURF | UNUSED_RESERVATION_TURF) & turf_flags
-	// Turf references survive replacement, but their signal lists must be set before Initialize.
-	var/turf/new_turf = new path(src, old_listen_lookup, old_signal_procs)
+	var/turf/new_turf = new path(src, old_listen_lookup, old_signal_procs, directional_blocker_count)
 	new_turf.turf_flags |= carryover_turf_flags
-	new_turf.directional_blocker_count += old_directional_blocker_count
 
 	for(var/datum/callback/callback as anything in post_change_callbacks)
 		callback.InvokeAsync(new_turf)

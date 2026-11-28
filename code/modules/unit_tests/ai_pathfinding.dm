@@ -236,8 +236,11 @@
 	var/list/opened_path = get_path_to(mover, goal_turf, max_distance = 20, simulated_only = TRUE)
 	TEST_ASSERT(length(opened_path) && opened_path[length(opened_path)] == goal_turf && (lane1 in opened_path), "JPS did not route through opened windoor")
 
-	center_window.forceMove(west_mid)
-	TEST_ASSERT_EQUAL(mid_turf.directional_blocker_count, 0, "Moving window left stale directional_blocker_count behind")
+	RegisterSignal(center_window, COMSIG_MOVABLE_TURF_INITIALIZING, PROC_REF(move_window_during_turf_init))
+	mid_turf = mid_turf.ChangeTurf(/turf/open/floor/plating)
+	UnregisterSignal(center_window, COMSIG_MOVABLE_TURF_INITIALIZING)
+	TEST_ASSERT_EQUAL(center_window.loc, west_mid, "Window did not leave the replacement turf during initialization")
+	TEST_ASSERT_EQUAL(mid_turf.directional_blocker_count, 0, "ChangeTurf counted a window that moved away during initialization")
 	TEST_ASSERT_EQUAL(west_mid.directional_blocker_count, 1, "Moving window did not increment destination directional_blocker_count")
 
 	var/obj/structure/railing/railing = allocate(/obj/structure/railing, mid_turf)
@@ -255,3 +258,8 @@
 	TEST_ASSERT_EQUAL(west_mid.directional_blocker_count, 0, "Deleting window left stale directional_blocker_count")
 	TEST_ASSERT_EQUAL(lane1.directional_blocker_count, 0, "Deleting windoor left stale directional_blocker_count")
 	TEST_ASSERT_EQUAL(lane3.directional_blocker_count, 0, "Deleting border firedoor left stale directional_blocker_count")
+
+/// Reproduces an occupant leaving during turf initialization on a single z-level.
+/datum/unit_test/ai_pathfinding_directional_blockers/proc/move_window_during_turf_init(obj/structure/window/source, turf/new_turf)
+	SIGNAL_HANDLER
+	source.forceMove(get_step(new_turf, WEST))
