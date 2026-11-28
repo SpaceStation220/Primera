@@ -214,42 +214,38 @@
 */
 /turf/proc/LinkBlockedWithAccess(turf/destination_turf, datum/can_pass_info/pass_info)
 	if(destination_turf.x != x && destination_turf.y != y) //diagonal
-		var/in_dir = get_dir(destination_turf,src) // eg. northwest (1+8) = 9 (00001001)
-		var/first_step_direction_a = in_dir & 3 // eg. north   (1+8)&3 (0000 0011) = 1 (0000 0001)
-		var/first_step_direction_b = in_dir & 12 // eg. west   (1+8)&12 (0000 1100) = 8 (0000 1000)
-
-		for(var/first_step_direction in list(first_step_direction_a,first_step_direction_b))
-			var/turf/midstep_turf = get_step(destination_turf,first_step_direction)
-			var/way_blocked = midstep_turf.density || LinkBlockedWithAccess(midstep_turf, pass_info) || midstep_turf.LinkBlockedWithAccess(destination_turf, pass_info)
-			if(!way_blocked)
-				return FALSE
+		var/in_dir = get_dir(destination_turf, src) // eg. northwest (1+8) = 9 (00001001)
+		var/turf/midstep_turf = get_step(destination_turf, in_dir & 3) // eg. north (1+8)&3 = 1
+		if(!midstep_turf.density && !LinkBlockedWithAccess(midstep_turf, pass_info) && !midstep_turf.LinkBlockedWithAccess(destination_turf, pass_info))
+			return FALSE
+		midstep_turf = get_step(destination_turf, in_dir & 12) // eg. west (1+8)&12 = 8
+		if(!midstep_turf.density && !LinkBlockedWithAccess(midstep_turf, pass_info) && !midstep_turf.LinkBlockedWithAccess(destination_turf, pass_info))
+			return FALSE
 		return TRUE
 	var/actual_dir = get_dir(src, destination_turf)
 
 	/// These are generally cheaper than looping contents so they go first
-	switch(destination_turf.pathing_pass_method)
-		// This is already assumed to be true
-		//if(TURF_PATHING_PASS_DENSITY)
-		//	if(destination_turf.density)
-		//		return TRUE
-		if(TURF_PATHING_PASS_PROC)
-			if(!destination_turf.CanAStarPass(actual_dir, pass_info))
+	if(destination_turf.pathing_pass_method)
+		switch(destination_turf.pathing_pass_method)
+			if(TURF_PATHING_PASS_PROC)
+				if(!destination_turf.CanAStarPass(actual_dir, pass_info))
+					return TRUE
+			if(TURF_PATHING_PASS_NO)
 				return TRUE
-		if(TURF_PATHING_PASS_NO)
-			return TRUE
 
 	var/static/list/directional_blocker_cache = typecacheof(list(/obj/structure/window, /obj/machinery/door/window, /obj/structure/railing, /obj/machinery/door/firedoor/border_only))
 	// Source border object checks
-	for(var/obj/border in src)
-		if(!directional_blocker_cache[border.type])
-			continue
-		if(!border.density && border.can_astar_pass == CANASTARPASS_DENSITY)
-			continue
-		if(!border.CanAStarPass(actual_dir, pass_info))
-			return TRUE
+	if(directional_blocker_count)
+		for(var/obj/border in src)
+			if(!directional_blocker_cache[border.type])
+				continue
+			if(!border.density && border.can_astar_pass == CANASTARPASS_DENSITY)
+				continue
+			if(!border.CanAStarPass(actual_dir, pass_info))
+				return TRUE
 
 	// Destination blockers check
-	var/reverse_dir = get_dir(destination_turf, src)
+	var/reverse_dir = REVERSE_DIR(actual_dir)
 	for(var/obj/iter_object in destination_turf)
 		// This is an optimization because of the massive call count of this code
 		if(!iter_object.density && iter_object.can_astar_pass == CANASTARPASS_DENSITY)

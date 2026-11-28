@@ -167,3 +167,99 @@
 	TEST_ASSERT(door.CanAStarPass(NORTH, pass_info), "Removing the seal did not restore traversal")
 	door.req_access = list("access nothing has")
 	TEST_ASSERT(!door.CanAStarPass(NORTH, pass_info), "Pathfinding bypassed airlock access")
+
+/// Directional blocker turf counts and JPS edge caching must track spawn, move, ChangeTurf, door opening, and deletion.
+/datum/unit_test/ai_pathfinding_directional_blockers
+	/// Modified center turf restored during Destroy.
+	var/turf/changed_turf
+	/// Original turf typepath of changed_turf.
+	var/original_turf_type
+
+/datum/unit_test/ai_pathfinding_directional_blockers/Destroy()
+	if(changed_turf && original_turf_type)
+		changed_turf.ChangeTurf(original_turf_type)
+	changed_turf = null
+	return ..()
+
+/datum/unit_test/ai_pathfinding_directional_blockers/Run()
+	var/turf/start_turf = locate(run_loc_floor_bottom_left.x, run_loc_floor_bottom_left.y + 2, run_loc_floor_bottom_left.z)
+	var/turf/goal_turf = locate(run_loc_floor_bottom_left.x + 4, run_loc_floor_bottom_left.y + 2, run_loc_floor_bottom_left.z)
+	var/turf/mid_turf = locate(run_loc_floor_bottom_left.x + 2, run_loc_floor_bottom_left.y + 2, run_loc_floor_bottom_left.z)
+	var/turf/west_mid = locate(mid_turf.x - 1, mid_turf.y, mid_turf.z)
+	var/turf/east_mid = locate(mid_turf.x + 1, mid_turf.y, mid_turf.z)
+	var/turf/lane0 = locate(mid_turf.x, run_loc_floor_bottom_left.y, mid_turf.z)
+	var/turf/lane1 = locate(mid_turf.x, run_loc_floor_bottom_left.y + 1, mid_turf.z)
+	var/turf/lane3 = locate(mid_turf.x, run_loc_floor_bottom_left.y + 3, mid_turf.z)
+	var/turf/lane4 = locate(mid_turf.x, run_loc_floor_bottom_left.y + 4, mid_turf.z)
+
+	var/mob/living/basic/mouse/mover = allocate(/mob/living/basic/mouse, start_turf)
+	mover.ai_controller?.force_ai_off()
+	var/datum/can_pass_info/pass_info = allocate(/datum/can_pass_info, mover)
+
+	var/list/open_path = get_path_to(mover, goal_turf, max_distance = 20, simulated_only = TRUE)
+	TEST_ASSERT_EQUAL(length(open_path), 4, "Open corridor did not resolve direct 4-step path")
+
+	var/obj/structure/window/reinforced/center_window = allocate(/obj/structure/window/reinforced, mid_turf)
+	center_window.setDir(EAST)
+	TEST_ASSERT_EQUAL(mid_turf.directional_blocker_count, 1, "Directional window did not increment turf blocker count")
+	TEST_ASSERT(mid_turf.LinkBlockedWithAccess(east_mid, pass_info), "Directional window failed to block its facing direction")
+	TEST_ASSERT(!mid_turf.LinkBlockedWithAccess(lane3, pass_info), "Directional window blocked a non-facing exit")
+
+	var/list/detour_path = get_path_to(mover, goal_turf, max_distance = 20, simulated_only = TRUE)
+	TEST_ASSERT(length(detour_path), "JPS failed to detour around directional window")
+	TEST_ASSERT_EQUAL(detour_path[length(detour_path)], goal_turf, "Detour route did not reach goal turf")
+
+	original_turf_type = mid_turf.type
+	mid_turf = mid_turf.ChangeTurf(/turf/open/floor/iron)
+	changed_turf = mid_turf
+	TEST_ASSERT_EQUAL(mid_turf.directional_blocker_count, 1, "ChangeTurf lost directional_blocker_count under existing window")
+	TEST_ASSERT(mid_turf.LinkBlockedWithAccess(east_mid, pass_info), "Window stopped blocking after ChangeTurf")
+
+	var/obj/structure/window/reinforced/south_cap = allocate(/obj/structure/window/reinforced, lane0)
+	south_cap.setDir(EAST)
+	var/obj/machinery/door/window/windoor = allocate(/obj/machinery/door/window, lane1)
+	windoor.setDir(EAST)
+	windoor.req_access = list("access nothing has")
+	var/obj/machinery/door/firedoor/border_only/closed/firedoor = allocate(/obj/machinery/door/firedoor/border_only/closed, lane3)
+	firedoor.setDir(EAST)
+	var/obj/structure/window/reinforced/north_cap = allocate(/obj/structure/window/reinforced, lane4)
+	north_cap.setDir(EAST)
+	TEST_ASSERT_EQUAL(lane1.directional_blocker_count, 1, "Windoor did not increment turf blocker count")
+	TEST_ASSERT_EQUAL(lane3.directional_blocker_count, 1, "Border firedoor did not increment turf blocker count")
+
+	var/list/sealed_path = get_path_to(mover, goal_turf, max_distance = 20, simulated_only = TRUE)
+	TEST_ASSERT_EQUAL(length(sealed_path), 0, "JPS bypassed completely sealed directional barrier")
+
+	windoor.open(TRUE)
+	var/turf/east_lane1 = locate(lane1.x + 1, lane1.y, lane1.z)
+	TEST_ASSERT(!lane1.LinkBlockedWithAccess(east_lane1, pass_info), "Open windoor still blocked pathing")
+	var/list/opened_path = get_path_to(mover, goal_turf, max_distance = 20, simulated_only = TRUE)
+	TEST_ASSERT(length(opened_path) && opened_path[length(opened_path)] == goal_turf && (lane1 in opened_path), "JPS did not route through opened windoor")
+
+	RegisterSignal(center_window, COMSIG_MOVABLE_TURF_INITIALIZING, PROC_REF(move_window_during_turf_init))
+	mid_turf = mid_turf.ChangeTurf(/turf/open/floor/plating)
+	UnregisterSignal(center_window, COMSIG_MOVABLE_TURF_INITIALIZING)
+	TEST_ASSERT_EQUAL(center_window.loc, west_mid, "Window did not leave the replacement turf during initialization")
+	TEST_ASSERT_EQUAL(mid_turf.directional_blocker_count, 0, "ChangeTurf counted a window that moved away during initialization")
+	TEST_ASSERT_EQUAL(west_mid.directional_blocker_count, 1, "Moving window did not increment destination directional_blocker_count")
+
+	var/obj/structure/railing/railing = allocate(/obj/structure/railing, mid_turf)
+	railing.setDir(EAST)
+	TEST_ASSERT_EQUAL(mid_turf.directional_blocker_count, 1, "Railing did not increment directional_blocker_count")
+	TEST_ASSERT(mid_turf.LinkBlockedWithAccess(east_mid, pass_info), "Railing failed to block its facing direction")
+
+	qdel(railing)
+	qdel(center_window)
+	qdel(south_cap)
+	qdel(windoor)
+	qdel(firedoor)
+	qdel(north_cap)
+	TEST_ASSERT_EQUAL(mid_turf.directional_blocker_count, 0, "Deleting railing left stale directional_blocker_count")
+	TEST_ASSERT_EQUAL(west_mid.directional_blocker_count, 0, "Deleting window left stale directional_blocker_count")
+	TEST_ASSERT_EQUAL(lane1.directional_blocker_count, 0, "Deleting windoor left stale directional_blocker_count")
+	TEST_ASSERT_EQUAL(lane3.directional_blocker_count, 0, "Deleting border firedoor left stale directional_blocker_count")
+
+/// Reproduces an occupant leaving during turf initialization on a single z-level.
+/datum/unit_test/ai_pathfinding_directional_blockers/proc/move_window_during_turf_init(obj/structure/window/source, turf/new_turf)
+	SIGNAL_HANDLER
+	source.forceMove(get_step(new_turf, WEST))

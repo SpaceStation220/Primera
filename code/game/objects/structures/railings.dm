@@ -51,6 +51,7 @@
 
 /obj/structure/railing/Initialize(mapload)
 	. = ..()
+	AddElement(/datum/element/directional_path_blocker)
 	if(climbable)
 		AddElement(/datum/element/climbable)
 

@@ -77,6 +77,9 @@ GLOBAL_LIST_EMPTY(station_turfs)
 	///Lazylist of movable atoms providing opacity sources.
 	var/list/atom/movable/opacity_sources
 
+	/// Number of directional A* path blockers currently located on this turf.
+	var/tmp/directional_blocker_count = 0
+
 	///the holodeck can load onto this turf if TRUE
 	var/holodeck_compatible = FALSE
 
@@ -114,11 +117,12 @@ GLOBAL_LIST_EMPTY(station_turfs)
 	var/skip_minimap_rendering = FALSE
 
 
-/// ChangeTurf passes the old signal tables here so initialization can update them directly.
+/// ChangeTurf passes the old signal tables and blocker count here so initialization can update them directly.
 /// In particular, occupant initialization can move or delete existing contents before New() returns.
-/turf/New(loc, list/inherited_listen_lookup, list/inherited_signal_procs)
+/turf/New(loc, list/inherited_listen_lookup, list/inherited_signal_procs, inherited_directional_blocker_count = 0)
 	_listen_lookup = inherited_listen_lookup
 	_signal_procs = inherited_signal_procs
+	directional_blocker_count = inherited_directional_blocker_count
 	. = ..(loc)
 
 /turf/vv_edit_var(var_name, new_value)

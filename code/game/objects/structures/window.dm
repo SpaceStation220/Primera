@@ -47,6 +47,7 @@
 /obj/structure/window/Initialize(mapload, direct)
 	AddElement(/datum/element/blocks_explosives)
 	. = ..()
+	AddElement(/datum/element/directional_path_blocker)
 	if(direct)
 		setDir(direct)
 	if(reinf && anchored)
