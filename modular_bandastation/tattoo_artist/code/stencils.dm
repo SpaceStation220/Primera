@@ -29,7 +29,7 @@
 
 /// The editor mask can be older than a newly worn glove or shoe.
 /datum/tattoo_session/proc/stencil_fits(pixels)
-	if(!side || !mask_bits || pixels == empty_bitmap || limb.has_drawn_tattoo() || !valid_draft(pixels))
+	if(!side || !mask_bits || pixels == empty_bitmap || limb.has_drawn_tattoo(all_views ? null : side) || !valid_draft(pixels))
 		return FALSE
 	var/datum/tattoo_design/check = new
 	var/fits = check.prepare(limb, side, pixels, palette)

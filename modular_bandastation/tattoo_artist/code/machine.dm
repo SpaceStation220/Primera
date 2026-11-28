@@ -131,9 +131,6 @@
 			QDEL_NULL(session)
 			return TRUE
 	else
-		if(limb.has_drawn_tattoo())
-			balloon_alert(user, "на этом участке уже есть татуировка")
-			return TRUE
 		var/supply_error = tattoo_supply_error(target)
 		if(supply_error)
 			balloon_alert(user, supply_error)

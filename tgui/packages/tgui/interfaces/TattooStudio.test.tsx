@@ -96,7 +96,7 @@ const artistDraft = {
 };
 const centerDot = '1'.padStart(2081, '0').padEnd(4096, '0');
 
-it('chooses an angle for drawing and shows all four views for approval', async () => {
+it('keeps a back tattoo on the chosen side unless the artist opts in to all four', async () => {
   mockLimb();
   const act = spyOn(actions, 'sendAct');
   const draft = { ...artistDraft, direction: Dir.SOUTH };
@@ -110,21 +110,79 @@ it('chooses an angle for drawing and shows all four views for approval', async (
   const view = render(<TattooStudio />);
   await screen.findByLabelText('Эскиз на выбранном участке кожи');
   expect(screen.queryAllByRole('img')).toHaveLength(0);
-  fireEvent.click(screen.getByText('Лицом вправо'));
-  expect(act).toHaveBeenLastCalledWith('direction', { direction: Dir.EAST });
+  const toggle = screen.getByRole('checkbox', {
+    name: 'Нанести на все стороны',
+  });
+  expect(toggle.getAttribute('aria-checked')).toBe('false');
+  fireEvent.click(screen.getByText('Со спины'));
+  expect(act).toHaveBeenLastCalledWith('direction', { direction: Dir.NORTH });
 
-  const inked = { ...draft, draft: centerDot, revision: 2 };
+  const inked = {
+    ...draft,
+    direction: Dir.NORTH,
+    draft: centerDot,
+    revision: 2,
+  };
   store.set(gameDataAtom, inked);
   view.rerender(<TattooStudio />);
   fireEvent.click(screen.getByText('Лицом влево'));
   expect(act).toHaveBeenCalledTimes(1);
+  store.set(gameDataAtom, { ...inked, occupied: [Dir.SOUTH] });
+  view.rerender(<TattooStudio />);
+  fireEvent.click(screen.getByText('Нанести на все стороны'));
+  expect(act).toHaveBeenCalledTimes(1);
+  store.set(gameDataAtom, inked);
+  view.rerender(<TattooStudio />);
+  fireEvent.click(screen.getByText('Нанести на все стороны'));
+  expect(act).toHaveBeenLastCalledWith('set_all_views', {
+    enabled: 1,
+    revision: 2,
+  });
+
+  store.set(gameDataAtom, {
+    ...inked,
+    allViews: 1,
+    occupied: [Dir.SOUTH],
+    revision: 3,
+  });
+  view.rerender(<TattooStudio />);
+  fireEvent.click(screen.getByText('Нанести на все стороны'));
+  expect(act).toHaveBeenLastCalledWith('set_all_views', {
+    enabled: 0,
+    revision: 3,
+  });
+  store.set(gameDataAtom, {
+    ...inked,
+    role: 'client',
+    phase: 'review',
+    allViews: 0,
+    revision: 4,
+    tattooViews: [{ direction: Dir.NORTH, image: 'north.png' }],
+  });
+  await reactAct(async () => view.rerender(<TattooStudio />));
+  expect(
+    screen.queryByRole('checkbox', { name: 'Нанести на все стороны' }),
+  ).toBeNull();
+  expect(screen.getByText('Только выбранная сторона · Со спины')).toBeDefined();
+  expect(screen.getAllByRole('img')).toHaveLength(1);
+  expect(
+    screen
+      .getByRole('img', { name: 'Татуировка · Со спины' })
+      .getAttribute('src'),
+  ).toBe('north.png');
 
   for (const [phase, role] of [
     ['review', 'artist'],
     ['review', 'client'],
     ['applying', 'client'],
   ]) {
-    store.set(gameDataAtom, { ...inked, phase, role, tattooViews });
+    store.set(gameDataAtom, {
+      ...inked,
+      phase,
+      role,
+      tattooViews,
+      allViews: 1,
+    });
     await reactAct(async () => view.rerender(<TattooStudio />));
     expect(
       screen
@@ -210,6 +268,7 @@ it('uploads a large edit in URL-safe batches and keeps newer strokes until every
     if (batch === 0) expect(patch.slice(0, 6)).toBe('000010');
     if (batch === 2) expect(patch.slice(-3)).toBe('WW1');
     fireEvent.click(screen.getByText('Показать на согласование'));
+    fireEvent.click(screen.getByText('Нанести на все стороны'));
     expect(act).toHaveBeenCalledTimes(batch + 1);
     const changed = (batch + 1) * 400;
     const remote =
@@ -222,7 +281,7 @@ it('uploads a large edit in URL-safe batches and keeps newer strokes until every
     view.rerender(<TattooStudio />);
   }
   fireEvent.click(screen.getByText('Показать на согласование'));
-  expect(act).toHaveBeenLastCalledWith('review');
+  expect(act).toHaveBeenLastCalledWith('review', { revision: 4 });
 });
 
 it('retries a missing acknowledgement a bounded number of times and allows manual recovery', async () => {
@@ -278,7 +337,7 @@ it('retries a missing acknowledgement a bounded number of times and allows manua
   view.rerender(<TattooStudio />);
   expect(screen.queryByText('Повторить отправку')).toBeNull();
   fireEvent.click(screen.getByText('Показать на согласование'));
-  expect(act).toHaveBeenLastCalledWith('review');
+  expect(act).toHaveBeenLastCalledWith('review', { revision: 2 });
 });
 
 it('saves an acknowledged sketch, applies the stencil to a blank canvas and edits it', async () => {

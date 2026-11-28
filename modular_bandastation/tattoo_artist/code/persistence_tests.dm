@@ -5,7 +5,7 @@
 		artist.dropItemToGround(machine)
 
 /// Submit the same review and approval actions as the two studio windows.
-/datum/unit_test/drawn_tattoo_persistence/proc/check_approval(mob/living/carbon/human/artist, mob/living/carbon/human/wearer, obj/item/tattoo_machine/machine, obj/item/bodypart/limb, save, expected_default, interrupt = FALSE)
+/datum/unit_test/drawn_tattoo_persistence/proc/check_approval(mob/living/carbon/human/artist, mob/living/carbon/human/wearer, obj/item/tattoo_machine/machine, obj/item/bodypart/limb, save, expected_default, interrupt = FALSE, all_views = FALSE)
 	artist.zone_selected = limb.body_zone
 	var/obj/item/tattoo_needle/needle = allocate(/obj/item/tattoo_needle)
 	var/obj/item/tattoo_wipe/wipe = allocate(/obj/item/tattoo_wipe)
@@ -14,6 +14,8 @@
 	var/datum/tattoo_session/session = allocate(/datum/tattoo_session, machine, artist, wearer, limb)
 	machine.session = session
 	TEST_ASSERT(session.can_continue() && session.set_view(SOUTH), "The prepared limb could not be tattooed.")
+	if(all_views)
+		session.handle_action(artist, "set_all_views", list("enabled" = TRUE, "revision" = session.revision))
 	var/list/wearer_window = session.ui_data(wearer)
 	var/list/artist_window = session.ui_data(artist)
 	TEST_ASSERT(wearer_window["canSave"] && !artist_window["canSave"], "The studio offered the save choice to the wrong participant.")
@@ -83,7 +85,7 @@
 	TEST_ASSERT_NOTNULL(inherited, "Approval without an override did not finish.")
 	TEST_ASSERT(wearer.set_visible_tattoo_saved(wearer, REF(inherited), FALSE), "The wearer could not forget the drawing saved by default.")
 	var/obj/item/bodypart/arm = wearer.get_bodypart(BODY_ZONE_L_ARM)
-	check_approval(other, wearer, machine, arm, FALSE, TRUE)
+	check_approval(other, wearer, machine, arm, FALSE, TRUE, all_views = TRUE)
 	check_approval(other, wearer, machine, wearer.get_bodypart(BODY_ZONE_R_LEG), TRUE, TRUE, interrupt = TRUE)
 	first_slot = preferences.savefile.get_entry("character1")
 	TEST_ASSERT(!length(first_slot["drawn_tattoos"]), "An interrupted opt-in wrote a drawing to the character file.")

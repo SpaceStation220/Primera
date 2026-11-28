@@ -41,7 +41,9 @@
 		legacy_designs += design
 	for(var/datum/tattoo_design/design as anything in legacy_designs)
 		TEST_ASSERT(arm.apply_drawn_tattoo(design) && customer.set_tattoo_persistent(arm, design, TRUE), "A single-sided fixture drawing did not reach the arm and character file.")
-	TEST_ASSERT(!editor.set_view(EAST), "The editor offered a new four-view drawing on a limb with single-sided tattoos.")
+	TEST_ASSERT(!editor.set_view(NORTH) && editor.set_view(EAST), "The editor should offer only the free sides of this tattooed limb.")
+	editor.handle_action(artist, "set_all_views", list("enabled" = TRUE, "revision" = editor.revision))
+	TEST_ASSERT(!editor.all_views, "A four-view tattoo would overwrite existing work on this limb.")
 	qdel(editor)
 	var/datum/bodypart_overlay/drawn_tattoo/front
 	var/datum/bodypart_overlay/drawn_tattoo/back
