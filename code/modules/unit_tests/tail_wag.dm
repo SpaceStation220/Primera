@@ -100,3 +100,29 @@
 	dummy.wag_tail()
 	if(dummy_tail.wag_flags & WAG_WAGGING)
 		TEST_FAIL("A dead mob was able to wag their tail!")
+
+/// A tail can be restyled while its owner's back spines and wag animation stay active.
+/datum/unit_test/tail_restyle_spines/Run()
+	var/mob/living/carbon/human/lizard = allocate(/mob/living/carbon/human/consistent)
+	lizard.dna.features[FEATURE_SPINES] = /datum/sprite_accessory/spines/short::name
+	lizard.dna.features[FEATURE_TAIL_LIZARD] = /datum/sprite_accessory/tails/lizard/mechanical::name
+	lizard.set_species(/datum/species/lizard)
+	var/obj/item/organ/tail/tail = lizard.get_organ_slot(ORGAN_SLOT_EXTERNAL_TAIL)
+	TEST_ASSERT_NOTNULL(tail, "Lizard did not receive a tail.")
+	lizard.wag_tail()
+
+	tail.simple_change_sprite(/datum/sprite_accessory/tails/lizard/smooth)
+	var/list/organic_states = get_limb_states(tail.bodypart_owner)
+	TEST_ASSERT("m_tailspines_lizard_wagging_short_ADJ" in organic_states, "Restoring an organic tail while wagging should restore its moving spines.")
+
+	tail.simple_change_sprite(/datum/sprite_accessory/tails/lizard/mechanical)
+	var/list/mechanical_states = get_limb_states(tail.bodypart_owner)
+	TEST_ASSERT("m_spines_short_ADJ" in mechanical_states, "The back spines should stay visible.")
+	TEST_ASSERT("m_tail_lizard_wagging_mechanical_BEHIND" in mechanical_states, "The mechanical tail should keep wagging.")
+	TEST_ASSERT(!("m_tailspines_lizard_wagging_short_ADJ" in mechanical_states), "The previous tail's spines should disappear.")
+
+/datum/unit_test/tail_restyle_spines/proc/get_limb_states(obj/item/bodypart/limb)
+	var/list/states = list()
+	for(var/image/layer as anything in limb.get_limb_icon())
+		states |= layer.icon_state
+	return states

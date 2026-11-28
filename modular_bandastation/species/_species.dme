@@ -42,6 +42,7 @@
 #include "code/human/sprite_accessories/tajaran/tajaran_tails.dm"
 
 #include "code/human/sprite_accessories/hair.dm"
+#include "code/human/sprite_accessories/mechanical_tails.dm"
 #include "code/human/sprite_accessories/ipc/ipc_appearance.dm"
 #include "code/human/ipc_display.dm"
 #include "code/human/ipc_emotes.dm"
