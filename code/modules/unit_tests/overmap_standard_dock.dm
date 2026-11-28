@@ -1172,6 +1172,8 @@
 	TEST_ASSERT(navigation.select_site(eva_site.id), "The nuke crew must be able to select the EVA site")
 	navigation.pos_x = eva_site.pos_x
 	navigation.pos_y = eva_site.pos_y
+	if(!exercise_station_radar(navigation))
+		return
 	TEST_ASSERT(!navigation.dock(), "The EVA fallback must stay unavailable while the station's M berth is free")
 	TEST_ASSERT_EQUAL(shershen.get_docked(), navigation.flight_berth, "A rejected EVA order must leave the hull in free flight")
 
@@ -1230,6 +1232,22 @@
 		TEST_ASSERT(isspaceturf(tile), "Departure must restore the station's open space beneath the hull")
 	TEST_ASSERT(station_slot.active_berth == occupied_berth && occupied_berth.get_docked() == berth_occupant, "Returning to flight must leave the other hull on M")
 	TEST_NOTICE(src, "Verified physical arrival, exterior airlock exit and return from the occupied-berth EVA route")
+	return TRUE
+
+/// A real assault shuttle in range must give the station an echo without exposing its private destinations.
+/datum/unit_test/overmap_nukeops/proc/exercise_station_radar(datum/stationtrauma_overmap/space/navigation)
+	var/datum/stationtrauma_overmap_sector/space/home/home = navigation.sector
+	TEST_ASSERT(home.sample_station_radar(active = TRUE), "The station's initial radar pulse must start")
+	var/list/chart = home.station_radar_data()
+	TEST_ASSERT(length(chart["ship_contacts"]), "A nearby Shershen must produce an echo")
+	var/found_shershen = FALSE
+	for(var/list/contact as anything in chart["ship_contacts"])
+		if(contact["x"] == navigation.pos_x && contact["y"] == navigation.pos_y)
+			found_shershen = TRUE
+	TEST_ASSERT(found_shershen, "Radar must report the measured position on the public station chart")
+	for(var/list/site as anything in chart["routes"])
+		TEST_ASSERT(!(site["id"] in list("nukeops_base", "nukeops_eva")), "The station chart must never disclose private destinations")
+	TEST_ASSERT(!chart["scan_ready"] && !home.sample_station_radar(active = TRUE), "Consecutive pulses must share the station cooldown")
 	return TRUE
 
 /// Use the mapped launcher, payload, and station while physical boarding has no compatible slot.

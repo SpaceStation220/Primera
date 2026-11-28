@@ -22,7 +22,7 @@
 	preparing = TRUE
 	connection = new(owner, 1, WEST)
 	prepare_flight_berth()
-	return ..()
+	return ..(TRUE)
 
 /datum/stationtrauma_overmap/space/Destroy()
 	clear_biosignature_course()

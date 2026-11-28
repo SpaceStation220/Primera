@@ -281,6 +281,10 @@
  * The planetary sequence waits in orbit for the loaded map and its pictures, then runs through atmospheric entry.
  */
 /datum/stationtrauma_overmap/space/proc/approach(datum/stationtrauma_overmap_site/space/site, revision)
+	var/hostile_eva = istype(site, /datum/stationtrauma_overmap_site/space/nukeops_berth/eva)
+	// Check the footprint before alerting the station; native docking checks it again before moving.
+	if(hostile_eva && !vessel.check_dock(site.berth, TRUE))
+		return FALSE
 	var/controlled = station_clearance_required(site)
 	// An open-space rescue stops alongside immediately; the approach clock needs a non-zero duration.
 	var/rescue = istype(site, /datum/stationtrauma_overmap_site/space/distress/casualty) || length(site.distress_callsigns())
@@ -289,6 +293,8 @@
 	var/obj/docking_port/stationary/stationtrauma_space_station/standard/slot = site.berth
 	var/illuminate_pad = istype(slot) && slot.hangar
 	status = (site.landing || illuminate_pad) ? "Посадка: [site.name]" : "Сближение: [site_label(site)]"
+	if(hostile_eva && SSticker.HasRoundStarted())
+		stationtrauma_announce_hostile_approach("Враждебный корабль начал сближение для внешней высадки. До прибытия [duration / (1 SECONDS)] с.")
 	if(site.awaits_map() && !site.loading_map)
 		INVOKE_ASYNC(site, TYPE_PROC_REF(/datum/stationtrauma_overmap_site/space, load_map))
 	while(TRUE)

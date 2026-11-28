@@ -73,8 +73,11 @@
 	)
 	/// Fixed native berth created from the station's controller during sector loading.
 	var/obj/docking_port/stationary/stationtrauma_space_station/configured_station_berth
+	/// Radar observations and the pulse cooldown shared by this station's consoles.
+	var/datum/stationtrauma_overmap/station_radar
 
 /datum/stationtrauma_overmap_sector/space/home/Destroy()
+	QDEL_NULL(station_radar)
 	. = ..()
 	if(!QDELETED(configured_station_berth))
 		qdel(configured_station_berth, force = TRUE)

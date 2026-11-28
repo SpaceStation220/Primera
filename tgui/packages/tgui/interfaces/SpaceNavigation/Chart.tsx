@@ -68,6 +68,7 @@ export type MuzzleFlash = {
 
 type Props = {
   data: ChartData;
+  station?: boolean;
   zoom: number;
   firingSector?: FiringSector;
   firingSectors?: FiringSector[];
@@ -96,6 +97,7 @@ export function Chart({
   onSite,
   selectableSites,
   onPad,
+  station = false,
   zoom,
   hoveredTarget,
 }: Props) {
@@ -113,6 +115,9 @@ export function Chart({
   const own = point(data.x, data.y);
   const aim = aimPoint && point(aimPoint.x, aimPoint.y);
   const disabled = !!(data.preparing || data.relocating);
+  const centreLabel = station
+    ? 'Центрировать на станции'
+    : 'Центрировать на корабле';
 
   useEffect(() => {
     const release = () => {
@@ -168,8 +173,8 @@ export function Chart({
         <Button
           compact
           icon="crosshairs"
-          tooltip="Центрировать на корабле"
-          aria-label="Центрировать на корабле"
+          tooltip={centreLabel}
+          aria-label={centreLabel}
           onClick={() => setPan({ x: 0, y: 0 })}
         />
       </div>
@@ -673,14 +678,16 @@ export function Chart({
           style={{ color: '#c4e9d7' }}
         >
           <circle
-            r={data.dock_range * scale}
+            r={(station ? data.sensor_range : data.dock_range) * scale}
             fill="none"
             stroke="#a6d4c3"
             strokeWidth=".5"
             strokeOpacity=".35"
             strokeDasharray="2 5"
           >
-            <title>Дальность стыковки и посадки</title>
+            <title>
+              {station ? 'Дальность импульса' : 'Дальность стыковки и посадки'}
+            </title>
           </circle>
           {!!data.shield_up && (
             <circle
@@ -693,9 +700,11 @@ export function Chart({
               <title>Щит поднят</title>
             </circle>
           )}
-          <g transform={`rotate(${data.course})`}>
-            <ShipGlyph />
-          </g>
+          {!station && (
+            <g transform={`rotate(${data.course})`}>
+              <ShipGlyph />
+            </g>
+          )}
           {muzzleFlashes?.map((flash) => (
             <g key={flash.id} transform={`rotate(${flash.heading})`}>
               <title>Выстрел орудия</title>

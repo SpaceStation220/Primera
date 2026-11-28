@@ -857,6 +857,133 @@
   }
 }
 
+.StationRadar {
+  &.SpaceNavigation > header {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(224px, 29%);
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  & &__footer {
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &.SpaceNavigation &__footer .Button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 26px;
+    padding: 2px 8px;
+    border: 1px solid #547267;
+    border-radius: 2px;
+    background: #152925;
+    color: var(--nav-phosphor);
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.48;
+    }
+  }
+
+  &__contacts {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-color: var(--nav-border) var(--nav-screen);
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+
+    li + li {
+      margin-top: 3px;
+    }
+
+    .Button {
+      display: block;
+      width: 100%;
+      min-height: 32px;
+      padding: 5px 6px;
+      border: 1px solid #30433b;
+      border-radius: 2px;
+      background: #101a1a;
+      color: var(--nav-ink);
+      text-align: left;
+    }
+
+    .Button[aria-pressed='true'],
+    .Button:hover {
+      border-color: #629383;
+      background: #19332e;
+      color: var(--nav-phosphor);
+    }
+
+    .Button:focus-visible {
+      outline-offset: -2px;
+    }
+  }
+
+  &__contact {
+    display: grid;
+    grid-template-columns: minmax(3ch, auto) minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 7px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+
+    > span {
+      color: var(--nav-muted);
+    }
+
+    .StationRadar__contact-id {
+      color: var(--nav-phosphor);
+    }
+  }
+
+  &__details {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px 12px;
+    margin: 0;
+    padding: 10px;
+    border-top: 1px solid #30433b;
+    font-variant-numeric: tabular-nums;
+
+    dt {
+      color: var(--nav-muted);
+    }
+
+    dd {
+      margin: 0;
+      color: var(--nav-ink);
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &--offline {
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 620px) {
+    &__body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(220px, 1fr) minmax(132px, 40%);
+      overflow-y: auto;
+    }
+  }
+}
+
 .SpaceNavigation__sos {
   pointer-events: none;
 }

@@ -122,9 +122,10 @@
 	/// Monotonic crew-local contact number; does not expose shuttle IDs.
 	var/next_contact_number = 0
 
-/datum/stationtrauma_overmap/New()
+/datum/stationtrauma_overmap/New(process_movement = TRUE)
 	last_update = world.time
-	START_PROCESSING(SSfastprocess, src)
+	if(process_movement)
+		START_PROCESSING(SSfastprocess, src)
 
 /datum/stationtrauma_overmap/Destroy()
 	STOP_PROCESSING(SSfastprocess, src)

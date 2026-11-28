@@ -263,6 +263,18 @@
 		"SHIP" = "will be replaced with the requesting ship: its transponder callsign, or an unknown vessel.",
 	)
 
+/// Warn players on the station of an unauthorized approach. The caller must HTML-encode interpolated names.
+/proc/stationtrauma_announce_hostile_approach(message)
+	var/announcement = create_announcement_div("[span_bold("Диспетчерская станции")]<br>[message]", "red")
+	for(var/mob/recipient as anything in GLOB.player_list)
+		var/turf/position = get_turf(recipient)
+		if(isnewplayer(recipient) || !position || !is_station_level(position.z))
+			continue
+		to_chat(recipient, announcement)
+		// The siren must play immediately even if announcement TTS is unavailable.
+		if(!HAS_TRAIT(recipient, TRAIT_DEAF) && recipient.client?.prefs.read_preference(/datum/preference/toggle/sound_announcements))
+			SEND_SOUND(recipient, sound('sound/effects/siren.ogg'))
+
 /datum/stationtrauma_overmap/space/proc/cancel_station_docking()
 	var/datum/stationtrauma_station_docking_request/request = get_station_docking_request()
 	if(QDELETED(request))
