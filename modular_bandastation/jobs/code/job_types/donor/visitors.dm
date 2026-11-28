@@ -299,11 +299,16 @@
 	id_trim = /datum/id_trim/job/donor/navy_junior_officer
 	uniform = /obj/item/clothing/under/rank/centcom/intern
 	head = /obj/item/clothing/head/hats/intern
+	ear_right = /obj/item/radio/headset/headset_cent
 	shoes = /obj/item/clothing/shoes/laceup
+	belt = /obj/item/modular_computer/pda/heads/centcom
 	l_hand = /obj/item/storage/briefcase
+	box = /obj/item/storage/box/survival/centcom
 	backpack_contents = list(
 		/obj/item/gun/ballistic/automatic/pistol/deagle/gold = 1,
 		/obj/item/ammo_box/magazine/m50 = 1,
+		/obj/item/clothing/under/rank/centcom/formal = 1,
+		/obj/item/clothing/head/beret/cent_intern = 1,
 	)
 	implants = list(/obj/item/implant/mindshield)
 
