@@ -65,6 +65,7 @@
 #include "code/exterior_drift.dm"
 #include "code/trade_hub.dm"
 #include "code/trade_hub_catalog.dm"
+#include "code/trade_hub_reputation.dm"
 #include "code/trade_hub_rewards.dm"
 #include "code/sector_trade_monitor.dm"
 #include "code/relay.dm"

@@ -40,6 +40,7 @@ type Data = {
   reward_market?: RewardMarketData;
   name: string;
   specialization: string;
+  reputation: number | null;
   connected: BooleanLike;
   operational: BooleanLike;
   balance: number;
@@ -78,6 +79,7 @@ type Data = {
     required: number | null;
     remaining: number | null;
     unit_reward: number;
+    ready_quantity: number;
     restock_amount: number;
     restock_pending: BooleanLike;
     renewal_pending: BooleanLike;
@@ -120,6 +122,15 @@ export function TradeHub() {
   const [tab, setTab] = useState<Tab>('buy');
   const [searchText, setSearchText] = useState('');
   const [group, setGroup] = useState('');
+  const [requestSearch, setRequestSearch] = useState('');
+  const [sellView, setSellView] = useState('requests');
+  const hasRewards = !!reward_market?.quotes.length;
+  const hasContracts = !cash && contracts.length > 0;
+  const activeView =
+    (sellView === 'rewards' && hasRewards) ||
+    (sellView === 'contracts' && hasContracts)
+      ? sellView
+      : 'requests';
   const nav = useRef<HTMLDivElement>(null);
   const lastAction = useRef<{
     action: TradeCommand;
@@ -145,19 +156,35 @@ export function TradeHub() {
   const search = createSearch(searchText, (offer: Data['offers'][number]) =>
     [offer.name, offer.description, offer.group].join(' '),
   );
+  const activeGroup = groups.includes(group) ? group : '';
   const filtered = offers.filter(
-    (offer) => (!group || group === offer.group) && search(offer),
+    (offer) => (!activeGroup || activeGroup === offer.group) && search(offer),
   );
+  const findRequest = createSearch(requestSearch, (request: TradeRequest) =>
+    [request.name, request.group, request.category].join(' '),
+  );
+  // A completed delivery stays with the ready rows while its receipt is visible.
+  const isReadyOrJustSubmitted = (request: TradeRequest) =>
+    request.ready_quantity > 0 ||
+    (receipt?.action === 'accept' && receipt.id === request.id);
+  const sortedRequests = requests
+    .filter(findRequest)
+    .sort(
+      (a, b) =>
+        Number(isReadyOrJustSubmitted(b)) - Number(isReadyOrJustSubmitted(a)),
+    );
   const receiptInView =
     receipt &&
     (tab === 'buy'
       ? receipt.action === 'buy' &&
         filtered.some((offer) => offer.id === receipt.id)
-      : (receipt.action === 'accept' &&
-          requests.some((request) => request.id === receipt.id)) ||
-        (receipt.action === 'sell_reward' &&
+      : (activeView === 'requests' &&
+          receipt.action === 'accept' &&
+          sortedRequests.some((request) => request.id === receipt.id)) ||
+        (activeView === 'rewards' &&
+          receipt.action === 'sell_reward' &&
           reward_market?.quotes.some((quote) => quote.id === receipt.id)) ||
-        (!cash &&
+        (activeView === 'contracts' &&
           receipt.action === 'deliver_contract' &&
           contracts.some((contract) => contract.id === receipt.id)));
   const terminalReason =
@@ -247,7 +274,7 @@ export function TradeHub() {
             ))}
           </div>
           <label className="TradeHub__payment">
-            Расчёт
+            {tab === 'buy' ? 'Оплата' : 'Получатель'}
             <select
               value={payment}
               onChange={(event) => {
@@ -259,15 +286,20 @@ export function TradeHub() {
                 );
               }}
             >
-              <option value="cash">Личные наличные</option>
+              <option value="cash">
+                {tab === 'buy' ? 'Личные наличные' : 'Вы · голочип'}
+              </option>
               <option value="cargo" disabled={!data.cargo_access}>
                 Бюджет карго{data.cargo_access ? '' : ' · нужен доступ'}
               </option>
             </select>
           </label>
-          <strong>
-            {cash ? 'В руке' : 'Бюджет'}: {formatMoney(balance)} кр.
-          </strong>
+          {tab === 'buy' && (
+            <span className="TradeHub__balance">
+              {cash ? 'В руке' : 'Доступно'}{' '}
+              <strong>{formatMoney(balance)} кр.</strong>
+            </span>
+          )}
         </div>
         {sharedReason && (
           <div id="trade-unavailable" className="TradeHub__unavailable">
@@ -289,34 +321,36 @@ export function TradeHub() {
           >
             {tab === id && (
               <Window.Content scrollable>
-                <Section title={data.name}>
-                  <Box color="label">{data.specialization}</Box>
-                  {!sharedReason && (
-                    <Box color="good">
-                      {id === 'buy'
-                        ? 'Площадка выдачи свободна'
-                        : 'Площадка приёма готова'}
-                    </Box>
+                <header className="TradeHub__identity">
+                  <div>
+                    <h1>{data.name}</h1>
+                    <p>{data.specialization}</p>
+                  </div>
+                  {data.reputation != null && (
+                    <div className="TradeHub__reputation">
+                      Репутация{' '}
+                      <strong>
+                        {data.reputation}
+                        <small> / 100</small>
+                      </strong>
+                    </div>
                   )}
-                  {id === 'sell' && data.status && (
-                    <Box color="label">{data.status}</Box>
-                  )}
-                </Section>
+                </header>
                 {id === 'buy' ? (
                   <Section
-                    title="Предложения узла"
+                    title="Товары узла"
                     buttons={
-                      <span>
-                        Показано: {filtered.length}/{offers.length}
+                      <span className="TradeHub__count">
+                        {filtered.length} из {offers.length}
                       </span>
                     }
                   >
-                    <Box mb={1}>
-                      Заказ появится на площадке выдачи.{' '}
-                      {cash
-                        ? 'Возьмите купюры или голочип в активную руку. Сдача с купюр выдаётся голочипом.'
-                        : 'Стоимость заказа спишется из бюджета карго.'}
-                    </Box>
+                    <div className="TradeHub__guide">
+                      {!sharedReason && <strong>Выдача свободна. </strong>}
+                      Заказ появится на площадке выдачи.
+                      {cash &&
+                        ' Возьмите купюры или голочип в активную руку. Сдачу с купюр получите голочипом.'}
+                    </div>
                     <div className="TradeHub__filters">
                       <label>
                         Поиск товара
@@ -333,7 +367,7 @@ export function TradeHub() {
                       <label>
                         Группа
                         <select
-                          value={group}
+                          value={activeGroup}
                           onChange={(event) => {
                             lastAction.current = null;
                             setGroup(event.currentTarget.value);
@@ -345,30 +379,31 @@ export function TradeHub() {
                           ))}
                         </select>
                       </label>
-                      <button
-                        type="button"
-                        disabled={!searchText && !group}
-                        onClick={() => {
-                          lastAction.current = null;
-                          setSearchText('');
-                          setGroup('');
-                        }}
-                      >
-                        Сбросить
-                      </button>
+                      {(!!searchText || !!activeGroup) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            lastAction.current = null;
+                            setSearchText('');
+                            setGroup('');
+                          }}
+                        >
+                          Сбросить
+                        </button>
+                      )}
                     </div>
                     {!offers.length ? (
-                      <Box color="label">Нет доступных предложений.</Box>
+                      <p className="TradeHub__empty">
+                        Узел не продаёт товары при выбранном способе оплаты.
+                      </p>
                     ) : !filtered.length ? (
-                      <Box color="label">
-                        По заданным фильтрам ничего не найдено. Измените поиск
-                        или сбросьте фильтры.
-                      </Box>
+                      <p className="TradeHub__empty">
+                        Товары не найдены. Измените запрос или сбросьте фильтры.
+                      </p>
                     ) : (
                       <OffersTable
                         offers={filtered}
                         balance={balance}
-                        cash={cash}
                         reason={sharedReason}
                         submitTrade={submitTrade}
                         receipt={receipt}
@@ -377,63 +412,133 @@ export function TradeHub() {
                   </Section>
                 ) : (
                   <>
-                    {!cash && (
-                      <ContractsTable
-                        contracts={contracts}
-                        reason={sharedReason}
-                        submitTrade={submitTrade}
-                        receipt={receipt}
-                      />
-                    )}
-                    {reward_market && (
+                    <div className="TradeHub__intake">
+                      {(hasRewards || hasContracts) && (
+                        <label>
+                          Раздел приёмки
+                          <select
+                            value={activeView}
+                            onChange={(event) => {
+                              lastAction.current = null;
+                              setSellView(event.currentTarget.value);
+                            }}
+                          >
+                            <option value="requests">Товары по заявкам</option>
+                            {hasRewards && (
+                              <option value="rewards">Выкуп наград</option>
+                            )}
+                            {hasContracts && (
+                              <option value="contracts">
+                                Экспедиционные контракты
+                              </option>
+                            )}
+                          </select>
+                        </label>
+                      )}
+                      <div className="TradeHub__guide">
+                        {!sharedReason && <strong>Приёмка готова. </strong>}
+                        {cash
+                          ? 'Вы получите голочип. Если руки заняты, чип упадёт у ваших ног.'
+                          : 'Начисление поступит в бюджет карго.'}
+                      </div>
+                    </div>
+                    {activeView === 'rewards' && reward_market ? (
                       <RewardMarket
                         market={reward_market}
                         reason={sharedReason}
                         submitTrade={submitTrade}
                         receipt={receipt}
                       />
-                    )}
-                    <Section title="Местные потребности">
-                      <Box mb={1}>
-                        Положите товар на общую площадку приёма отдельно или в
-                        открытом ящике. Излишки останутся на месте.{' '}
-                        {cash
-                          ? 'Голочип получит тот, кто нажмёт «Сдать груз». Если руки заняты, он упадёт у ног.'
-                          : 'Выплата поступит в бюджет карго.'}
-                      </Box>
-                      <Box color="label" mb={1}>
-                        У сменных заявок есть квота. Когда она исчерпана, узел
-                        запросит другой товар той же группы.
-                      </Box>
-                      {!requests.length ? (
-                        <Box color="label">Активных заявок нет.</Box>
-                      ) : (
-                        <TradeTable
-                          name="Местные потребности"
-                          headings={[
-                            'Товар',
-                            'Партия и пополнение',
-                            'За единицу',
-                            'Действие',
-                          ]}
+                    ) : activeView === 'contracts' ? (
+                      <ContractsTable
+                        contracts={contracts}
+                        reason={sharedReason}
+                        submitTrade={submitTrade}
+                        receipt={receipt}
+                      />
+                    ) : (
+                      <Section
+                        title="Заявки узла"
+                        buttons={
+                          <span className="TradeHub__count">
+                            {sortedRequests.length} из {requests.length}
+                          </span>
+                        }
+                      >
+                        <p
+                          className="TradeHub__guide"
+                          id="trade-request-instructions"
                         >
-                          {requests.map((request) => (
-                            <RequestRow
-                              key={request.id}
-                              request={request}
-                              reason={sharedReason}
-                              submitTrade={submitTrade}
-                              receipt={
-                                receipt?.action === 'accept' &&
-                                receipt.id === request.id
-                                  ? receipt
-                                  : null
-                              }
+                          Положите товар на площадку приёма или в открытый ящик
+                          на ней. Излишки останутся на площадке.
+                        </p>
+                        <div className="TradeHub__filters">
+                          <label>
+                            Поиск заявки
+                            <input
+                              type="search"
+                              value={requestSearch}
+                              placeholder="Товар, группа или категория"
+                              onChange={(event) => {
+                                lastAction.current = null;
+                                setRequestSearch(event.currentTarget.value);
+                              }}
                             />
-                          ))}
-                        </TradeTable>
-                      )}
-                    </Section>
+                          </label>
+                          {!!requestSearch && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                lastAction.current = null;
+                                setRequestSearch('');
+                              }}
+                            >
+                              Сбросить
+                            </button>
+                          )}
+                        </div>
+                        {data.status && (
+                          <p className="TradeHub__market-status">
+                            {data.status}
+                          </p>
+                        )}
+                        {!requests.length ? (
+                          <p className="TradeHub__empty">
+                            У узла пока нет заявок.
+                          </p>
+                        ) : !sortedRequests.length ? (
+                          <p className="TradeHub__empty">
+                            Заявки не найдены. Измените или сбросьте запрос.
+                          </p>
+                        ) : (
+                          <TradeTable
+                            name="Заявки узла"
+                            className="TradeHub__requests-table"
+                            headings={[
+                              'Товар',
+                              'К сдаче',
+                              'Начисление',
+                              'Действие',
+                            ]}
+                          >
+                            {sortedRequests.map((request) => (
+                              <RequestRow
+                                key={request.id}
+                                request={request}
+                                reason={sharedReason}
+                                submitTrade={submitTrade}
+                                receipt={
+                                  receipt?.action === 'accept' &&
+                                  receipt.id === request.id
+                                    ? receipt
+                                    : null
+                                }
+                              />
+                            ))}
+                          </TradeTable>
+                        )}
+                      </Section>
+                    )}
                   </>
                 )}
               </Window.Content>
@@ -457,7 +562,10 @@ function TradeTable({
   className?: string;
 }) {
   return (
-    <table className={classes(['TradeHub__table', className])} aria-label={name}>
+    <table
+      className={classes(['TradeHub__table', className])}
+      aria-label={name}
+    >
       <thead>
         <tr>
           {headings.map((heading) => (
@@ -517,7 +625,7 @@ function TradeAction({
         aria-describedby={
           [
             sharedReason && 'trade-unavailable',
-            reason && (describedBy || reasonId),
+            describedBy || (reason && reasonId),
           ]
             .filter(Boolean)
             .join(' ') || undefined
@@ -579,33 +687,43 @@ function RewardMarket({
   return (
     <Section
       title="Выкуп наград"
-      buttons={<Box color="label">Смена курса через {minutes}:{seconds}</Box>}
+      buttons={
+        <Box color="label">
+          До смены курса {minutes}:{seconds}
+        </Box>
+      }
     >
-      <Box id={padInstructionId} mb={1}>
-        Положите баунти-кубы и неоткрытые кэши прямо на площадку приёма.
-        Курс применяется к базовой цене экспорта. Кэш сдаётся с содержимым.
+      <Box id={padInstructionId} color="label" mb={1}>
+        Положите награду прямо на площадку приёма. Расшифрованный кэш сдавайте
+        невскрытым, вместе с содержимым.
       </Box>
       <TradeTable
         name="Выкуп наград"
         className="TradeHub__reward-table"
-        headings={['Награда', 'Курс', 'Оценка груза', 'Действие']}
+        headings={['Награда', 'От экспорта', 'Оценка груза', 'Действие']}
       >
         {market.quotes.map((quote) => (
           <tbody key={quote.id}>
             <tr>
               <th scope="row">{quote.name}</th>
-              <td>{quote.rate}%</td>
-              <td>
-                {quote.count ? (
+              <td data-label="От экспорта" className="TradeHub__number">
+                {quote.rate}%
+              </td>
+              <td data-label="Оценка груза">
+                {quote.count > 0 ? (
                   <>
-                    <strong>{formatMoney(quote.gross)} кр.</strong>
+                    <strong className="TradeHub__number">
+                      {formatMoney(quote.gross)} кр.
+                    </strong>
                     <small>
                       {quote.count} шт.
-                      {quote.id === 'bounty_cube' && ' · до выплаты долей'}
+                      {quote.id === 'bounty_cube' && ' · до вычета долей'}
                     </small>
                   </>
                 ) : (
-                  <Box color="label">Нет на площадке</Box>
+                  <Box id={`trade-empty-${quote.id}`} color="label">
+                    Нет на площадке
+                  </Box>
                 )}
               </td>
               <td>
@@ -615,7 +733,11 @@ function RewardMarket({
                   name={quote.name}
                   label="Продать"
                   reason={quote.count ? null : 'Нет на площадке.'}
-                  describedBy={padInstructionId}
+                  describedBy={
+                    quote.count
+                      ? padInstructionId
+                      : `trade-empty-${quote.id} ${padInstructionId}`
+                  }
                   sharedReason={reason}
                   submitTrade={(action, id, button) =>
                     submitTrade(action, id, button, {
@@ -637,61 +759,85 @@ function RewardMarket({
   );
 }
 
-
 function OffersTable({
   offers,
   balance,
-  cash,
   reason,
   receipt,
   submitTrade,
 }: TradeListProps & {
   offers: Data['offers'];
   balance: number;
-  cash: boolean;
 }) {
   return (
     <TradeTable
-      name="Предложения узла"
+      name="Товары узла"
+      className="TradeHub__offers-table"
       headings={['Товар', 'Запас', 'Цена за ящик', 'Действие']}
     >
-      {offers.map((offer) => (
-        <tbody key={offer.id}>
-          <tr>
-            <th scope="row">
-              {offer.name}
-              <small>{offer.group}</small>
-              <small>{offer.description}</small>
-            </th>
-            <td>
-              {offer.stock}/{offer.capacity}
-            </td>
-            <td>{formatMoney(offer.price)} кр.</td>
-            <td>
-              <TradeAction
-                action="buy"
-                id={offer.id}
-                name={offer.name}
-                label="Купить"
-                sharedReason={reason}
-                submitTrade={submitTrade}
-                reason={
-                  offer.stock <= 0
-                    ? 'Товара нет в наличии.'
-                    : balance < offer.price
-                      ? cash
-                        ? 'В активной руке недостаточно наличных.'
-                        : 'В бюджете карго недостаточно средств.'
-                      : null
-                }
-              />
-            </td>
-          </tr>
-          {receipt?.action === 'buy' && receipt.id === offer.id && (
-            <ReceiptRow receipt={receipt} columns={4} />
-          )}
-        </tbody>
-      ))}
+      {offers.map((offer) => {
+        const stockId = `trade-stock-${offer.id}`;
+        return (
+          <tbody key={offer.id}>
+            <tr>
+              <th scope="row">
+                {offer.name}
+                <small>{offer.group}</small>
+                {!!offer.description && (
+                  <details className="TradeHub__detail">
+                    <summary>
+                      Описание
+                      <span className="TradeHub__sr-only">
+                        {' '}
+                        товара {offer.name}
+                      </span>
+                    </summary>
+                    <small>{offer.description}</small>
+                  </details>
+                )}
+              </th>
+              <td data-label="Запас" id={stockId}>
+                {offer.stock > 0 ? (
+                  <span
+                    className="TradeHub__number"
+                    title="В наличии / вместимость склада"
+                  >
+                    {offer.stock} / {offer.capacity}
+                  </span>
+                ) : (
+                  'Распродано'
+                )}
+              </td>
+              <td data-label="Цена за ящик">
+                <strong className="TradeHub__number">
+                  {formatMoney(offer.price)} кр.
+                </strong>
+              </td>
+              <td>
+                <TradeAction
+                  action="buy"
+                  id={offer.id}
+                  name={offer.name}
+                  label="Купить"
+                  sharedReason={reason}
+                  submitTrade={submitTrade}
+                  describedBy={offer.stock <= 0 ? stockId : undefined}
+                  reason={
+                    offer.stock <= 0
+                      ? 'Распродано'
+                      : balance < offer.price
+                        ? `Не хватает ${formatMoney(offer.price - balance)} кр.`
+                        : null
+                  }
+                />
+              </td>
+            </tr>
+            {receipt?.action === 'buy' && receipt.id === offer.id && (
+              <ReceiptRow receipt={receipt} columns={4} />
+            )}
+          </tbody>
+        );
+      })}
     </TradeTable>
   );
 }
@@ -702,34 +848,42 @@ function ContractsTable({
   receipt,
   submitTrade,
 }: TradeListProps & { contracts: NonNullable<Data['contracts']> }) {
+  const instructionId = useId();
   if (!contracts.length) return null;
   return (
     <Section title="Контракты экспедиционного корпуса">
-      <Box mb={1}>
-        Поместите находку в закрытый ящик на площадке приёма. Для аномальной
-        находки нужен ящик для образцов. Выплата поступит в бюджет карго.
+      <Box id={instructionId} color="label" mb={1}>
+        Поставьте на приём закрытый ящик с находкой. Для аномальной находки
+        нужен ящик для образцов.
       </Box>
       <TradeTable
         name="Контракты экспедиционного корпуса"
-        headings={['Контракт', 'Награда', 'Действие']}
+        className="TradeHub__contracts-table"
+        headings={['Контракт', 'Заказчик', 'Награда', 'Действие']}
       >
         {contracts.map((contract) => (
           <tbody key={contract.id}>
             <tr>
               <th scope="row">
-                {contract.id}: {contract.name}
+                {contract.name}
                 <small>
-                  {contract.customer} · {contract.target}
+                  {contract.id} · {contract.target}
                 </small>
               </th>
-              <td>{formatMoney(contract.credits)} кр.</td>
+              <td data-label="Заказчик">{contract.customer}</td>
+              <td data-label="Награда">
+                <strong className="TradeHub__number">
+                  {formatMoney(contract.credits)} кр.
+                </strong>
+              </td>
               <td>
                 <TradeAction
                   action="deliver_contract"
                   id={contract.id}
                   name={contract.name}
-                  label="Сдать контракт"
+                  label="Сдать"
                   sharedReason={reason}
+                  describedBy={instructionId}
                   reason={null}
                   submitTrade={submitTrade}
                 />
@@ -737,7 +891,7 @@ function ContractsTable({
             </tr>
             {receipt?.action === 'deliver_contract' &&
               receipt.id === contract.id && (
-                <ReceiptRow receipt={receipt} columns={3} />
+                <ReceiptRow receipt={receipt} columns={4} />
               )}
           </tbody>
         ))}
@@ -771,8 +925,11 @@ function RequestRow({
   submitTrade,
 }: TradeListProps & { request: TradeRequest }) {
   const pause = requestPause(request);
-  const pauseId = useId();
-  const { required, remaining } = request;
+  const statusId = useId();
+  const { required, remaining, ready_quantity: quantity } = request;
+  const unavailable =
+    pause || (quantity === 0 ? 'Нет подходящего груза.' : null);
+
   return (
     <tbody>
       <tr>
@@ -786,19 +943,41 @@ function RequestRow({
             />
             <div>
               {request.name}
-              <small>{request.group || request.category}</small>
-              {request.group && <small>{request.category}</small>}
+              <small>
+                {required === null ? 'Постоянная закупка' : request.category}
+              </small>
+              {!!request.highDemand && (
+                <small className="color-good">
+                  Высокий спрос +{request.high_demand_bonus}%
+                </small>
+              )}
             </div>
           </div>
         </th>
-        <td>
-          {required === null ? (
-            <>
-              <b>Постоянная закупка</b>
-              <small>Без лимита и пополнения запасов</small>
-            </>
+        <td data-label="К сдаче">
+          {unavailable ? (
+            <div id={statusId} className="TradeHub__reason">
+              {unavailable}
+              {!pause && required === null && (
+                <small>Нужен открытый пустой ящик.</small>
+              )}
+            </div>
           ) : (
-            <>
+            <strong className="TradeHub__number">{quantity} ед.</strong>
+          )}
+          {required === null ? (
+            <small>Без лимита</small>
+          ) : (
+            <details className="TradeHub__detail">
+              <summary>Условия партии</summary>
+              <small>
+                До полной партии —{' '}
+                {Math.max(
+                  0,
+                  Math.min(required - request.delivered, remaining ?? required),
+                )}{' '}
+                ед.
+              </small>
               <div
                 role="progressbar"
                 aria-label={`Партия: ${request.name}`}
@@ -807,51 +986,42 @@ function RequestRow({
                 aria-valuenow={request.delivered}
               >
                 <ProgressBar value={request.delivered} maxValue={required}>
-                  {request.delivered}/{required}
+                  {request.delivered} из {required} ед.
                 </ProgressBar>
               </div>
-              <small>Осталось квоты: {remaining}</small>
+              <small>Остаток квоты — {remaining} ед.</small>
               <small>
-                Полная партия: +{request.restock_amount} к запасу каждого товара
-                группы до вместимости склада.
+                Полная партия добавит до {request.restock_amount} ящ. каждого
+                товара группы «{request.group}», пока на складе есть место.
               </small>
-              {pause && (
-                <div id={pauseId} className="TradeHub__reason">
-                  {pause}
-                </div>
-              )}
-            </>
+            </details>
           )}
         </td>
-        <td>
-          <strong className={request.highDemand ? 'color-good' : undefined}>
-            {formatMoney(request.unit_reward)} кр.
-          </strong>
-          {remaining === null ? (
-            <small>за открытый пустой ящик</small>
-          ) : (
-            <>
-              {!!request.highDemand && (
-                <>
-                  <small className="color-good">
-                    Высокий спрос +{request.high_demand_bonus}%
-                  </small>
-                  <small>
-                    Обычно: {formatMoney(request.regular_unit_reward)} кр.
-                  </small>
-                </>
-              )}
-              {request.price_multiplier !== 1 && (
-                <details>
-                  <summary>Расчёт цены</summary>
-                  <small>
-                    База: {formatMoney(request.base_unit_reward)} кр. ·
-                    Коэффициент категории ×
-                    {request.price_multiplier.toLocaleString('ru-RU')}
-                  </small>
-                </details>
-              )}
-            </>
+        <td data-label="Начисление">
+          {!pause && quantity > 0 && (
+            <strong className="TradeHub__number">
+              {formatMoney(quantity * request.unit_reward)} кр.
+            </strong>
+          )}
+          <small>
+            {formatMoney(request.unit_reward)} кр. за{' '}
+            {required === null ? 'ящик' : 'ед.'}
+          </small>
+          {(!!request.highDemand || request.price_multiplier !== 1) && (
+            <details className="TradeHub__detail">
+              <summary>Расчёт цены</summary>
+              <small>
+                Базовая ставка — {formatMoney(request.base_unit_reward)} кр.
+              </small>
+              <small>
+                Коэффициент категории ×
+                {request.price_multiplier.toLocaleString('ru-RU')}
+              </small>
+              <small>
+                Ваша ставка при обычном спросе —{' '}
+                {formatMoney(request.regular_unit_reward)} кр.
+              </small>
+            </details>
           )}
         </td>
         <td>
@@ -861,9 +1031,9 @@ function RequestRow({
             name={request.name}
             label="Сдать груз"
             sharedReason={reason}
-            reason={pause}
+            reason={unavailable}
             submitTrade={submitTrade}
-            describedBy={pause ? pauseId : undefined}
+            describedBy={unavailable ? statusId : 'trade-request-instructions'}
           />
         </td>
       </tr>

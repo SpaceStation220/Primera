@@ -118,7 +118,7 @@
 "aB" = (
 /obj/machinery/computer/stationtrauma_dock_controller/medium{
 	dir = 1;
-	dock_name = "Корпоративный узел (M)";
+	dock_name = "NanoTrasen (M)";
 	site_id = "trade_corporate_m";
 	row_offset = 8;
 	overmap_x = 700;
@@ -129,7 +129,7 @@
 "aC" = (
 /obj/machinery/computer/stationtrauma_dock_controller{
 	dir = 2;
-	dock_name = "Корпоративный узел (S)";
+	dock_name = "NanoTrasen (S)";
 	site_id = "trade_corporate_s";
 	row_offset = 1;
 	overmap_x = 700;

@@ -118,7 +118,7 @@
 "aB" = (
 /obj/machinery/computer/stationtrauma_dock_controller/medium{
 	dir = 1;
-	dock_name = "Промышленный узел (M)";
+	dock_name = "Концерн Sable (M)";
 	site_id = "trade_industrial_m";
 	row_offset = 8;
 	overmap_x = -1300;
@@ -129,7 +129,7 @@
 "aC" = (
 /obj/machinery/computer/stationtrauma_dock_controller{
 	dir = 2;
-	dock_name = "Промышленный узел (S)";
+	dock_name = "Концерн Sable (S)";
 	site_id = "trade_industrial_s";
 	row_offset = 1;
 	overmap_x = -1300;

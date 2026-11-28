@@ -152,7 +152,7 @@
 		SSeconomy.get_dep_account(ACCOUNT_CAR)?.adjust_money(paid, "Контракт [customer.name]: [name]")
 	if(!customer.nanotrasen)
 		customer.first_contract_reward(location)
-	GLOB.expedition_contracts.notify("[customer.nanotrasen ? "Заказ" : "Контракт"] выполнен: [summary()]. [customer.name] благодарит корпус[points > 0 ? "; станции начислено [points] очков исследований" : ""][paid > 0 ? "; бюджет снабжения получил [paid] кредитов" : ""].")
+	GLOB.expedition_contracts.notify("[customer.nanotrasen ? "Заказ" : "Контракт"] выполнен: [summary()]. [customer.name] благодарит корпус[points > 0 ? "; станции начислено [points] очков исследований" : ""][paid > 0 ? "; награда для бюджета снабжения — [paid] кредитов" : ""].")
 
 /// `find` now counts for this order, brought in by `step`.
 /datum/expedition_contract/proc/bind(atom/movable/find, datum/expedition_contract_step/step)

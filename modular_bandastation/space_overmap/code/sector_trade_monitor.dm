@@ -7,7 +7,7 @@
 	/// World time at which the last report was collected.
 	var/trade_report_at
 
-/** Snapshot requests on trade levels owned by this sector. */
+/** Snapshot demand, stock and base prices before applying any individual trading terms. */
 /datum/stationtrauma_overmap_sector/space/proc/refresh_trade_report()
 	if(!isnull(trade_report_at) && world.time < trade_report_at + SECTOR_TRADE_REPORT_INTERVAL)
 		return FALSE
@@ -20,6 +20,13 @@
 		var/outpost_name = trade_outpost_names?["[location?.z]"]
 		if(!outpost_name)
 			continue
+
+		var/list/offers = list()
+		if(core.ensure_catalog())
+			for(var/pack_id in core.stock)
+				var/datum/supply_pack/pack = SSshuttle.trade_hub_supply_packs[pack_id]
+				if(pack)
+					offers[pack_id] = list("stock" = core.stock[pack_id], "price" = pack.get_cost())
 
 		var/list/requests = list()
 		for(var/request_type in core.requests)
@@ -37,7 +44,7 @@
 				"unit_reward" = request.unit_reward,
 				"high_demand" = request.high_demand,
 			))
-		var/list/reward_market = core.reward_market_data()
+		var/list/reward_market = core.reward_market_data(reputation = 50)
 		for(var/list/quote as anything in reward_market["quotes"])
 			requests += list(list(
 				"id" = quote["id"],
@@ -48,14 +55,61 @@
 				"rate_seconds_left" = reward_market["seconds_left"],
 			))
 		hubs += list(list(
-			"id" = REF(core),
+			"core" = WEAKREF(core),
 			"name" = outpost_name,
-			"problem" = trade_hub_machine_reason(core, "Ядро узла") || core.get_input_reason(),
+			"input_problem" = trade_hub_machine_reason(core, "Ядро узла") || core.get_input_reason(),
+			"output_problem" = trade_hub_machine_reason(core, "Ядро узла") || core.get_output_reason(),
+			"offers" = offers,
 			"requests" = requests,
 		))
 	trade_report = hubs
 	trade_report_at = world.time
 	return TRUE
+
+/** Apply current operator credentials to a private copy of the last sector snapshot. */
+/datum/stationtrauma_overmap_sector/space/proc/trade_report_for(mob/user)
+	if(isnull(trade_report))
+		return null
+	var/list/department_hubs = list()
+	for(var/obj/machinery/computer/trade_hub/terminal as anything in SSmachines.get_machines_by_type_and_subtypes(/obj/machinery/computer/trade_hub))
+		if(!trade_outpost_names["[terminal.z]"] || trade_hub_cargo_payment_reason(user, terminal))
+			continue
+		var/obj/machinery/trade_hub_core/core = terminal.get_core()
+		if(core)
+			department_hubs[core] = TRUE
+
+	var/list/personal_access = trade_hub_cash_access(user)
+	var/list/hubs = list()
+	for(var/list/snapshot as anything in trade_report)
+		var/datum/weakref/core_ref = snapshot["core"]
+		var/obj/machinery/trade_hub_core/core = core_ref.resolve()
+		if(!core)
+			continue
+		var/reputation = core.get_reputation(user)
+		var/list/access = department_hubs[core] ? null : personal_access
+		var/list/offers = list()
+		var/list/stock = snapshot["offers"]
+		for(var/pack_id in stock)
+			var/datum/supply_pack/pack = SSshuttle.trade_hub_supply_packs[pack_id]
+			if(!(pack_id in core.stock) || !core.can_trade_pack(pack, access, reputation))
+				continue
+			var/list/offer = stock[pack_id]
+			offers += list(list(
+				"id" = "[pack_id]", "name" = pack.name, "group" = core.groups[pack_id],
+				"stock" = offer["stock"], "price" = core.purchase_price(offer["price"], reputation),
+			))
+		var/list/requests = list()
+		for(var/list/request as anything in snapshot["requests"])
+			var/list/quote = request.Copy()
+			var/price_key = isnull(quote["rate_percent"]) ? "unit_reward" : "rate_percent"
+			quote[price_key] = core.sale_price(request[price_key], reputation)
+			requests += list(quote)
+		hubs += list(list(
+			"id" = REF(core), "name" = snapshot["name"], "specialization" = core.specialization, "reputation" = reputation,
+			"input_problem" = snapshot["input_problem"], "output_problem" = snapshot["output_problem"],
+			"offers" = offers, "requests" = requests,
+		))
+	return hubs
 
 /** Board used to repair or rebuild the station's trade monitor. */
 /obj/item/circuitboard/computer/sector_trade_monitor
@@ -65,7 +119,7 @@
 /** Read-only access to the trade report of the sector containing the mapped station. */
 /obj/machinery/computer/sector_trade_monitor
 	name = "консоль торговых заявок"
-	desc = "Принимает сводки о спросе торговых узлов в секторе станции."
+	desc = "Показывает закупочные и отпускные цены, спрос и остатки товаров на узлах сектора станции."
 	icon_state = MAP_SWITCH("computer", "/obj/machinery/computer/cargo")
 	icon_screen = "supply"
 	circuit = /obj/item/circuitboard/computer/sector_trade_monitor
@@ -110,7 +164,7 @@
 	var/report_at = sector?.trade_report_at
 	return list(
 		"sector" = sector?.name,
-		"hubs" = sector?.trade_report,
+		"hubs" = sector?.trade_report_for(user),
 		"age_seconds" = isnull(report_at) ? null : floor((world.time - report_at) / (1 SECONDS)),
 		"refresh_seconds" = isnull(report_at) ? 0 : max(0, ceil((report_at + SECTOR_TRADE_REPORT_INTERVAL - world.time) / (1 SECONDS))),
 	)

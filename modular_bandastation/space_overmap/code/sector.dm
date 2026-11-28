@@ -199,13 +199,14 @@
 		return ready
 	if(istype(src, /datum/stationtrauma_overmap_sector/space/home))
 		var/static/list/trade_maps = list(
-			"Промышленный узел" = 'modular_bandastation/space_overmap/maps/trade_outpost_industrial.dmm',
-			"Медицинский узел" = 'modular_bandastation/space_overmap/maps/trade_outpost_medical.dmm',
-			"Аграрный узел" = 'modular_bandastation/space_overmap/maps/trade_outpost_agricultural.dmm',
-			"Научный узел" = 'modular_bandastation/space_overmap/maps/trade_outpost_research.dmm',
-			"Охранный узел" = 'modular_bandastation/space_overmap/maps/trade_outpost_security.dmm',
-			"Сервисный узел" = 'modular_bandastation/space_overmap/maps/trade_outpost_service.dmm',
-			"Корпоративный узел" = 'modular_bandastation/space_overmap/maps/trade_outpost_corporate.dmm',
+			"Концерн Sable" = 'modular_bandastation/space_overmap/maps/trade_outpost_industrial.dmm',
+			"Зелёная Экспансия" = 'modular_bandastation/space_overmap/maps/trade_outpost_medical.dmm',
+			"Ol Corp" = 'modular_bandastation/space_overmap/maps/trade_outpost_agricultural.dmm',
+			"Верфи Зувийена" = 'modular_bandastation/space_overmap/maps/trade_outpost_research.dmm',
+			"WitherVit" = 'modular_bandastation/space_overmap/maps/trade_outpost_security.dmm',
+			"Donk Co." = 'modular_bandastation/space_overmap/maps/trade_outpost_service.dmm',
+			"Interdyne Pharmaceutics" = 'modular_bandastation/space_overmap/maps/trade_outpost_interdyne.dmm',
+			"NanoTrasen" = 'modular_bandastation/space_overmap/maps/trade_outpost_corporate.dmm',
 		)
 		var/list/trade_levels = list()
 		trade_outpost_names = list()

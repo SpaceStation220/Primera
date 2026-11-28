@@ -32,15 +32,16 @@
 	reward_market_cycle = current_cycle
 
 /** Get the rates alone for a sector report, or add a live estimate for goods on an input pad. */
-/obj/machinery/trade_hub_core/proc/reward_market_data(turf/input_tile)
+/obj/machinery/trade_hub_core/proc/reward_market_data(turf/input_tile, reputation = 50)
 	refresh_reward_market()
 	var/list/quotes = list()
 	for(var/id in reward_market_names)
-		var/list/sale = input_tile ? get_reward_buyback(input_tile, id) : null
+		var/rate = sale_price(reward_market_rates[id], reputation)
+		var/list/sale = input_tile ? get_reward_buyback(input_tile, id, rate) : null
 		quotes += list(list(
 			"id" = id,
 			"name" = reward_market_names[id],
-			"rate" = reward_market_rates[id],
+			"rate" = rate,
 			"count" = length(sale),
 			"gross" = reward_buyback_total(sale),
 		))
@@ -51,7 +52,7 @@
 	)
 
 /** Price only genuine goods placed directly on the input pad. */
-/obj/machinery/trade_hub_core/proc/get_reward_buyback(turf/input_tile, id)
+/obj/machinery/trade_hub_core/proc/get_reward_buyback(turf/input_tile, id, rate)
 	var/list/sale = list()
 	for(var/obj/offered in input_tile)
 		if(QDELETED(offered) || offered.anchored || (offered.flags_1 & HOLOGRAM_1))
@@ -69,7 +70,7 @@
 					base_price += estimate.total_value[export]
 				qdel(estimate)
 		if(base_price > 0)
-			sale[offered] = ROUND_UP(base_price * reward_market_rates[id] / 100)
+			sale[offered] = ROUND_UP(base_price * rate / 100)
 	return sale
 
 /** Total a quote before any bounty holder shares are deducted. */
@@ -103,7 +104,8 @@
 		return trade_result(result, FALSE, "Курс сменился. Проверьте новую цену и повторите продажу.")
 	var/obj/machinery/trade_hub_pad/pad = get_pad(/obj/machinery/trade_hub_pad/input)
 	var/turf/input_tile = get_turf(pad)
-	var/list/sale = get_reward_buyback(input_tile, id)
+	var/rate = sale_price(reward_market_rates[id], get_reputation(user))
+	var/list/sale = get_reward_buyback(input_tile, id, rate)
 	if(length(sale) != quote["count"] || reward_buyback_total(sale) != quote["gross"])
 		return trade_result(result, FALSE, "Состав или оценка груза изменились. Проверьте сумму и повторите продажу.")
 	if(!length(sale))
@@ -124,6 +126,7 @@
 		accepted++
 	net_payment += cube_report.total_value[reward_cube_export]
 	qdel(cube_report)
+	var/balance_before = account?.account_balance
 	if(net_payment > 0)
 		if(cash_terminal)
 			trade_hub_give_cash(user, counter, net_payment)
@@ -132,8 +135,9 @@
 	busy = FALSE
 	if(!accepted)
 		return trade_result(result, FALSE, "Узел не смог принять награды.")
-	investigate_log("Trade hub [hub_id] bought [accepted] [id] at [reward_market_rates[id]]% for a net [net_payment] credits to [cash_terminal ? key_name(user) : "cargo"].", INVESTIGATE_CARGO)
-	return trade_result(result, TRUE, "Принято [accepted] ед. Выплата [cash_terminal ? "оператору" : "в бюджет карго"]: [net_payment] кр.")
+	investigate_log("Trade hub [hub_id] bought [accepted] [id] at [rate]% for a net [net_payment] credits to [cash_terminal ? key_name(user) : "cargo"].", INVESTIGATE_CARGO)
+	var/payment_message = cash_terminal ? "Выплата оператору: [net_payment] кр." : trade_hub_budget_receipt(net_payment, account.account_balance - balance_before)
+	return trade_result(result, TRUE, "Принято [accepted] ед. [payment_message]")
 
 #undef TRADE_HUB_REWARD_INTERVAL
 #undef TRADE_HUB_REWARD_MIN_RATE

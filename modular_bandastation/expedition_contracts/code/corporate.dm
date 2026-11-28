@@ -25,7 +25,7 @@
 
 /// The certified find, packed, handed over at the corporate trade hub; the hub terminal drives it.
 /datum/expedition_contract_step/deliver
-	text = "упаковать сертифицированную находку в закрытый ящик (аномальную — в ящик для образцов) и сдать на корпоративном торговом узле"
+	text = "упаковать сертифицированную находку в закрытый ящик (аномальную — в ящик для образцов) и сдать на торговом узле NanoTrasen"
 
 /// Whether `find` must travel in a specimen crate: anything still carrying anomalous energy does.
 /proc/expedition_find_is_anomalous(atom/movable/find)
@@ -90,15 +90,21 @@
 	if(reason || !can_interact(user))
 		return transaction_result(user, action, id, FALSE, reason || "Не удаётся воспользоваться терминалом.")
 	if(!istype(core))
-		return transaction_result(user, action, id, FALSE, "Контракты принимает только корпоративный узел.")
+		return transaction_result(user, action, id, FALSE, "Контракты принимает только торговый узел NanoTrasen.")
 	var/datum/expedition_contract/contract = id ? GLOB.expedition_contracts.contracts[id] : null
 	if(!contract)
 		return transaction_result(user, action, id, FALSE, "Контракт не найден.")
-	if(contract.credits() > 0 && !SSeconomy.get_dep_account(ACCOUNT_CAR))
+	var/datum/bank_account/account = SSeconomy.get_dep_account(ACCOUNT_CAR)
+	var/payment = contract.credits()
+	if(payment > 0 && !account)
 		return transaction_result(user, action, id, FALSE, "Счёт карго недоступен.")
+	var/balance_before = account?.account_balance
 	core.busy = TRUE
 	var/failure = contract.deliver_at(core, user)
 	core.busy = FALSE
 	if(failure)
 		return transaction_result(user, action, id, FALSE, failure)
-	return transaction_result(user, action, id, TRUE, "Контракт [contract.customer.name] принят: [contract.name]. Начислено [contract.credits()] кредитов.")
+	var/message = "Контракт [contract.customer.name] принят: [contract.name]."
+	if(payment > 0)
+		message += " [trade_hub_budget_receipt(payment, account.account_balance - balance_before)]"
+	return transaction_result(user, action, id, TRUE, message)

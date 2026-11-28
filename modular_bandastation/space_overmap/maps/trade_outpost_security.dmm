@@ -118,7 +118,7 @@
 "aB" = (
 /obj/machinery/computer/stationtrauma_dock_controller/medium{
 	dir = 1;
-	dock_name = "Охранный узел (M)";
+	dock_name = "WitherVit (M)";
 	site_id = "trade_security_m";
 	row_offset = 8;
 	overmap_x = 880;
@@ -129,7 +129,7 @@
 "aC" = (
 /obj/machinery/computer/stationtrauma_dock_controller{
 	dir = 2;
-	dock_name = "Охранный узел (S)";
+	dock_name = "WitherVit (S)";
 	site_id = "trade_security_s";
 	row_offset = 1;
 	overmap_x = 880;

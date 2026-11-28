@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Icon } from 'tgui-core/components';
 import { formatMoney } from 'tgui-core/format';
 import type { BooleanLike } from 'tgui-core/react';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
+import '../styles/themes/trade-hub.scss';
 
 type TradeRequest = {
   id: string;
@@ -16,10 +18,22 @@ type TradeRequest = {
   rate_seconds_left?: number;
 };
 
+type TradeOffer = {
+  id: string;
+  name: string;
+  group: string;
+  stock: number;
+  price: number;
+};
+
 type TradeHub = {
   id: string;
   name: string;
-  problem: string | null;
+  specialization?: string;
+  reputation: number;
+  input_problem: string | null;
+  output_problem: string | null;
+  offers: TradeOffer[];
   requests: TradeRequest[];
 };
 
@@ -52,108 +66,259 @@ export function SectorTradeMonitor() {
   const { act, data } = useBackend<TradeReport>();
   const { sector, hubs, age_seconds, refresh_seconds } = data;
   const [query, setQuery] = useState('');
+  const [hubId, setHubId] = useState('');
+  const [showOffers, setShowOffers] = useState(false);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const reportBody = useRef<HTMLDivElement>(null);
+  const selectedHub = hubs?.find((hub) => hub.id === hubId);
   const search = query.trim().toLocaleLowerCase('ru');
-  const matchingHubs = (hubs ?? [])
-    .map((hub) => ({
-      ...hub,
-      requests:
-        !search || hub.name.toLocaleLowerCase('ru').includes(search)
-          ? hub.requests
-          : hub.requests.filter((request) =>
-              request.name.toLocaleLowerCase('ru').includes(search),
-            ),
-    }))
-    .filter((hub) => hub.requests.length > 0);
+  const matches = (text: string) =>
+    text.toLocaleLowerCase('ru').includes(search);
+  const matchingHubs = (selectedHub ? [selectedHub] : (hubs ?? [])).flatMap(
+    (hub) => {
+      const allRows =
+        !search || matches(hub.name) || matches(hub.specialization ?? '');
+      const offers = showOffers
+        ? hub.offers.filter(
+            (row) => allRows || matches(row.name) || matches(row.group),
+          )
+        : [];
+      const requests = showOffers
+        ? []
+        : hub.requests.filter((row) => allRows || matches(row.name));
+      return offers.length || requests.length
+        ? [{ hub, offers, requests }]
+        : [];
+    },
+  );
+
+  function rewindReport() {
+    if (reportBody.current) reportBody.current.scrollTop = 0;
+  }
 
   return (
-    <Window title="Торговые заявки" width={670} height={570} theme="trade-hub">
+    <Window
+      title="Торговая сводка сектора"
+      width={670}
+      height={570}
+      theme="trade-hub"
+    >
       <Window.Content fitted className="SectorTradeMonitor">
         <header className="SectorTradeMonitor__toolbar">
-          <div className="SectorTradeMonitor__sector">
-            <strong>{sector ?? 'Сектор недоступен'}</strong>
-            <span className="SectorTradeMonitor__muted">
-              {age_seconds == null
-                ? 'Сводка ещё не получена'
-                : `Сводка получена ${clock(age_seconds)} назад`}
-            </span>
-          </div>
-          <div className="SectorTradeMonitor__refresh">
+          <div className="SectorTradeMonitor__masthead">
+            <div>
+              <h1>{sector ?? 'Сектор недоступен'}</h1>
+              {sector && (
+                <small>
+                  {age_seconds == null
+                    ? 'Сводка ещё не получена'
+                    : `Сводка получена ${clock(age_seconds)} назад`}
+                </small>
+              )}
+            </div>
             <button
               type="button"
               disabled={!sector || refresh_seconds > 0}
               onClick={() => act('refresh')}
             >
-              {age_seconds == null ? 'Запросить сводку' : 'Обновить сводку'}
+              <Icon aria-hidden="true" name="rotate" />{' '}
+              {age_seconds == null
+                ? 'Запросить сводку'
+                : refresh_seconds > 0
+                  ? `Обновить через ${clock(refresh_seconds)}`
+                  : 'Обновить сводку'}
             </button>
-            <span className="SectorTradeMonitor__muted">
-              {refresh_seconds > 0
-                ? `Доступно через ${clock(refresh_seconds)}`
-                : 'Интервал — 5 минут'}
-            </span>
           </div>
           {!!hubs?.length && (
-            <input
-              aria-label="Поиск по товару или узлу"
-              placeholder="Поиск по товару или узлу"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.currentTarget.value)}
-            />
+            <>
+              <div
+                className="SectorTradeMonitor__directions"
+                role="group"
+                aria-label="Сторона сделки"
+              >
+                <button
+                  type="button"
+                  aria-pressed={!showOffers}
+                  onClick={() => {
+                    setShowOffers(false);
+                    rewindReport();
+                  }}
+                >
+                  Узлы покупают
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={showOffers}
+                  onClick={() => {
+                    setShowOffers(true);
+                    rewindReport();
+                  }}
+                >
+                  Узлы продают
+                </button>
+              </div>
+              <div className="SectorTradeMonitor__filters">
+                <label className="SectorTradeMonitor__search">
+                  <Icon aria-hidden="true" name="magnifying-glass" />
+                  <input
+                    ref={searchInput}
+                    type="search"
+                    aria-label="Поиск по товару, узлу или фракции"
+                    placeholder="Товар, узел или фракция"
+                    value={query}
+                    onChange={(event) => {
+                      setQuery(event.currentTarget.value);
+                      rewindReport();
+                    }}
+                  />
+                </label>
+                <select
+                  aria-label="Торговый узел"
+                  value={selectedHub?.id ?? ''}
+                  onChange={(event) => {
+                    setHubId(event.currentTarget.value);
+                    rewindReport();
+                  }}
+                >
+                  <option value="">Все узлы</option>
+                  {hubs.map((hub) => (
+                    <option key={hub.id} value={hub.id}>
+                      {hub.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
         </header>
-        <div className="SectorTradeMonitor__body">
+        <div className="SectorTradeMonitor__body" ref={reportBody}>
           {!sector ? (
             <p>Нет связи с сектором станции. Проверьте консоль позже.</p>
           ) : age_seconds == null ? (
-            <p>Запросите сводку, чтобы увидеть цены и объёмы приёма по узлам.</p>
+            <p>Запросите сводку, чтобы увидеть спрос и ассортимент узлов.</p>
           ) : !hubs?.length ? (
-            <p>В секторе нет торговых узлов, передавших заявки.</p>
+            <p>В секторе нет торговых узлов, передавших сводку.</p>
           ) : !matchingHubs.length ? (
-            <p>Совпадений нет. Измените запрос, чтобы найти товар или узел.</p>
+            <div className="SectorTradeMonitor__empty">
+              <p>
+                {search
+                  ? 'По этому запросу ничего не найдено.'
+                  : 'Доступных позиций нет.'}
+              </p>
+              {(search || selectedHub) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery('');
+                    setHubId('');
+                    searchInput.current?.focus();
+                  }}
+                >
+                  Сбросить фильтры
+                </button>
+              )}
+            </div>
           ) : (
-            <table aria-label="Торговые заявки по узлам">
+            <table aria-label={showOffers ? 'Узлы продают' : 'Узлы покупают'}>
               <thead>
                 <tr>
                   <th scope="col">Товар</th>
-                  <th scope="col">К приёму</th>
-                  <th scope="col">Выплата</th>
+                  <th scope="col">{showOffers ? 'Поставок' : 'К приёму'}</th>
+                  <th scope="col">
+                    {showOffers ? 'Цена поставки' : 'Выплата'}
+                  </th>
                 </tr>
               </thead>
-              {matchingHubs.map((hub) => (
-                <tbody key={hub.id}>
-                  <tr className="SectorTradeMonitor__hub">
-                    <th colSpan={3} scope="rowgroup">
-                      {hub.name}
-                      {hub.problem && <small>{hub.problem}</small>}
-                    </th>
-                  </tr>
-                  {hub.requests.map((request) => (
-                    <tr key={request.id}>
-                      <th scope="row">
-                        {request.name}
-                        {!!request.high_demand && (
-                          <small className="SectorTradeMonitor__premium">
-                            Высокий спрос
+              {matchingHubs.map(({ hub, offers, requests }) => {
+                const problem = showOffers
+                  ? hub.output_problem
+                  : hub.input_problem;
+                return (
+                  <tbody key={hub.id}>
+                    <tr className="SectorTradeMonitor__hub">
+                      <th colSpan={3} scope="rowgroup">
+                        <div
+                          className="SectorTradeMonitor__hubName"
+                          title={hub.specialization}
+                        >
+                          <strong>{hub.name}</strong>
+                          <span>
+                            Ваша репутация <b>{hub.reputation}</b>/100
+                          </span>
+                        </div>
+                        {problem && (
+                          <small className="SectorTradeMonitor__warning">
+                            <Icon
+                              aria-hidden="true"
+                              name="triangle-exclamation"
+                            />{' '}
+                            {problem}
                           </small>
                         )}
                       </th>
-                      <td>{acceptance(request, !!hub.problem)}</td>
-                      <td>
-                        {request.rate_percent === undefined ? (
-                          formatMoney(request.unit_reward ?? 0) + ' кр./ед.'
-                        ) : (
-                          <>
-                            {request.rate_percent}%
-                            {age_seconds >= (request.rate_seconds_left ?? 0) && (
-                              <small>Курс истёк</small>
-                            )}
-                          </>
-                        )}
-                      </td>
                     </tr>
-                  ))}
-                </tbody>
-              ))}
+                    {offers.map((offer) => (
+                      <tr
+                        key={offer.id}
+                        className={
+                          offer.stock === 0 || problem
+                            ? 'SectorTradeMonitor__unavailable'
+                            : undefined
+                        }
+                      >
+                        <th scope="row">
+                          {offer.name}
+                          <small>{offer.group}</small>
+                        </th>
+                        <td>
+                          {offer.stock === 0 ? 'Нет в наличии' : offer.stock}
+                        </td>
+                        <td>{formatMoney(offer.price)} кр.</td>
+                      </tr>
+                    ))}
+                    {requests.map((request) => {
+                      const expired =
+                        request.rate_percent !== undefined &&
+                        age_seconds >= (request.rate_seconds_left ?? 0);
+                      return (
+                        <tr
+                          key={request.id}
+                          className={
+                            problem || expired || request.status !== 'open'
+                              ? 'SectorTradeMonitor__unavailable'
+                              : undefined
+                          }
+                        >
+                          <th scope="row">
+                            {request.name}
+                            {!!request.high_demand && (
+                              <small className="SectorTradeMonitor__premium">
+                                Высокий спрос
+                              </small>
+                            )}
+                          </th>
+                          <td>{acceptance(request, !!problem)}</td>
+                          <td>
+                            {request.rate_percent === undefined ? (
+                              `${formatMoney(request.unit_reward ?? 0)} кр./ед.`
+                            ) : (
+                              <>
+                                {request.rate_percent}%
+                                <small>от экспорта</small>
+                                {expired && (
+                                  <small className="SectorTradeMonitor__warning">
+                                    Курс истёк
+                                  </small>
+                                )}
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                );
+              })}
             </table>
           )}
         </div>

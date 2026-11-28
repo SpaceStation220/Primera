@@ -46,22 +46,25 @@
 	default_gravity = STANDARD_GRAVITY
 
 /area/stationtrauma_trade_outpost/industrial
-	name = "Промышленный торговый узел"
+	name = "Торговый узел концерна Sable"
 
 /area/stationtrauma_trade_outpost/medical
-	name = "Медицинский торговый узел"
+	name = "Торговый узел «Зелёная Экспансия»"
 
 /area/stationtrauma_trade_outpost/agricultural
-	name = "Аграрный торговый узел"
+	name = "Торговый узел Ol Corp"
 
 /area/stationtrauma_trade_outpost/research
-	name = "Научный торговый узел"
+	name = "Торговый узел верфей Зувийена"
 
 /area/stationtrauma_trade_outpost/security
-	name = "Охранный торговый узел"
+	name = "Торговый узел WitherVit"
 
 /area/stationtrauma_trade_outpost/service
-	name = "Сервисный торговый узел"
+	name = "Торговый узел Donk Co."
 
 /area/stationtrauma_trade_outpost/corporate
-	name = "Корпоративный торговый узел"
+	name = "Торговый узел NanoTrasen"
+
+/area/stationtrauma_trade_outpost/interdyne
+	name = "Торговый узел Interdyne Pharmaceutics"

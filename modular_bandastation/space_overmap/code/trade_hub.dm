@@ -79,9 +79,11 @@
 
 /** Select a local replenishment group without duplicating the cargo catalogue. */
 /obj/machinery/trade_hub_core/proc/get_pack_group(datum/supply_pack/pack)
+	if(pack.order_flags & ORDER_TRADE_HUB_ONLY)
+		return groups[pack.type]
 	if(pack.type in corporate_pack_types)
 		return null
-	return catalogue_groups[pack.group]
+	return groups[pack.type] || catalogue_groups[pack.group]
 
 /** Packs whose ordinary crate delivery is supported by a local cargo-budget purchase. */
 /obj/machinery/trade_hub_core/proc/supports_pack(datum/supply_pack/pack)
@@ -92,8 +94,8 @@
 	return !!(pack.crate_type || pack.storage_override)
 
 /** Read live unlock flags both when presenting an offer and when committing a purchase. */
-/obj/machinery/trade_hub_core/proc/can_trade_pack(datum/supply_pack/pack, list/personal_access)
-	if(!supports_pack(pack) || ((pack.order_flags & ORDER_SPECIAL) && !(pack.order_flags & ORDER_SPECIAL_ENABLED)))
+/obj/machinery/trade_hub_core/proc/can_trade_pack(datum/supply_pack/pack, list/personal_access, reputation = 50)
+	if(!supports_pack(pack) || reputation < required_reputation(pack) || ((pack.order_flags & ORDER_SPECIAL) && !(pack.order_flags & ORDER_SPECIAL_ENABLED)))
 		return FALSE
 	return isnull(personal_access) || !pack.access_view || (pack.access_view in personal_access)
 
@@ -314,7 +316,8 @@
 		return trade_result(result, FALSE, "Товар не найден.")
 	var/pack_type = text2path(pack_id) || pack_id
 	var/datum/supply_pack/pack = SSshuttle.trade_hub_supply_packs[pack_type]
-	if(!(pack_type in stock) || stock[pack_type] <= 0 || !can_trade_pack(pack, cash ? trade_hub_cash_access(user) : null))
+	var/reputation = get_reputation(user)
+	if(!(pack_type in stock) || stock[pack_type] <= 0 || !can_trade_pack(pack, cash ? trade_hub_cash_access(user) : null, reputation))
 		return trade_result(result, FALSE, "Этот товар отсутствует в запасах узла.")
 	reason = get_output_reason()
 	if(reason)
@@ -324,7 +327,7 @@
 	var/turf/counter = get_turf(terminal)
 	var/datum/bank_account/account
 	var/obj/item/tender
-	var/price = pack.get_cost()
+	var/price = purchase_price(pack.get_cost(), reputation)
 	if(!isnum(price) || price <= 0)
 		return trade_result(result, FALSE, "Не удалось выставить счёт за товар.")
 	if(cash)
@@ -360,7 +363,7 @@
 			shipment = null
 			break
 		shipment = shipment.loc
-	var/success = !QDELETED(shipment) && shipment.loc == staging && !QDELETED(src) && is_operational && !panel_open && can_trade_pack(pack, cash ? trade_hub_cash_access(user) : null) && get_pad(/obj/machinery/trade_hub_pad/output) == pad && get_turf(pad) == delivery_tile && !get_output_reason()
+	var/success = !QDELETED(shipment) && shipment.loc == staging && !QDELETED(src) && is_operational && !panel_open && get_reputation(user) == reputation && can_trade_pack(pack, cash ? trade_hub_cash_access(user) : null, reputation) && get_pad(/obj/machinery/trade_hub_pad/output) == pad && get_turf(pad) == delivery_tile && !get_output_reason()
 	var/cash_charged = FALSE
 	if(success && (cash || terminal))
 		success = !QDELETED(terminal) && terminal.get_core() == src && !terminal.panel_open && terminal.can_interact(user)
@@ -424,12 +427,15 @@
 	var/accepted = request.take_goods(get_turf(pad))
 	var/message
 	if(accepted)
-		var/payment = accepted * request.unit_reward
+		var/payment = accepted * sale_price(request.unit_reward, get_reputation(user))
+		message = "Принято [accepted] ед. товара."
 		if(cash_terminal)
 			trade_hub_give_cash(user, counter, payment)
+			message += " Выдан голочип на [payment] кр."
 		else
+			var/balance_before = account.account_balance
 			account.adjust_money(payment, "Торговый узел [hub_id]: [request.name]")
-		message = "Принято [accepted] ед. товара. [cash_terminal ? "Выдан голочип на [payment] кр." : "В бюджет карго начислено [payment] кр."]"
+			message += " [trade_hub_budget_receipt(payment, account.account_balance - balance_before)]"
 		investigate_log("Trade hub [hub_id] accepted [accepted] units of [request.item_type] for [payment] credits to [cash_terminal ? "operator [key_name(user)]" : "cargo"], [isnull(request.remaining) ? "unlimited" : request.remaining] demand remaining.", INVESTIGATE_CARGO)
 		if(!isnull(request.batch_size) && request.delivered == request.batch_size)
 			request.ready_at = world.time + request.restock_delay
@@ -440,45 +446,88 @@
 	busy = FALSE
 	return trade_result(result, accepted > 0, message)
 
-/** Take matching loose goods and goods inside open crates, up to the current batch limit. */
-/datum/trade_hub_request/proc/take_goods(turf/input_tile)
+/// Describe the posted reward and any part withheld by the bank before it reached the cargo balance.
+/proc/trade_hub_budget_receipt(amount, balance_increase)
+	var/message = "Начислено в бюджет карго: [amount] кр."
+	if(balance_increase < amount)
+		message += " Удержано в счёт долга: [amount - balance_increase] кр. Изменение баланса: +[balance_increase] кр."
+	return message
+
+/// Loose items are considered first, then the contents of open crates and the crates themselves.
+/proc/trade_hub_offered_goods(turf/input_tile)
 	var/list/candidates = list()
 	for(var/obj/item/item in input_tile)
 		candidates += item
 	for(var/obj/structure/closet/crate/crate in input_tile)
-		if(crate.opened)
-			for(var/obj/item/item in crate)
-				candidates += item
-	var/accepted = 0
-	for(var/obj/item/item as anything in candidates)
-		if(delivered >= batch_size || remaining <= 0)
-			break
-		if(QDELETED(item) || !istype(item, item_type) || item.anchored || (item.item_flags & ABSTRACT) || (item.flags_1 & HOLOGRAM_1))
+		if(!crate.opened)
 			continue
-		var/obj/item/stack/stack = astype(item)
-		if(stack?.is_cyborg)
-			continue
-		var/amount = min(remaining, batch_size - delivered, stack ? stack.amount : 1)
+		candidates += crate
+		for(var/obj/item/item in crate)
+			candidates += item
+	return candidates
+
+/// Return the units one object can supply, checking its current location and container.
+/proc/trade_hub_offered_quantity(obj/offered, turf/input_tile)
+	if(QDELETED(offered) || offered.anchored || (offered.flags_1 & HOLOGRAM_1))
+		return 0
+	if(istype(offered, /obj/structure/closet/crate))
+		var/obj/structure/closet/crate/crate = offered
+		return crate.loc == input_tile && crate.opened && !length(crate.contents)
+	var/obj/item/item = offered
+	if(item.item_flags & ABSTRACT)
+		return 0
+	if(item.loc != input_tile)
+		var/obj/structure/closet/crate/holder = item.loc
+		if(!istype(holder) || !holder.opened || holder.loc != input_tile)
+			return 0
+	var/obj/item/stack/stack = astype(item)
+	if(!stack)
+		return 1
+	return stack.is_cyborg ? 0 : stack.amount
+
+/// Count subclasses against each requested parent type without rescanning the pad for each open quota.
+/proc/trade_hub_quantities_by_type(turf/input_tile)
+	var/list/totals = list()
+	for(var/obj/offered as anything in trade_hub_offered_goods(input_tile))
+		var/amount = trade_hub_offered_quantity(offered, input_tile)
 		if(amount <= 0)
 			continue
+		var/obj/type_path = offered.type
+		while(ispath(type_path, /obj))
+			totals[type_path] += amount
+			type_path = type_path.parent_type
+	return totals
+
+/// A standing crate return has no upper limit, while a rotating request accepts only its current batch.
+/datum/trade_hub_request/proc/acceptance_limit()
+	if(ready_at || renew_at)
+		return 0
+	if(isnull(batch_size))
+		return INFINITY
+	return max(0, min(remaining, batch_size - delivered))
+
+/// Consume only goods still eligible when the customer confirms this delivery.
+/datum/trade_hub_request/proc/take_goods(turf/input_tile)
+	var/limit = acceptance_limit()
+	var/accepted = 0
+	for(var/obj/offered as anything in trade_hub_offered_goods(input_tile))
+		if(accepted >= limit)
+			break
+		if(!istype(offered, item_type))
+			continue
+		var/amount = min(limit - accepted, trade_hub_offered_quantity(offered, input_tile))
+		if(amount <= 0)
+			continue
+		var/obj/item/stack/stack = astype(offered)
 		if(stack)
 			if(!stack.use(amount))
 				continue
 		else
-			qdel(item)
-		delivered += amount
-		remaining -= amount
+			qdel(offered)
 		accepted += amount
-	return accepted
-
-/** Opening a crate first reveals any cargo generated on its first use. */
-/datum/trade_hub_request/crates/take_goods(turf/input_tile)
-	var/accepted = 0
-	for(var/obj/structure/closet/crate/crate in input_tile)
-		if(QDELETED(crate) || !crate.opened || length(crate.contents) || crate.anchored || (crate.flags_1 & HOLOGRAM_1))
-			continue
-		qdel(crate)
-		accepted++
+	if(!isnull(batch_size))
+		delivered += accepted
+		remaining -= accepted
 	return accepted
 
 /** Commit one due replenishment; loss of power retains the pending batch. */
@@ -636,6 +685,7 @@
 	var/obj/machinery/trade_hub_core/core = get_core()
 	var/catalogue_ready = core?.ensure_catalog()
 	var/cargo_access = !trade_hub_cargo_payment_reason(user, src)
+	var/reputation = core?.get_reputation(user)
 	var/terminal_reason = get_trade_reason(user, core)
 	var/cash_reason = get_trade_reason(user, core, cash = TRUE)
 	var/obj/item/tender = trade_hub_cash_in_hand(user)
@@ -646,6 +696,7 @@
 		"name" = core?.name || name,
 		"specialization" = core?.specialization,
 		"connected" = !!core,
+		"reputation" = reputation,
 		"operational" = !terminal_reason,
 		"terminal_reason" = terminal_reason,
 		"input_reason" = input_reason,
@@ -664,18 +715,19 @@
 	if(!catalogue_ready)
 		return data
 	var/obj/machinery/trade_hub_pad/input = input_reason ? null : core.find_pad(/obj/machinery/trade_hub_pad/input)
-	data["reward_market"] = core.reward_market_data(get_turf(input))
+	data["reward_market"] = core.reward_market_data(get_turf(input), reputation)
 	var/list/personal_access = trade_hub_cash_access(user)
 	for(var/pack_type in core.stock)
 		var/datum/supply_pack/pack = SSshuttle.trade_hub_supply_packs[pack_type]
-		var/cash_allowed = core.can_trade_pack(pack, personal_access)
-		if(!cash_allowed && !(cargo_access && core.can_trade_pack(pack)))
+		var/cash_allowed = core.can_trade_pack(pack, personal_access, reputation)
+		if(!cash_allowed && !(cargo_access && core.can_trade_pack(pack, reputation = reputation)))
 			continue
 		data["offers"] += list(list(
 			"id" = "[pack_type]", "name" = pack.name, "description" = pack.desc,
-			"group" = core.groups[pack_type], "price" = pack.get_cost(),
+			"group" = core.groups[pack_type], "price" = core.purchase_price(pack.get_cost(), reputation),
 			"stock" = core.stock[pack_type], "capacity" = core.capacity, "cash_allowed" = cash_allowed,
 		))
+	var/list/offered_quantities = input && !core.get_trade_reason() ? trade_hub_quantities_by_type(get_turf(input)) : null
 	for(var/request_type in core.requests)
 		var/datum/trade_hub_request/request = core.requests[request_type]
 		var/deadline = request.ready_at || request.renew_at
@@ -683,11 +735,12 @@
 		data["requests"] += list(list(
 			"id" = "[request_type]", "name" = request.name, "group" = request.group,
 			"icon" = request.icon_base64,
+			"ready_quantity" = min(request.acceptance_limit(), offered_quantities?[request.item_type] || 0),
 			"category" = request.category, "base_unit_reward" = request.base_unit_reward,
-			"price_multiplier" = request.price_multiplier, "regular_unit_reward" = request.regular_unit_reward,
+			"price_multiplier" = request.price_multiplier, "regular_unit_reward" = core.sale_price(request.regular_unit_reward, reputation),
 			"highDemand" = request.high_demand, "high_demand_bonus" = request.high_demand ? request.premium_percent : 0,
 			"delivered" = request.delivered, "required" = request.batch_size,
-			"remaining" = request.remaining, "unit_reward" = request.unit_reward,
+			"remaining" = request.remaining, "unit_reward" = core.sale_price(request.unit_reward, reputation),
 			"restock_amount" = request.restock_amount,
 			"restock_pending" = !!request.ready_at, "renewal_pending" = !!request.renew_at,
 			"waiting_for_core" = waiting_for_core, "waiting_for_power" = waiting_for_core && (core.machine_stat & NOPOWER),

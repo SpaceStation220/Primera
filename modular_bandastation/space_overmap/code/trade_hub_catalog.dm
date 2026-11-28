@@ -580,20 +580,73 @@
 	group = "Корпоративные проекты"
 	restock_amount = 1
 
-/** Industrial hub with separate tool, electronics and emergency inventories. */
+/datum/trade_hub_request/donk_cardboard
+	name = "Упаковочный картон"
+	item_type = /obj/item/stack/sheet/cardboard
+	unit_reward = 10
+	category = "Сырьё"
+	group = "Игрушки"
+
+/datum/trade_hub_request/donk_plastic
+	name = "Листы пластика"
+	item_type = /obj/item/stack/sheet/plastic
+	unit_reward = 15
+	category = "Сырьё"
+	group = "Игрушки"
+
+/datum/trade_hub_request/industrial_extra/corporate_material_rods
+	group = "Материалы и газы"
+
+/datum/trade_hub_request/industrial_glass/corporate_material_glass
+	group = "Материалы и газы"
+
+/datum/trade_hub_request/industrial_silver/corporate_import_silver
+	group = "Импорт"
+
+/datum/trade_hub_request/industrial_plasteel/corporate_import_plasteel
+	group = "Импорт"
+
+/datum/trade_hub_request/corporate_vend_lights
+	name = "Лампы дневного света"
+	item_type = /obj/item/light/tube
+	unit_reward = 15
+	group = "Снабжение автоматов"
+
+/datum/trade_hub_request/corporate_vend_batteries
+	name = "Ёмкие аккумуляторы"
+	item_type = /obj/item/stock_parts/power_store/cell/high
+	unit_reward = 50
+	group = "Снабжение автоматов"
+
 /obj/machinery/trade_hub_core/industrial
-	name = "Промышленный торговый узел"
-	specialization = "Промышленность"
+	name = "Торговый узел концерна Sable"
+	specialization = "Sable (КССП) · промышленное и оборонное снабжение"
+	nt_reputation = 37
 	demand_multipliers = list("Сырьё" = 0.5)
 	demand_weights = list("Сырьё" = 4)
 	catalogue_groups = list(
-		"Engineering" = "Инструменты",
-		"Engine Construction" = "Электроника",
+		"Armory" = "Оружейные поставки",
 		"Canisters & Materials" = "Электроника",
-		"Emergency" = "Аварийное снабжение",
+		"Requisitions" = "Оружейные поставки",
 	)
-	stock = list(/datum/supply_pack/engineering/tools = 3, /datum/supply_pack/engineering/power = 1)
-	groups = list(/datum/supply_pack/engineering/tools = "Инструменты", /datum/supply_pack/engineering/power = "Электроника")
+	stock = list(
+		/datum/supply_pack/engineering/tools = 3,
+		/datum/supply_pack/engineering/power = 1,
+	)
+	groups = list(
+		/datum/supply_pack/engineering/tools = "Инструменты",
+		/datum/supply_pack/engineering/ripley = "Инструменты",
+		/datum/supply_pack/engineering/conveyor = "Инструменты",
+		/datum/supply_pack/engineering/engiequipment = "Инструменты",
+		/datum/supply_pack/engineering/power = "Электроника",
+		/datum/supply_pack/engineering/inducers = "Электроника",
+		/datum/supply_pack/emergency/equipment = "Аварийное снабжение",
+		/datum/supply_pack/emergency/firefighting = "Аварийное снабжение",
+		/datum/supply_pack/engineering/rad_nebula_shielding_kit = "Аварийное снабжение",
+		/datum/supply_pack/security/armory/ship_ammunition/light = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/heavy = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/plasma = "Оружейные поставки",
+	)
 	request_types = list(
 		/datum/trade_hub_request/industrial_iron,
 		/datum/trade_hub_request/industrial_plasma,
@@ -610,18 +663,46 @@
 		/datum/trade_hub_request/industrial_reinforced_glass,
 		/datum/trade_hub_request/industrial_titanium,
 		/datum/trade_hub_request/industrial_power_drills,
+		/datum/trade_hub_request/security_firing_pins,
+		/datum/trade_hub_request/security_advanced_capacitors,
+		/datum/trade_hub_request/security_high_power_lasers,
+		/datum/trade_hub_request/security_nano_servos,
 	)
 
-/** Medical hub offers equipment and medication supplied by different commodities. */
 /obj/machinery/trade_hub_core/medical
-	name = "Медицинский торговый узел"
-	specialization = "Медицина"
+	name = "Торговый узел «Зелёная Экспансия»"
+	specialization = "Зелёная Экспансия (Элизиум) · снабжение колоний"
+	nt_reputation = 50
 	requests_per_group = 3
 	demand_multipliers = list("Сырьё" = 3, "Продукция" = 1.5)
 	demand_weights = list("Сырьё" = 0.1)
-	catalogue_groups = list("Medical" = "Медоборудование")
-	stock = list(/datum/supply_pack/medical/defibs = 0, /datum/supply_pack/medical/iv_drip = 3, /datum/supply_pack/medical/chemical = 2)
-	groups = list(/datum/supply_pack/medical/defibs = "Медоборудование", /datum/supply_pack/medical/iv_drip = "Медоборудование", /datum/supply_pack/medical/chemical = "Медикаменты")
+	catalogue_groups = list(
+		"Outsourced" = "Экспедиционное снабжение",
+		"Emergency" = "Аварийное снабжение",
+	)
+	stock = list(
+		/datum/supply_pack/medical/defibs = 0,
+		/datum/supply_pack/medical/iv_drip = 3,
+		/datum/supply_pack/medical/chemical = 2,
+	)
+	groups = list(
+		/datum/supply_pack/medical/defibs = "Медоборудование",
+		/datum/supply_pack/medical/iv_drip = "Медоборудование",
+		/datum/supply_pack/medical/surgery = "Медоборудование",
+		/datum/supply_pack/medical/chemical = "Медикаменты",
+		/datum/supply_pack/medical/supplies = "Медикаменты",
+		/datum/supply_pack/medical/medipen_variety = "Медикаменты",
+		/datum/supply_pack/organic/seeds = "Гидропоника",
+		/datum/supply_pack/organic/hydroponics/supplies = "Гидропоника",
+		/datum/supply_pack/materials/watertank = "Гидропоника",
+		/datum/supply_pack/service/minerkit = "Экспедиционное снабжение",
+		/datum/supply_pack/misc/exploration_drone = "Экспедиционное снабжение",
+		/datum/supply_pack/misc/exploration_fuel = "Экспедиционное снабжение",
+		/datum/supply_pack/engineering/shuttle_engine = "Аварийное снабжение",
+		/datum/supply_pack/engineering/concrete_mix = "Аварийное снабжение",
+		/datum/supply_pack/materials/wood50 = "Аварийное снабжение",
+		/datum/supply_pack/materials/plastic50 = "Аварийное снабжение",
+	)
 	request_types = list(
 		/datum/trade_hub_request/medical_glass,
 		/datum/trade_hub_request/medical_laser_scalpels,
@@ -631,17 +712,42 @@
 		/datum/trade_hub_request/medical_aloe,
 		/datum/trade_hub_request/medical_ambrosia,
 		/datum/trade_hub_request/medical_poppies,
+		/datum/trade_hub_request/agricultural_golden_apples,
+		/datum/trade_hub_request/agricultural_cultivators,
+		/datum/trade_hub_request/agricultural_secateurs,
+		/datum/trade_hub_request/agricultural_plant_analyzers,
+		/datum/trade_hub_request/expedition_gas_analyzers,
+		/datum/trade_hub_request/expedition_mesons,
+		/datum/trade_hub_request/expedition_gps,
+		/datum/trade_hub_request/expedition_t_ray_scanners,
+		/datum/trade_hub_request/industrial_titanium,
+		/datum/trade_hub_request/industrial_uranium,
+		/datum/trade_hub_request/industrial_reinforced_glass,
 	)
 
-/** Agricultural hub exchanges raw materials for food and growing equipment. */
 /obj/machinery/trade_hub_core/agricultural
-	name = "Аграрный торговый узел"
-	specialization = "Сельское хозяйство"
+	name = "Торговый узел Ol Corp"
+	specialization = "Ol Corp (ТСФ) · агропромышленный холдинг"
+	nt_reputation = 35
 	demand_multipliers = list("Продукция" = 1.2)
 	demand_weights = list("Продукция" = 2)
-	catalogue_groups = list("Food & Hydroponics" = "Продукты", "Livestock" = "Животноводство")
-	stock = list(/datum/supply_pack/engineering/tools = 9, /datum/supply_pack/organic/food = 3, /datum/supply_pack/organic/hydroponics/supplies = 0)
-	groups = list(/datum/supply_pack/engineering/tools = "Гидропоника", /datum/supply_pack/organic/food = "Продукты", /datum/supply_pack/organic/hydroponics/supplies = "Гидропоника")
+	catalogue_groups = list(
+		"Food & Hydroponics" = "Продукты",
+		"Livestock" = "Животноводство",
+	)
+	stock = list(
+		/datum/supply_pack/engineering/tools = 9,
+		/datum/supply_pack/organic/food = 3,
+		/datum/supply_pack/organic/hydroponics/supplies = 0,
+	)
+	groups = list(
+		/datum/supply_pack/engineering/tools = "Гидропоника",
+		/datum/supply_pack/organic/hydroponics/supplies = "Гидропоника",
+		/datum/supply_pack/organic/seeds = "Гидропоника",
+		/datum/supply_pack/organic/exoticseeds = "Гидропоника",
+		/datum/supply_pack/vending/hydro_refills = "Гидропоника",
+		/datum/supply_pack/organic/food = "Продукты",
+	)
 	request_types = list(
 		/datum/trade_hub_request/agricultural_golden_apples,
 		/datum/trade_hub_request/agricultural_cultivators,
@@ -657,16 +763,232 @@
 		/datum/trade_hub_request/agricultural_pumpkins,
 	)
 
-/** Research hub supplies scientific equipment and expedition contracts. */
 /obj/machinery/trade_hub_core/research
-	name = "Научный торговый узел"
-	specialization = "Наука и экспедиции"
-	requests_per_group = 3
+	name = "Торговый узел верфей Зувийена"
+	specialization = "Верфи Зувийена (Скреллианский Империум) · судостроение"
+	nt_reputation = 62
 	demand_multipliers = list("Компоненты" = 1.25, "Оборудование" = 1.1)
 	demand_weights = list("Компоненты" = 2)
 	default_stock = 2
-	catalogue_groups = list("Science" = "Научные товары", "Outsourced" = "Экспедиционное снабжение")
+	catalogue_groups = list(
+		"Engine Construction" = "Электроника",
+	)
+	groups = list(
+		/datum/supply_pack/engineering/tools = "Инструменты",
+		/datum/supply_pack/engineering/shuttle_engine = "Инструменты",
+		/datum/supply_pack/engineering/conveyor = "Инструменты",
+		/datum/supply_pack/engineering/shieldgen = "Инструменты",
+		/datum/supply_pack/engineering/engiequipment = "Инструменты",
+		/datum/supply_pack/engineering/power = "Электроника",
+		/datum/supply_pack/engineering/inducers = "Электроника",
+		/datum/supply_pack/engineering/pacman = "Электроника",
+		/datum/supply_pack/science/mod_core = "Научные товары",
+		/datum/supply_pack/science/robotics = "Научные товары",
+		/datum/supply_pack/science/rped = "Научные товары",
+		/datum/supply_pack/emergency/spacesuit = "Аварийное снабжение",
+		/datum/supply_pack/engineering/portapump = "Аварийное снабжение",
+		/datum/supply_pack/engineering/portascrubber = "Аварийное снабжение",
+		/datum/supply_pack/emergency/internals = "Аварийное снабжение",
+	)
 	request_types = list(
+		/datum/trade_hub_request/industrial_iron,
+		/datum/trade_hub_request/industrial_plasma,
+		/datum/trade_hub_request/industrial_silver,
+		/datum/trade_hub_request/industrial_plasteel,
+		/datum/trade_hub_request/industrial_power_tools,
+		/datum/trade_hub_request/industrial_glass,
+		/datum/trade_hub_request/industrial_gold,
+		/datum/trade_hub_request/industrial_cable,
+		/datum/trade_hub_request/industrial_smes_boards,
+		/datum/trade_hub_request/industrial_multitools,
+		/datum/trade_hub_request/research_phasic_scanners,
+		/datum/trade_hub_request/research_quantum_boards,
+		/datum/trade_hub_request/research_ranged_analyzers,
+		/datum/trade_hub_request/research_mining_scanners,
+		/datum/trade_hub_request/industrial_extra,
+		/datum/trade_hub_request/industrial_uranium,
+		/datum/trade_hub_request/industrial_reinforced_glass,
+		/datum/trade_hub_request/industrial_titanium,
+		/datum/trade_hub_request/industrial_power_drills,
+	)
+
+/obj/machinery/trade_hub_core/security
+	name = "Торговый узел WitherVit"
+	specialization = "WitherVit (Вольные Сектора) · аукционные и экспедиционные поставки"
+	nt_reputation = 60
+	demand_multipliers = list("Компоненты" = 1.1, "Оборудование" = 1.2)
+	default_stock = 2
+	catalogue_groups = list(
+		"Outsourced" = "Экспедиционное снабжение",
+	)
+	groups = list(
+		/datum/supply_pack/misc/exploration_drone = "Экспедиционное снабжение",
+		/datum/supply_pack/misc/exploration_fuel = "Экспедиционное снабжение",
+		/datum/supply_pack/service/minerkit = "Экспедиционное снабжение",
+		/datum/supply_pack/service/cargo_supples = "Экспедиционное снабжение",
+		/datum/supply_pack/imports/wind_turbine = "Экспедиционное снабжение",
+		/datum/supply_pack/security/armor = "Снаряжение охраны",
+		/datum/supply_pack/security/helmets = "Снаряжение охраны",
+		/datum/supply_pack/security/sunglasses = "Снаряжение охраны",
+		/datum/supply_pack/security/armory/ship_ammunition/light = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/heavy = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/plasma = "Оружейные поставки",
+		/datum/supply_pack/engineering/tools = "Инструменты",
+		/datum/supply_pack/engineering/shuttle_engine = "Инструменты",
+	)
+	request_types = list(
+		/datum/trade_hub_request/expedition_gas_analyzers,
+		/datum/trade_hub_request/expedition_mesons,
+		/datum/trade_hub_request/expedition_gps,
+		/datum/trade_hub_request/expedition_t_ray_scanners,
+		/datum/trade_hub_request/security_telescopic_shields,
+		/datum/trade_hub_request/security_holosign_projectors,
+		/datum/trade_hub_request/security_huds,
+		/datum/trade_hub_request/security_flashlights,
+		/datum/trade_hub_request/security_firing_pins,
+		/datum/trade_hub_request/security_advanced_capacitors,
+		/datum/trade_hub_request/security_high_power_lasers,
+		/datum/trade_hub_request/security_nano_servos,
+		/datum/trade_hub_request/industrial_iron,
+		/datum/trade_hub_request/industrial_plasma,
+		/datum/trade_hub_request/industrial_silver,
+		/datum/trade_hub_request/industrial_plasteel,
+		/datum/trade_hub_request/industrial_power_tools,
+	)
+
+/obj/machinery/trade_hub_core/service
+	name = "Торговый узел Donk Co."
+	specialization = "Donk Co. · продукты, игрушки и грузоперевозки"
+	nt_reputation = 30
+	syndicate_reputation = 80
+	demand_multipliers = list("Продукция" = 1.1)
+	private_packs = list(/datum/supply_pack/costumes_toys/donk_decoys)
+	groups = list(
+		/datum/supply_pack/service/randomized/donkpockets = "Продукты",
+		/datum/supply_pack/service/randomized/ready_donk = "Продукты",
+		/datum/supply_pack/organic/pizza = "Продукты",
+		/datum/supply_pack/vending/snack = "Продукты",
+		/datum/supply_pack/vending/cola = "Продукты",
+		/datum/supply_pack/imports/foamforce = "Игрушки",
+		/datum/supply_pack/costumes_toys/randomised/toys = "Игрушки",
+		/datum/supply_pack/costumes_toys/lasertag = "Игрушки",
+		/datum/supply_pack/costumes_toys/christmas = "Игрушки",
+		/datum/supply_pack/costumes_toys/donk_decoys = "Игрушки",
+		/datum/supply_pack/service/cargo_supples = "Сервисное снабжение",
+		/datum/supply_pack/service/mule = "Сервисное снабжение",
+		/datum/supply_pack/service/emptycrate = "Сервисное снабжение",
+	)
+	request_types = list(
+		/datum/trade_hub_request/agricultural_wheat,
+		/datum/trade_hub_request/agricultural_rice,
+		/datum/trade_hub_request/agricultural_corn,
+		/datum/trade_hub_request/agricultural_potatoes,
+		/datum/trade_hub_request/donk_cardboard,
+		/datum/trade_hub_request/donk_plastic,
+		/datum/trade_hub_request/service_birthday_cakes,
+		/datum/trade_hub_request/service_burgers,
+		/datum/trade_hub_request/service_donuts,
+		/datum/trade_hub_request/service_pretzels,
+		/datum/trade_hub_request/service_muffins,
+	)
+
+/obj/machinery/trade_hub_core/interdyne
+	name = "Торговый узел Interdyne Pharmaceutics"
+	specialization = "Interdyne Pharmaceutics · клиническая медицина"
+	nt_reputation = 30
+	syndicate_reputation = 80
+	private_packs = list(/datum/supply_pack/medical/interdyne_stimulants)
+	catalogue_groups = list(
+		"Medical" = "Медоборудование",
+	)
+	groups = list(
+		/datum/supply_pack/vending/medical = "Медикаменты",
+		/datum/supply_pack/medical/medipen_variety = "Медикаменты",
+		/datum/supply_pack/medical/chemical = "Медикаменты",
+		/datum/supply_pack/medical/experimentalmedicine = "Медикаменты",
+		/datum/supply_pack/medical/supplies = "Медикаменты",
+		/datum/supply_pack/medical/interdyne_stimulants = "Медикаменты",
+	)
+	request_types = list(
+		/datum/trade_hub_request/medical_glass,
+		/datum/trade_hub_request/medical_laser_scalpels,
+		/datum/trade_hub_request/medical_health_analyzers,
+		/datum/trade_hub_request/medical_mechanical_pinches,
+		/datum/trade_hub_request/medical_tomato,
+		/datum/trade_hub_request/medical_aloe,
+		/datum/trade_hub_request/medical_ambrosia,
+		/datum/trade_hub_request/medical_poppies,
+	)
+
+/obj/machinery/trade_hub_core/corporate
+	name = "Торговый узел NanoTrasen"
+	specialization = "NanoTrasen · корпоративные поставки"
+	nt_reputation = 70
+	patrol_reputation = 90
+	default_stock = 1
+	batch_credit_target = 2000
+	private_packs = list(/datum/supply_pack/emergency/patrol_rescue)
+	catalogue_groups = list(
+		"Engineering" = "Инструменты",
+		"Engine Construction" = "Электроника",
+		"Canisters & Materials" = "Материалы и газы",
+		"Emergency" = "Аварийное снабжение",
+		"Medical" = "Медоборудование",
+		"Science" = "Научные товары",
+		"Outsourced" = "Экспедиционное снабжение",
+		"Food & Hydroponics" = "Продукты",
+		"Livestock" = "Животноводство",
+		"Security" = "Снаряжение охраны",
+		"Armory" = "Оружейные поставки",
+		"Requisitions" = "Оружейные поставки",
+		"Vending Restocks" = "Снабжение автоматов",
+		"Service" = "Сервисное снабжение",
+		"Miscellaneous Supplies" = "Сервисное снабжение",
+		"Costumes & Toys" = "Игрушки",
+		"Imports" = "Импорт",
+	)
+	groups = list(
+		/datum/supply_pack/organic/exoticseeds = "Гидропоника",
+		/datum/supply_pack/organic/seeds = "Гидропоника",
+		/datum/supply_pack/organic/hydroponics/supplies = "Гидропоника",
+		/datum/supply_pack/medical/chemical = "Медикаменты",
+		/datum/supply_pack/medical/medipen_variety = "Медикаменты",
+		/datum/supply_pack/medical/experimentalmedicine = "Медикаменты",
+		/datum/supply_pack/emergency/patrol_rescue = "Аварийное снабжение",
+		/datum/supply_pack/security/armory/ship_ammunition/light = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/heavy = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/plasma = "Оружейные поставки",
+	)
+	request_types = list(
+		/datum/trade_hub_request/industrial_iron,
+		/datum/trade_hub_request/industrial_plasma,
+		/datum/trade_hub_request/industrial_power_tools,
+		/datum/trade_hub_request/industrial_gold,
+		/datum/trade_hub_request/industrial_cable,
+		/datum/trade_hub_request/industrial_smes_boards,
+		/datum/trade_hub_request/industrial_extra/corporate_material_rods,
+		/datum/trade_hub_request/industrial_glass/corporate_material_glass,
+		/datum/trade_hub_request/industrial_uranium,
+		/datum/trade_hub_request/industrial_titanium,
+		/datum/trade_hub_request/industrial_power_drills,
+		/datum/trade_hub_request/medical_laser_scalpels,
+		/datum/trade_hub_request/medical_health_analyzers,
+		/datum/trade_hub_request/medical_mechanical_pinches,
+		/datum/trade_hub_request/medical_aloe,
+		/datum/trade_hub_request/medical_ambrosia,
+		/datum/trade_hub_request/medical_poppies,
+		/datum/trade_hub_request/agricultural_golden_apples,
+		/datum/trade_hub_request/agricultural_cultivators,
+		/datum/trade_hub_request/agricultural_secateurs,
+		/datum/trade_hub_request/agricultural_plant_analyzers,
+		/datum/trade_hub_request/agricultural_wheat,
+		/datum/trade_hub_request/agricultural_rice,
+		/datum/trade_hub_request/agricultural_corn,
+		/datum/trade_hub_request/agricultural_potatoes,
+		/datum/trade_hub_request/agriculture_tomato,
+		/datum/trade_hub_request/agricultural_cabbage,
+		/datum/trade_hub_request/agricultural_carrots,
+		/datum/trade_hub_request/agricultural_pumpkins,
 		/datum/trade_hub_request/research_phasic_scanners,
 		/datum/trade_hub_request/research_quantum_boards,
 		/datum/trade_hub_request/research_ranged_analyzers,
@@ -675,7 +997,38 @@
 		/datum/trade_hub_request/expedition_mesons,
 		/datum/trade_hub_request/expedition_gps,
 		/datum/trade_hub_request/expedition_t_ray_scanners,
+		/datum/trade_hub_request/security_telescopic_shields,
+		/datum/trade_hub_request/security_holosign_projectors,
+		/datum/trade_hub_request/security_huds,
+		/datum/trade_hub_request/security_flashlights,
+		/datum/trade_hub_request/security_firing_pins,
+		/datum/trade_hub_request/security_advanced_capacitors,
+		/datum/trade_hub_request/security_high_power_lasers,
+		/datum/trade_hub_request/security_nano_servos,
+		/datum/trade_hub_request/service_birthday_cakes,
+		/datum/trade_hub_request/service_burgers,
+		/datum/trade_hub_request/service_donuts,
+		/datum/trade_hub_request/service_pretzels,
+		/datum/trade_hub_request/service_muffins,
+		/datum/trade_hub_request/donk_cardboard,
+		/datum/trade_hub_request/donk_plastic,
+		/datum/trade_hub_request/corporate_vend_lights,
+		/datum/trade_hub_request/corporate_vend_batteries,
+		/datum/trade_hub_request/industrial_silver/corporate_import_silver,
+		/datum/trade_hub_request/industrial_plasteel/corporate_import_plasteel,
+		/datum/trade_hub_request/corporate_bluespace_bins,
+		/datum/trade_hub_request/corporate_quadratic_capacitors,
+		/datum/trade_hub_request/corporate_quadultra_lasers,
+		/datum/trade_hub_request/corporate_odysseus_torsos,
+		/datum/trade_hub_request/corporate_ai_boards,
+		/datum/trade_hub_request/corporate_odysseus_main_boards,
+		/datum/trade_hub_request/corporate_odysseus_peripheral_boards,
 	)
+
+/obj/machinery/trade_hub_core/corporate/get_pack_group(datum/supply_pack/pack)
+	if(pack.type in corporate_pack_types)
+		return "Корпоративные проекты"
+	return ..()
 
 /datum/supply_pack/security/armory/ship_ammunition
 	order_flags = ORDER_TRADE_HUB_ONLY
@@ -701,65 +1054,32 @@
 	cost = CARGO_CRATE_VALUE * 3
 	contains = list(/obj/item/stack/stationtrauma_autocannon_shell/plasma/full)
 
-/** Security hub supplies security equipment and armory requisitions. */
-/obj/machinery/trade_hub_core/security
-	name = "Охранный торговый узел"
-	specialization = "Служба безопасности"
-	requests_per_group = 3
-	demand_multipliers = list("Компоненты" = 1.1, "Оборудование" = 1.2)
-	default_stock = 2
-	catalogue_groups = list("Security" = "Снаряжение охраны", "Armory" = "Оружейные поставки", "Requisitions" = "Оружейные поставки")
-	request_types = list(
-		/datum/trade_hub_request/security_telescopic_shields,
-		/datum/trade_hub_request/security_holosign_projectors,
-		/datum/trade_hub_request/security_huds,
-		/datum/trade_hub_request/security_flashlights,
-		/datum/trade_hub_request/security_firing_pins,
-		/datum/trade_hub_request/security_advanced_capacitors,
-		/datum/trade_hub_request/security_high_power_lasers,
-		/datum/trade_hub_request/security_nano_servos,
-	)
+/datum/supply_pack/costumes_toys/donk_decoys
+	name = "Donk Force: адаптивные декорации"
+	desc = "Три адаптивные фигуры и мелок для смены их внешности из специальной серии Donk Force."
+	crate_name = "ящик декораций Donk Force"
+	crate_type = /obj/structure/closet/crate/freezer/donk
+	order_flags = ORDER_TRADE_HUB_ONLY
+	cost = CARGO_CRATE_VALUE * 6
+	contains = list(/obj/item/storage/box/syndie_kit/cutouts)
 
-/** Service hub supplies station services, vending, leisure and imports. */
-/obj/machinery/trade_hub_core/service
-	name = "Сервисный торговый узел"
-	specialization = "Сервис и снабжение"
-	requests_per_group = 4
-	demand_multipliers = list("Продукция" = 1.1)
-	catalogue_groups = list(
-		"Service" = "Сервисное снабжение",
-		"Vending Restocks" = "Сервисное снабжение",
-		"Miscellaneous Supplies" = "Сервисное снабжение",
-		"Costumes & Toys" = "Сервисное снабжение",
-		"Imports" = "Сервисное снабжение",
-	)
-	request_types = list(
-		/datum/trade_hub_request/service_birthday_cakes,
-		/datum/trade_hub_request/service_burgers,
-		/datum/trade_hub_request/service_donuts,
-		/datum/trade_hub_request/service_pretzels,
-		/datum/trade_hub_request/service_muffins,
-	)
+/datum/supply_pack/medical/interdyne_stimulants
+	name = "Interdyne: полевые стимуляторы"
+	desc = "Два модифицированных автоинъектора из закрытой клинической серии Interdyne."
+	crate_name = "ящик полевых препаратов Interdyne"
+	access_view = NONE
+	crate_type = /obj/structure/closet/crate/medical
+	order_flags = ORDER_TRADE_HUB_ONLY
+	cost = CARGO_CRATE_VALUE * 10
+	contains = list(/obj/item/reagent_containers/hypospray/medipen/stimpack/traitor = 2)
 
-/** Corporate hub supplies only existing station project packs with their normal unlocks. */
-/obj/machinery/trade_hub_core/corporate
-	name = "Торговый узел корпоративных товаров"
-	specialization = "Корпоративные товары"
-	requests_per_group = 4
-	default_stock = 1
-	batch_credit_target = 2000
-	request_types = list(
-		/datum/trade_hub_request/corporate_bluespace_bins,
-		/datum/trade_hub_request/corporate_quadratic_capacitors,
-		/datum/trade_hub_request/corporate_quadultra_lasers,
-		/datum/trade_hub_request/corporate_odysseus_torsos,
-		/datum/trade_hub_request/corporate_ai_boards,
-		/datum/trade_hub_request/corporate_odysseus_main_boards,
-		/datum/trade_hub_request/corporate_odysseus_peripheral_boards,
+/datum/supply_pack/emergency/patrol_rescue
+	name = "NanoTrasen: патрульный реанимационный комплект"
+	desc = "Компактный дефибриллятор флота NanoTrasen и две аптечки для выездной команды."
+	crate_name = "реанимационный комплект патруля НТ"
+	order_flags = ORDER_TRADE_HUB_ONLY
+	cost = CARGO_CRATE_VALUE * 15
+	contains = list(
+		/obj/item/defibrillator/compact/combat/nanotrasen,
+		/obj/item/storage/medkit/regular = 2,
 	)
-
-/** Route only the shared exact station project allowlist to the corporate catalogue. */
-/obj/machinery/trade_hub_core/corporate/get_pack_group(datum/supply_pack/pack)
-	if(pack.type in corporate_pack_types)
-		return "Корпоративные проекты"
-	return null
