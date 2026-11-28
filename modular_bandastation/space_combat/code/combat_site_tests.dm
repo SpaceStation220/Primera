@@ -35,16 +35,16 @@
 		shot.pos_x = site.pos_x - (site.radius + 2) * shot.direction_x
 		shot.pos_y = site.pos_y - (site.radius + 2) * shot.direction_y
 		shot.remaining = site.radius + 4
-		shot.last_update = world.time - 1 SECONDS
+		shot.last_update = world.time - 2 SECONDS
 		var/previous_impact = home.next_kinetic_impact
-		shot.process(1)
+		shot.process(2)
 		TEST_ASSERT_NOTNULL(shot.finished_at, "The sector path must intersect [site.name].")
 		var/timeout = world.time + 12 SECONDS
 		UNTIL(home.next_kinetic_impact > previous_impact || world.time >= timeout)
 		TEST_ASSERT(home.next_kinetic_impact > previous_impact, "The incoming round must collide on [site.name]'s physical map.")
 		var/list/impact = home.kinetic_impacts[length(home.kinetic_impacts)]
-		TEST_ASSERT(abs(impact["x"] - (site.pos_x - site.radius * shot.direction_x)) < 0.05, "The impact must keep the entry X on the installation's hitbox.")
-		TEST_ASSERT(abs(impact["y"] - (site.pos_y - site.radius * shot.direction_y)) < 0.05, "The impact must keep the entry Y on the installation's hitbox.")
+		TEST_ASSERT(abs(impact["x"] - site.pos_x) < 0.05, "A head-on impact must keep the installation's charted X.")
+		TEST_ASSERT(abs(impact["y"] - site.pos_y) < 0.05, "A head-on impact must keep the installation's charted Y.")
 
 		var/obj/structure/closet/stationtrauma_drop_pod/pod = allocate(/obj/structure/closet/stationtrauma_drop_pod)
 		var/obj/item/cargo = allocate(/obj/item, pod)

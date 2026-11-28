@@ -8,6 +8,65 @@
 	TEST_ASSERT(abs(fraction - 0.3586) < 0.001, "The contact must be the entry, before the paths cross in the middle.")
 	TEST_ASSERT_NULL(shot.contact_fraction(10, 0, 5, 5, 0, 0, 2), "A stationary hull clear of the trajectory must not be hit.")
 
+/// A station behind a hull must let a shot reach it across multiple processing steps.
+/datum/unit_test/stationtrauma_kinetic_station_cover
+	parent_type = /datum/unit_test/overmap_docking
+
+/datum/unit_test/stationtrauma_kinetic_station_cover/Run()
+	navigation.sites.Cut()
+	navigation.selected_destination = null
+	navigation.prepared_site = null
+	var/datum/stationtrauma_overmap_sector/space/sector = allocate(__IMPLIED_TYPE__)
+	sector.ready = TRUE
+	TEST_ASSERT(sector.register(ship.shuttle_id, navigation), "The target ship must be registered in the test sector.")
+	TEST_ASSERT(navigation.kinetic_exposed(), "The target ship must be exposed to sector fire.")
+	site.pos_x = 200
+	site.pos_y = 0
+	sector.sites[site.id] = site
+	sector.register_docking_berth(site, "traffic:unit_test", "Test station")
+
+	navigation.pos_x = 170
+	navigation.pos_y = 0
+	var/datum/stationtrauma_kinetic_shot/shot = launch_test_shot(sector)
+	TEST_ASSERT_NULL(shot.finished_at, "Entering the station's approach radius must leave the shot in flight.")
+	shot.last_update = world.time - 1 SECONDS
+	shot.process(1)
+	TEST_ASSERT_NOTNULL(shot.finished_at, "The shot must contact the ship in front of the station.")
+	TEST_ASSERT(abs(shot.pos_x - (navigation.pos_x - navigation.radius)) < 0.05, "The contact must be with the near edge of the ship.")
+
+	navigation.pos_x = 230
+	shot = launch_test_shot(sector)
+	shot.last_update = world.time - 2 SECONDS
+	shot.process(2)
+	TEST_ASSERT_NOTNULL(shot.finished_at, "The station must intercept a shot at a ship behind it.")
+	TEST_ASSERT(abs(shot.pos_x - site.pos_x) < 0.05, "The shot must stop at the station before reaching the hull.")
+
+	// The station still has width on the chart, and a shot beyond it can reach a ship behind it.
+	navigation.pos_y = 40
+	shot = launch_test_shot(sector, navigation.pos_y)
+	shot.last_update = world.time - 2 SECONDS
+	shot.process(2)
+	TEST_ASSERT(abs(shot.pos_x - site.pos_x) < 0.05, "A shot within the station's lateral extent must still hit it.")
+
+	navigation.pos_y = 90
+	shot = launch_test_shot(sector, navigation.pos_y)
+	shot.last_update = world.time - 2 SECONDS
+	shot.process(2)
+	TEST_ASSERT(abs(shot.pos_x - (navigation.pos_x - navigation.radius)) < 0.05, "A shot outside that extent must reach the ship behind the station.")
+
+/datum/unit_test/stationtrauma_kinetic_station_cover/proc/launch_test_shot(datum/stationtrauma_overmap_sector/space/sector, shot_y = 0)
+	var/datum/stationtrauma_kinetic_shot/shot = allocate(__IMPLIED_TYPE__)
+	shot.sector_ref = WEAKREF(sector)
+	shot.projectile_type = /obj/projectile/bullet/stationtrauma_kinetic/site_test
+	shot.pos_x = 110
+	shot.pos_y = shot_y
+	shot.direction_x = 1
+	shot.direction_y = 0
+	shot.remaining = 160
+	shot.last_update = world.time - 0.4 SECONDS
+	shot.process(0.4)
+	return shot
+
 /datum/unit_test/stationtrauma_kinetic_sprite/Run()
 	var/obj/projectile/bullet/stationtrauma_kinetic/round = allocate(/obj/projectile/bullet/stationtrauma_kinetic)
 	TEST_ASSERT(round.icon_state in icon_states(round.icon), "The native projectile's actual icon resource must contain its sprite.")

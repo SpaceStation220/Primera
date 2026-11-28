@@ -151,9 +151,15 @@
 	var/datum/stationtrauma_overmap/space/target
 	var/offset_x
 	var/offset_y
+	var/step_length_squared = dx * dx + dy * dy
 	for(var/datum/stationtrauma_overmap_site/space/docking_target/site as anything in sector.fixed_combat_sites)
-		var/contact = stationtrauma_circle_hit(pos_x, pos_y, dx, dy, site.pos_x, site.pos_y, site.radius)
-		if(isnull(contact) || (!isnull(fraction) && contact >= fraction))
+		// Resolve impacts at the charted position. The approach radius only gives the station's width across the shot.
+		var/site_x = site.pos_x - pos_x
+		var/site_y = site.pos_y - pos_y
+		var/contact = (site_x * dx + site_y * dy) / step_length_squared
+		if(contact < 0 || contact > 1 || (!isnull(fraction) && contact >= fraction))
+			continue
+		if(abs(site_x * direction_y - site_y * direction_x) > site.radius)
 			continue
 		var/datum/stationtrauma_overmap_site/space/berth = site.combat_berth(sector)
 		if(!berth)
