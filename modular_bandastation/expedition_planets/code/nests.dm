@@ -1,0 +1,317 @@
+// Hives, lairs and fauna packs; grouped packs follow CrystallEdge's demiplane mob modifiers, no donor code is copied.
+// https://github.com/crystallpunk-14/crystall-punk-14/blob/5b6108377e40235c768be3ac6ffadb37a085f441/Resources/Prototypes/_CP14/Procedural/Demiplane/Modifiers/Danger/mobs.yml
+
+/// Percent chance per turf that robotic guardians anchor a pack on a lifeless biome.
+#define EXPEDITION_GUARDIAN_DENSITY 0.1
+/// Footprint of a grown hive in turfs: width, then height.
+#define EXPEDITION_GROWN_HIVE_SIZE list(25, 21)
+
+/datum/map_generator/expedition_barren
+	/// Smallest and largest ambient group; profiles with heavy mining fauna use solitary encounters.
+	var/list/fauna_pack_size = list(1, 2)
+	/// Maximum number of ruin approaches with a patrol.
+	var/ruin_patrol_limit = 2
+	/// Least distance in turfs between the anchors of two fauna packs.
+	var/pack_spacing = 14
+	/// Extra members of every ambient group that is not a solitary encounter.
+	var/pack_bonus = 0
+	/// Danger level the modifiers were rolled at; a stronger level breeds a larger hive garrison.
+	var/danger_level = 0
+	/// Hive layouts this profile offers the xenomorph hive modifier: a key of [/datum/map_generator/expedition_barren/proc/hive_template] or "grown".
+	var/list/hive_variants = list("native", "grown")
+	/// Hive layout rolled by the xenomorph hive modifier from `hive_variants`; null without a hive.
+	var/hive_variant
+	/// Relative southwest corner reserved for the hive; null when no spot fitted.
+	var/list/hive_spot
+	/// Weighted megafauna the megafauna modifier picks from on this profile.
+	var/list/megafauna_types = list()
+	/// Whether the megafauna modifier set a boss on this planet.
+	var/megafauna = FALSE
+	/// Weighted robots the guardian modifier sends in packs among the wildlife; empty without guardians.
+	var/list/guardian_types = list()
+
+/** The native lavaland xenomorph nest, placed by the hive modifier rather than picked as an ordinary ruin. */
+/datum/map_template/ruin/expedition/xeno_nest
+	name = "Expedition Xenomorph Nest"
+	id = "expedition_xeno_nest"
+	description = "Native lavaland xenomorph nest with its queen, placed by the hive modifier."
+	prefix = "_maps/RandomRuins/LavaRuins/"
+	suffix = "lavaland_surface_xeno_nest.dmm"
+	unpickable = TRUE
+	allow_duplicates = TRUE
+
+/** Celadon's overrun jungle outpost, the hive of jungle planets. */
+/datum/map_template/ruin/expedition/celadon_jungle_nest
+	name = "Expedition Celadon Jungle Nest"
+	id = "celadon_jungle_nest"
+	description = "Jungle outpost overrun by xenomorphs, placed by the hive modifier."
+	suffix = "celadon_jungle_nest.dmm"
+	unpickable = TRUE
+	allow_duplicates = TRUE
+
+/** Mapped template of the rolled hive layout, shared by every planet that rolls it; null for the grown chamber. */
+/datum/map_generator/expedition_barren/proc/hive_template()
+	var/static/list/templates
+	templates ||= list("native" = new /datum/map_template/ruin/expedition/xeno_nest, "jungle" = new /datum/map_template/ruin/expedition/celadon_jungle_nest)
+	return templates[hive_variant]
+
+/** Reserve the hive footprint before ordinary ruins, so the largest structure always finds room. */
+/datum/map_generator/expedition_barren/proc/reserve_hive()
+	if(!hive_variant)
+		return
+	var/list/size = EXPEDITION_GROWN_HIVE_SIZE
+	var/datum/map_template/template = hive_template()
+	if(template)
+		size = list(template.width, template.height)
+	hive_spot = reserve_ruin(size[1], size[2])
+
+/// Plans the reserved hive on the surface being decorated
+/datum/map_generator/expedition_barren/proc/plan_hive(area/surface)
+	if(!hive_spot)
+		return
+	var/list/size = EXPEDITION_GROWN_HIVE_SIZE
+	var/datum/map_template/template = hive_template()
+	if(template)
+		size = list(template.width, template.height)
+	// the clutch may settle up to three tiles off the hive's middle
+	plan_work(hive_spot[1] - 3, hive_spot[2] - 3, hive_spot[1] + size[1] + 2, hive_spot[2] + size[2] + 2, CALLBACK(src, PROC_REF(build_hive), level_turf(hive_spot[1], hive_spot[2]), surface), life = 6)
+
+/**
+ * Build the reserved hive: a mapped nest with an egg clutch, or a grown resin chamber.
+ *
+ * Arguments:
+ * * origin - Southwest turf of the hive
+ * * surface - Planet surface area the hive ground joins
+ */
+/datum/map_generator/expedition_barren/proc/build_hive(turf/origin, area/surface)
+	var/datum/map_template/template = hive_template()
+	if(template)
+		if(!template.load(origin))
+			return FALSE
+		var/list/covered = template.get_affected_turfs(origin)
+		// Lavaland ground carries lavaland air; the nest stands on this planet's own ground instead.
+		for(var/turf/tile as anything in covered)
+			if(istype(tile, /turf/open/misc/asteroid/basalt/lava_land_surface) || istype(tile, /turf/open/lava/smooth/lava_land_surface))
+				tile.ChangeTurf(floor_type, floor_type, CHANGETURF_IGNORE_AIR)
+		adapt_template_turfs(covered, surface)
+		for(var/turf/tile as anything in covered)
+			for(var/mob/living/basic/member in tile)
+				member.add_expedition_help()
+			for(var/obj/structure/spawner/den in tile)
+				den.AddElement(/datum/element/stationtrauma_help_spawner)
+		place_clutch(locate(origin.x + round(template.width / 2), origin.y + round(template.height / 2), origin.z))
+		return TRUE
+	grow_hive(origin)
+	return TRUE
+
+/**
+ * Grow an irregular resin chamber: a ring of resin walls with an opening, weeds inside, cocooned victims, eggs and a garrison.
+ *
+ * Each hive is shaped and stocked anew; distant, more dangerous planets breed more xenomorphs and likelier a queen.
+ */
+/datum/map_generator/expedition_barren/proc/grow_hive(turf/origin)
+	var/list/size = EXPEDITION_GROWN_HIVE_SIZE
+	var/half_width = (size[1] - 1) / 2
+	var/half_height = (size[2] - 1) / 2
+	var/centre_x = origin.x + half_width
+	var/centre_y = origin.y + half_height
+	// The opening faces the surface centre, where the access cross runs.
+	var/opening = get_dir(locate(centre_x, centre_y, origin.z), locate(origin_x + round(width / 2), origin_y + round(width / 2), origin.z))
+	var/list/floor = list()
+	for(var/turf/tile as anything in block(origin, locate(origin.x + size[1] - 1, origin.y + size[2] - 1, origin.z)))
+		var/distance = ((tile.x - centre_x) / half_width) ** 2 + ((tile.y - centre_y) / half_height) ** 2 + rand(-12, 12) / 100
+		if(distance > 1)
+			continue
+		if(!isopenturf(tile) || islava(tile))
+			tile = tile.ChangeTurf(floor_type, floor_type, CHANGETURF_IGNORE_AIR)
+		if(distance > 0.72)
+			var/towards = get_dir(locate(centre_x, centre_y, origin.z), tile)
+			if(towards == opening || (towards & opening && prob(50)))
+				new /obj/structure/alien/weeds(tile)
+				continue
+			if(prob(20))
+				new /obj/structure/alien/resin/membrane(tile)
+			else
+				new /obj/structure/alien/resin/wall(tile)
+			continue
+		new /obj/structure/alien/weeds(tile)
+		floor += tile
+	if(!length(floor))
+		return
+	place_clutch(locate(round(centre_x), round(centre_y), origin.z))
+	for(var/index in 1 to 3)
+		new /obj/structure/alien/weeds/node(pick(floor))
+	for(var/index in 1 to rand(4, 7))
+		if(!length(floor))
+			return
+		var/turf/cocoon = pick_n_take(floor)
+		new /obj/structure/bed/nest(cocoon)
+		new /obj/effect/mob_spawn/corpse/human/assistant(cocoon)
+		new /obj/effect/decal/cleanable/blood/gibs/old(cocoon)
+	for(var/index in 1 to rand(3, 5))
+		if(!length(floor))
+			return
+		new /obj/structure/alien/egg/grown(pick_n_take(floor))
+	var/static/list/garrison = list(/mob/living/basic/alien/drone = 3, /mob/living/basic/alien = 3, /mob/living/basic/alien/sentinel = 2)
+	for(var/index in 1 to clamp(3 + round(danger_level), 3, 7))
+		if(!length(floor))
+			return
+		var/xeno_type = pick_weight(garrison)
+		var/mob/living/member = new xeno_type(pick_n_take(floor))
+		member.add_expedition_help()
+	if(length(floor) && prob(clamp(20 * danger_level, 10, 60)))
+		var/mob/living/queen = new /mob/living/basic/alien/queen/large(pick_n_take(floor))
+		queen.add_expedition_help()
+
+/** The egg clutch keeps a hive breeding until it is destroyed. */
+/datum/map_generator/expedition_barren/proc/place_clutch(turf/centre)
+	var/turf/spot = centre
+	if(!isopenturf(spot) || spot.is_blocked_turf())
+		for(var/turf/open/tile in RANGE_TURFS(3, centre))
+			if(!tile.is_blocked_turf())
+				spot = tile
+				break
+	if(isopenturf(spot))
+		var/obj/structure/spawner/hive = new /obj/structure/spawner/stationtrauma_xeno_hive(spot)
+		hive.AddElement(/datum/element/stationtrauma_help_spawner)
+
+/** Plan the rolled boss on open ground at least 40 turfs from the camp, with room around it; returns whether it found a place. */
+/datum/map_generator/expedition_barren/proc/place_megafauna()
+	if(!megafauna || !length(megafauna_types))
+		return FALSE
+	for(var/attempt in 1 to 60)
+		var/x = rand(8, width - 8)
+		var/y = rand(8, width - 8)
+		if(is_reserved(x, y) || in_camp_clearance(x, y, clearance = 40))
+			continue
+		if(plan_standing_ground(x, y, 3) < 30)
+			continue
+		plan_take(x, y)
+		plan_work(x, y, x, y, CALLBACK(src, PROC_REF(set_megafauna), level_turf(x, y), pick_weight(megafauna_types)), life = 3)
+		return TRUE
+	return FALSE
+
+/// Sets the planned boss on [spot]
+/datum/map_generator/expedition_barren/proc/set_megafauna(turf/spot, boss_type)
+	new boss_type(spot)
+
+/** Free open ground within `radius` of `centre` where a creature or remains can stand. */
+/datum/map_generator/expedition_barren/proc/standing_ground(turf/centre, radius)
+	. = list()
+	for(var/turf/open/tile in RANGE_TURFS(radius, centre))
+		if(!isgroundlessturf(tile) && !islava(tile) && !tile.is_blocked_turf())
+			. += tile
+
+/** A den holds its kind from the start: a garrison around the spawner and the remains of their prey. */
+/datum/map_generator/expedition_barren/proc/raise_lair(obj/structure/spawner/den)
+	den.AddElement(/datum/element/stationtrauma_help_spawner)
+	var/list/ground = standing_ground(get_turf(den), 3)
+	var/list/kinds = den.mob_types
+	for(var/index in 1 to rand(1, min(3, den.max_mobs)))
+		if(!length(ground) || !length(kinds))
+			break
+		var/kind = pick(kinds)
+		var/mob/living/member = new kind(pick_n_take(ground))
+		member.add_expedition_help()
+	var/static/list/remains = list(/obj/effect/decal/remains/human, /obj/effect/decal/cleanable/blood/gibs/old, /obj/effect/decal/cleanable/blood/old)
+	for(var/index in 1 to 3)
+		if(!length(ground))
+			break
+		var/remain_type = pick(remains)
+		new remain_type(pick_n_take(ground))
+
+/**
+ * Settle the wild in small groups of one kind, with solitary encounters on profiles carrying heavy mining fauna.
+ *
+ * Each biome's fauna density is the chance that one of its turfs anchors a pack; the pack's kind comes from that biome.
+ * On a planet with robotic guardians some packs are robots instead, and lifeless biomes are patrolled by robots alone.
+ *
+ * Arguments:
+ * * wild_by_biome - Biome -> its turfs outside the camp clearance and features
+ */
+/datum/map_generator/expedition_barren/proc/place_packs(list/wild_by_biome, list/anchors)
+	anchors ||= list()
+	for(var/datum/biome/biome as anything in wild_by_biome)
+		var/list/kinds = biome.fauna_density > 0 ? biome.fauna_types : list()
+		var/density = length(kinds) ? biome.fauna_density : (length(guardian_types) ? EXPEDITION_GUARDIAN_DENSITY : 0)
+		if(density <= 0)
+			continue
+		var/weighted = length(kinds) && isnum(kinds[kinds[1]])
+		for(var/turf/tile as anything in shuffle(wild_by_biome[biome]))
+			budget?.yield()
+			if(!prob(density) || !isopenturf(tile) || tile.is_blocked_turf())
+				continue
+			var/near = FALSE
+			for(var/turf/anchor as anything in anchors)
+				if(get_dist(anchor, tile) < pack_spacing)
+					near = TRUE
+					break
+			if(near)
+				continue
+			anchors += tile
+			var/kind
+			if(length(guardian_types) && (!length(kinds) || prob(40)))
+				kind = pick_weight(guardian_types)
+			else
+				kind = weighted ? pick_weight(kinds) : pick(kinds)
+			spawn_fauna_pack(kind, tile, standing_ground(tile, 2))
+
+/** Choose the population used for a ruin approach. */
+/datum/map_generator/expedition_barren/proc/ruin_patrol_biome(x, y)
+	return biome_at(x, y, FALSE)
+
+/** Plan local fauna around authored ruins, away from the camp and outside the ruins themselves. */
+/datum/map_generator/expedition_barren/proc/place_ruin_patrols(list/ruins, area/surface)
+	if(!wildlife && !length(guardian_types))
+		return
+	var/placed = 0
+	for(var/list/ruin as anything in shuffle(ruins))
+		if(placed >= ruin_patrol_limit)
+			break
+		if(!prob(80 * fauna_multiplier))
+			continue
+		var/x = ruin[4]
+		var/y = ruin[5]
+		var/terrain = terrain_at(x, y)
+		if(!ispath(terrain, /turf/open) || ispath(terrain, /turf/open/lava) || ispath(terrain, /turf/open/chasm) || ispath(terrain, /turf/open/openspace) || !plan_standing_ground(x, y, 2))
+			continue
+		var/datum/biome/biome = ruin_patrol_biome(x, y)
+		var/list/kinds = biome.fauna_density > 0 ? biome.fauna_types : null
+		var/kind
+		if(length(guardian_types) && (!length(kinds) || prob(40)))
+			kind = pick_weight(guardian_types)
+		else if(length(kinds))
+			kind = isnum(kinds[kinds[1]]) ? pick_weight(kinds) : pick(kinds)
+		if(!kind)
+			continue
+		plan_work(x - 2, y - 2, x + 2, y + 2, CALLBACK(src, PROC_REF(set_ruin_patrol), level_turf(x, y), kind, surface), life = 2)
+		placed++
+
+/// Sets a planned patrol of [kind] around a ruin's [approach]
+/datum/map_generator/expedition_barren/proc/set_ruin_patrol(turf/approach, kind, area/surface)
+	if(get_area(approach) != surface || approach.density)
+		return
+	var/list/ground = standing_ground(approach, 2)
+	for(var/turf/tile as anything in ground.Copy())
+		if(get_area(tile) != surface || LAZYACCESS(feature_turfs, tile) || in_camp_clearance(tile.x - origin_x + 1, tile.y - origin_y + 1))
+			ground -= tile
+	spawn_fauna_pack(kind, approach, ground)
+
+/** Spawn a biome pack on usable tiles, keeping heavy creatures solitary and honoring the dead planet's pack budget. */
+/datum/map_generator/expedition_barren/proc/spawn_fauna_pack(kind, turf/anchor, list/ground)
+	if(!length(ground))
+		return FALSE
+	var/solitary = ispath(kind, /mob/living/basic/mining/legion) || ispath(kind, /mob/living/basic/mining/ice_demon) || ispath(kind, /mob/living/basic/mining/ice_whelp)
+	var/pack_size
+	if(istype(src, /datum/map_generator/expedition_barren/dead) && ispath(kind, /mob/living/basic/zombie/rotten/expedition))
+		var/datum/map_generator/expedition_barren/dead/dead_profile = src
+		pack_size = dead_profile.next_zombie_pack_size(anchor, length(ground))
+	else
+		pack_size = solitary ? 1 : rand(fauna_pack_size[1], fauna_pack_size[2]) + pack_bonus
+	for(var/index in 1 to min(pack_size, length(ground)))
+		var/mob/living/member = new kind(pick_n_take(ground))
+		member.add_expedition_help()
+	return pack_size > 0
+
+#undef EXPEDITION_GUARDIAN_DENSITY
+#undef EXPEDITION_GROWN_HIVE_SIZE

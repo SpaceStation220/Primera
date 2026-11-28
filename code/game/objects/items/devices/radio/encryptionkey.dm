@@ -165,7 +165,7 @@
 	icon = 'icons/map_icons/items/encryptionkey.dmi'
 	icon_state = "/obj/item/encryptionkey/heads/captain"
 	post_init_icon_state = "cypherkey_cube"
-	channels = list(RADIO_CHANNEL_COMMAND = 1, RADIO_CHANNEL_SECURITY = 1, RADIO_CHANNEL_ENGINEERING = 0, RADIO_CHANNEL_SCIENCE = 0, RADIO_CHANNEL_MEDICAL = 0, RADIO_CHANNEL_SUPPLY = 0, RADIO_CHANNEL_SERVICE = 0, RADIO_CHANNEL_JUSTICE = 0) // BANDASTATION ADD - Jobs Module
+	channels = list(RADIO_CHANNEL_COMMAND = 1, RADIO_CHANNEL_SECURITY = 1, RADIO_CHANNEL_ENGINEERING = 0, RADIO_CHANNEL_SCIENCE = 0, RADIO_CHANNEL_MEDICAL = 0, RADIO_CHANNEL_SUPPLY = 0, RADIO_CHANNEL_SERVICE = 0, RADIO_CHANNEL_JUSTICE = 0, RADIO_CHANNEL_EXPEDITION = 0)
 	greyscale_config = /datum/greyscale_config/encryptionkey_cube
 	greyscale_colors = "#2b2793#dca01b"
 
@@ -255,8 +255,8 @@
 	icon = 'icons/map_icons/items/encryptionkey.dmi'
 	icon_state = "/obj/item/encryptionkey/headset_cent"
 	post_init_icon_state = "cypherkey_centcom"
-	special_channels = RADIO_SPECIAL_CENTCOM
-	channels = list(RADIO_CHANNEL_CENTCOM = 1)
+	special_channels = RADIO_SPECIAL_CENTCOM | RADIO_SPECIAL_NT_PATROL
+	channels = list(RADIO_CHANNEL_CENTCOM = 1, RADIO_CHANNEL_NT_PATROL = 1)
 	greyscale_config = /datum/greyscale_config/encryptionkey_centcom
 	greyscale_colors = "#24a157#dca01b"
 
@@ -270,6 +270,7 @@
 		RADIO_CHANNEL_SCIENCE = 1,
 		RADIO_CHANNEL_MEDICAL = 1,
 		RADIO_CHANNEL_SUPPLY = 1,
+		RADIO_CHANNEL_EXPEDITION = 1,
 		RADIO_CHANNEL_SERVICE = 1,
 		RADIO_CHANNEL_AI_PRIVATE = 1,
 		RADIO_CHANNEL_ENTERTAINMENT = 1,
@@ -286,6 +287,7 @@
 		RADIO_CHANNEL_SCIENCE = 1,
 		RADIO_CHANNEL_MEDICAL = 1,
 		RADIO_CHANNEL_SUPPLY = 1,
+		RADIO_CHANNEL_EXPEDITION = 1,
 		RADIO_CHANNEL_SERVICE = 1,
 		RADIO_CHANNEL_AI_PRIVATE = 1,
 		RADIO_CHANNEL_ENTERTAINMENT = 1,

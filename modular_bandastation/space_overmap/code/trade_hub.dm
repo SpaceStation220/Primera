@@ -1,0 +1,778 @@
+/** Physical owner of a trade hub's independent inventory, demand and replenishment jobs. */
+/obj/machinery/trade_hub_core
+	name = "ядро торгового узла"
+	desc = "Хранит запасы и заявки торгового узла."
+	icon = 'icons/obj/machines/telecomms.dmi'
+	icon_state = "processor"
+	density = TRUE
+	idle_power_usage = BASE_MACHINE_IDLE_CONSUMPTION * 0.1
+	/// Mapper key shared with this hub's terminal and pads on the same level.
+	var/hub_id
+	/// Crew-facing profile name.
+	var/specialization = "Торговый узел"
+	/// Supply pack type to remaining crates; each core owns its copy.
+	var/list/stock = list()
+	/// Supply pack type to the group replenished by local deliveries.
+	var/list/groups = list()
+	/// Maximum crates of each listed pack.
+	var/capacity = 9
+	/// Candidate request types for independently rotating quotas.
+	var/list/request_types = list()
+	/// Request type to owned request instance.
+	var/list/requests = list()
+	/// Maximum simultaneous requests in each replenishment group.
+	var/requests_per_group = 2
+	/// Percent chance that a newly selected rotating quota pays a premium.
+	var/high_demand_chance = 20
+	/// Approximate cargo payment for one complete replenishment batch.
+	var/batch_credit_target = 1000
+	/// Commodity category to purchase price coefficient; missing categories use one.
+	var/list/demand_multipliers = list()
+	/// Commodity category to selection frequency coefficient, independent of price.
+	var/list/demand_weights = list()
+	/// Replenishment group to the last two selected request types, owned by this core.
+	var/list/request_history = list()
+	/// Source cargo category to local replenishment group.
+	var/list/catalogue_groups = list()
+	/// Initial crates for imported catalogue entries without an explicit stock override.
+	var/default_stock = 3
+	/// The runtime cargo registry is imported once, after SSshuttle initialization.
+	var/catalogue_initialized = FALSE
+	/// Goal construction packs routed exclusively to the corporate supplier.
+	var/static/list/corporate_pack_types = list(
+		/datum/supply_pack/engineering/bsa,
+		/datum/supply_pack/engineering/dna_vault,
+		/datum/supply_pack/engineering/dna_probes,
+		/datum/supply_pack/engineering/shield_sat,
+		/datum/supply_pack/engineering/shield_sat_control,
+	)
+	/// Weak links never keep removed pads alive.
+	var/datum/weakref/input_pad
+	/// Cached outbound pad, revalidated at use.
+	var/datum/weakref/output_pad
+	/// Prevent generation or item callbacks from reentering a transaction.
+	var/busy = FALSE
+	/// Latest automatic inventory update, shared by all operators.
+	var/status
+
+/obj/machinery/trade_hub_core/Initialize(mapload)
+	. = ..()
+	stock = stock.Copy()
+	request_types = request_types.Copy()
+	requests = list()
+	request_history = list()
+	requests[/datum/trade_hub_request/crates] = new /datum/trade_hub_request/crates()
+	var/list/request_groups = list()
+	for(var/datum/trade_hub_request/request_type as anything in request_types)
+		request_groups[initial(request_type.group)] = TRUE
+	for(var/group in request_groups)
+		for(var/index in 1 to requests_per_group)
+			if(!replace_request(group))
+				break
+
+/obj/machinery/trade_hub_core/Destroy()
+	QDEL_LIST_ASSOC_VAL(requests)
+	request_history.Cut()
+	input_pad = null
+	output_pad = null
+	return ..()
+
+/** Select a local replenishment group without duplicating the cargo catalogue. */
+/obj/machinery/trade_hub_core/proc/get_pack_group(datum/supply_pack/pack)
+	if(pack.order_flags & ORDER_TRADE_HUB_ONLY)
+		return groups[pack.type]
+	if(pack.type in corporate_pack_types)
+		return null
+	return groups[pack.type] || catalogue_groups[pack.group]
+
+/** Packs whose ordinary crate delivery is supported by a local cargo-budget purchase. */
+/obj/machinery/trade_hub_core/proc/supports_pack(datum/supply_pack/pack)
+	if(!pack || istype(pack, /datum/supply_pack/custom) || istype(pack, /datum/supply_pack/imports/fan_upgrade))
+		return FALSE
+	if(pack.order_flags & (ORDER_INVISIBLE | ORDER_EMAG_ONLY | ORDER_CONTRABAND | ORDER_GOODY | ORDER_POD_ONLY | ORDER_ADMIN_SPAWNED))
+		return FALSE
+	return !!(pack.crate_type || pack.storage_override)
+
+/** Read live unlock flags both when presenting an offer and when committing a purchase. */
+/obj/machinery/trade_hub_core/proc/can_trade_pack(datum/supply_pack/pack, list/personal_access, reputation = 50)
+	if(!supports_pack(pack) || reputation < required_reputation(pack) || ((pack.order_flags & ORDER_SPECIAL) && !(pack.order_flags & ORDER_SPECIAL_ENABLED)))
+		return FALSE
+	return isnull(personal_access) || !pack.access_view || (pack.access_view in personal_access)
+
+/** Import runtime-generated IDs only after the owning cargo registry is ready. */
+/obj/machinery/trade_hub_core/proc/ensure_catalog()
+	if(catalogue_initialized)
+		return TRUE
+	if(!SSshuttle.initialized)
+		return FALSE
+	for(var/pack_id, pack_data in SSshuttle.trade_hub_supply_packs)
+		var/datum/supply_pack/pack = pack_data
+		if(!supports_pack(pack))
+			continue
+		var/group = get_pack_group(pack)
+		if(!group)
+			continue
+		if(!(pack_id in stock))
+			stock[pack_id] = clamp(default_stock, 0, capacity)
+		if(!(pack_id in groups))
+			groups[pack_id] = group
+	catalogue_initialized = TRUE
+	return TRUE
+
+/** Select and install one specialized request, preferring fresh and locally distinct commodities. */
+/obj/machinery/trade_hub_core/proc/replace_request(group, datum/trade_hub_request/previous)
+	if(previous && (QDELETED(previous) || requests[previous.type] != previous || previous.group != group))
+		return null
+	var/list/active_items = list()
+	var/active_group_count = 0
+	for(var/active_type in requests)
+		var/datum/trade_hub_request/active = requests[active_type]
+		if(active == previous)
+			continue
+		if(active.group == group)
+			active_group_count++
+		active_items[active.item_type] = TRUE
+	if(!previous && active_group_count >= requests_per_group)
+		return null
+	var/list/recent = request_history[group]
+	var/list/all_candidates = list()
+	var/list/alternatives = list()
+	var/list/fresh = list()
+	for(var/datum/trade_hub_request/request_type as anything in request_types)
+		if(initial(request_type.group) != group)
+			continue
+		var/item_type = initial(request_type.item_type)
+		if(active_items[item_type] || (requests[request_type] && requests[request_type] != previous))
+			continue
+		var/category = initial(request_type.category)
+		var/category_weight = (category in demand_weights) ? demand_weights[category] : 1
+		var/weight = initial(request_type.selection_weight) * category_weight
+		if(weight <= 0)
+			continue
+		// pick_weight requires integers; scaling preserves fractional category frequencies.
+		weight = max(1, round(weight * 100))
+		all_candidates[request_type] = weight
+		if(previous && item_type == previous.item_type)
+			continue
+		alternatives[request_type] = weight
+		if(request_type in recent)
+			continue
+		fresh[request_type] = weight
+	var/list/selection = fresh
+	if(!length(selection))
+		selection = alternatives
+	if(!length(selection))
+		selection = all_candidates
+	var/datum/trade_hub_request/selected_type = pick_weight(selection)
+	if(!selected_type)
+		return null
+	var/category = initial(selected_type.category)
+	var/coefficient = (category in demand_multipliers) ? demand_multipliers[category] : 1
+	var/datum/trade_hub_request/next_request = new selected_type(batch_credit_target, coefficient, prob(high_demand_chance))
+	if(previous)
+		requests -= previous.type
+	requests[next_request.type] = next_request
+	if(previous)
+		qdel(previous)
+	if(!recent)
+		recent = list()
+		request_history[group] = recent
+	recent += selected_type
+	if(length(recent) > 2)
+		recent.Cut(1, length(recent) - 1)
+	return next_request
+
+/** Replace an exhausted request with a different commodity after its configured cooldown. */
+/obj/machinery/trade_hub_core/proc/renew_request(datum/trade_hub_request/request)
+	if(QDELETED(request) || requests[request.type] != request || !request.renew_at || world.time < request.renew_at || request.remaining > 0 || request.ready_at || !is_operational)
+		return FALSE
+	var/datum/trade_hub_request/next_request = replace_request(request.group, request)
+	if(!next_request)
+		return FALSE
+	status = "Новый спрос: [next_request.name], квота [next_request.remaining] ед."
+	return TRUE
+
+/** Resolve a unique same-level pad and retain only a weak cache. */
+/obj/machinery/trade_hub_core/proc/find_pad(pad_type)
+	var/obj/machinery/trade_hub_pad/pad = (pad_type == /obj/machinery/trade_hub_pad/input ? input_pad : output_pad)?.resolve()
+	if(!pad || pad.hub_id != hub_id || pad.z != z)
+		pad = null
+		if(!hub_id)
+			return null
+		for(var/obj/machinery/trade_hub_pad/candidate as anything in SSmachines.get_machines_by_type_and_subtypes(pad_type))
+			if(candidate.hub_id != hub_id || candidate.z != z)
+				continue
+			if(pad)
+				return null
+			pad = candidate
+		if(pad_type == /obj/machinery/trade_hub_pad/input)
+			input_pad = WEAKREF(pad)
+		else
+			output_pad = WEAKREF(pad)
+	return pad
+
+/** Resolve a pad for callers which require an operational transfer point. */
+/obj/machinery/trade_hub_core/proc/get_pad(pad_type)
+	var/obj/machinery/trade_hub_pad/pad = find_pad(pad_type)
+	return pad?.is_operational && !pad.panel_open ? pad : null
+
+/** Explain the same machinery conditions used when committing a trade. */
+/proc/trade_hub_machine_reason(obj/machinery/device, label)
+	if(device.panel_open)
+		return "[label]: открыта сервисная панель."
+	if(device.machine_stat & BROKEN)
+		return "[label]: требуется ремонт."
+	if(device.machine_stat & NOPOWER)
+		return "[label]: нет питания."
+	if(!device.is_operational)
+		return "[label]: оборудование недоступно."
+	return null
+
+/obj/machinery/trade_hub_core/proc/get_input_reason()
+	var/obj/machinery/trade_hub_pad/pad = find_pad(/obj/machinery/trade_hub_pad/input)
+	if(!pad)
+		return "Узел не видит площадку приёма. Проверьте подключение."
+	return trade_hub_machine_reason(pad, "Площадка приёма")
+
+/obj/machinery/trade_hub_core/proc/get_output_reason()
+	var/obj/machinery/trade_hub_pad/pad = find_pad(/obj/machinery/trade_hub_pad/output)
+	if(!pad)
+		return "Узел не видит площадку выдачи. Проверьте подключение."
+	var/reason = trade_hub_machine_reason(pad, "Площадка выдачи")
+	if(reason)
+		return reason
+	var/turf/tile = get_turf(pad)
+	if(!isopenturf(tile) || tile.density)
+		return "Площадка выдачи расположена на непроходимой клетке."
+	for(var/atom/movable/occupant as anything in tile)
+		if(ismob(occupant) || (isobj(occupant) && !iseffect(occupant) && occupant != pad))
+			return "Площадка выдачи занята. Освободите её для заказа."
+	return null
+
+/obj/machinery/trade_hub_core/proc/get_trade_reason()
+	var/reason = trade_hub_machine_reason(src, "Ядро узла")
+	if(reason)
+		return reason
+	if(!ensure_catalog())
+		return "Каталог узла ещё загружается."
+	if(busy)
+		return "Узел завершает другую сделку. Повторите попытку."
+	return null
+
+/** Keep the boolean transaction API while returning the exact outcome to its caller. */
+/obj/machinery/trade_hub_core/proc/trade_result(list/result, success, message)
+	if(result)
+		result["message"] = message
+	return success
+
+/** Snapshot the buyer's ID access once per catalogue or purchase check. Chameleon IDs bypass access_view on personal cargo orders. */
+/proc/trade_hub_cash_access(mob/living/buyer)
+	var/obj/item/card/id/card = istype(buyer) ? buyer.get_idcard(TRUE) : null
+	if(istype(card, /obj/item/card/id/advanced/chameleon))
+		return null
+	return card ? card.GetAccess() : list()
+
+/** Only real banknotes and credit holochips held in the active hand are cash tender. */
+/proc/trade_hub_cash_in_hand(mob/user)
+	RETURN_TYPE(/obj/item)
+	var/obj/item/tender = user?.get_active_held_item()
+	if(QDELETED(tender) || tender.loc != user || (tender.flags_1 & HOLOGRAM_1) || (tender.item_flags & ABSTRACT))
+		return null
+	if(istype(tender, /obj/item/holochip))
+		return tender
+	var/obj/item/stack/spacecash/bills = astype(tender)
+	if(bills && !bills.is_cyborg && bills.value > 0)
+		return bills
+	return null
+
+/** Hand over change or proceeds, preserving the payout at the counter if the operator has left. */
+/proc/trade_hub_give_cash(mob/user, turf/counter, amount)
+	var/obj/item/holochip/chip = new(counter, amount)
+	if(!QDELETED(user) && user.Adjacent(counter))
+		user.put_in_hands(chip)
+
+/** Consume the minimum number of notes, or the exact amount from a holochip. */
+/proc/trade_hub_charge_cash(obj/item/tender, price, mob/user, turf/counter)
+	if(!tender || tender != trade_hub_cash_in_hand(user) || tender.get_item_credit_value() < price)
+		return FALSE
+	var/obj/item/holochip/chip = astype(tender)
+	if(chip)
+		return chip.spend(price) == price
+	var/obj/item/stack/spacecash/bills = tender
+	var/count = ceil(price / bills.value)
+	var/change = count * bills.value - price
+	if(!bills.use(count))
+		return FALSE
+	if(change > 0)
+		trade_hub_give_cash(user, counter, change)
+	return TRUE
+
+/** Buy from the shared stock. Cash is collected only once the order is ready to issue. */
+/obj/machinery/trade_hub_core/proc/buy(pack_id, mob/user, list/result, obj/machinery/computer/trade_hub/terminal, cash = FALSE)
+	var/reason = get_trade_reason()
+	if(reason)
+		return trade_result(result, FALSE, reason)
+	if(!istext(pack_id))
+		return trade_result(result, FALSE, "Товар не найден.")
+	var/pack_type = text2path(pack_id) || pack_id
+	var/datum/supply_pack/pack = SSshuttle.trade_hub_supply_packs[pack_type]
+	var/reputation = get_reputation(user)
+	if(!(pack_type in stock) || stock[pack_type] <= 0 || !can_trade_pack(pack, cash ? trade_hub_cash_access(user) : null, reputation))
+		return trade_result(result, FALSE, "Этот товар отсутствует в запасах узла.")
+	reason = get_output_reason()
+	if(reason)
+		return trade_result(result, FALSE, reason)
+	var/obj/machinery/trade_hub_pad/pad = get_pad(/obj/machinery/trade_hub_pad/output)
+	var/turf/delivery_tile = get_turf(pad)
+	var/turf/counter = get_turf(terminal)
+	var/datum/bank_account/account
+	var/obj/item/tender
+	var/price = purchase_price(pack.get_cost(), reputation)
+	if(!isnum(price) || price <= 0)
+		return trade_result(result, FALSE, "Не удалось выставить счёт за товар.")
+	if(cash)
+		if(QDELETED(terminal) || terminal.cash_operator_reason(user))
+			return trade_result(result, FALSE, "Нет доступа к личной покупке этого товара.")
+		tender = trade_hub_cash_in_hand(user)
+		if(!tender || tender.get_item_credit_value() < price)
+			return trade_result(result, FALSE, "В активной руке недостаточно наличных.")
+	else
+		reason = trade_hub_cargo_payment_reason(user, terminal)
+		if(reason)
+			return trade_result(result, FALSE, reason)
+		account = SSeconomy.get_dep_account(ACCOUNT_CAR)
+		if(!account || !account.has_money(price))
+			return trade_result(result, FALSE, "В бюджете карго недостаточно средств.")
+	busy = TRUE
+	if(!cash && !account.adjust_money(-price, "Торговый узел [hub_id]: [pack.name]"))
+		busy = FALSE
+		return trade_result(result, FALSE, "Не удалось списать оплату из бюджета карго.")
+	stock[pack_type]--
+	// Contain partial generation off-map so a failed issuance cannot leave free goods on the pad.
+	var/obj/structure/closet/crate/staging = new(null)
+	var/datum/supply_order/order = new(pack, manifest_can_fail = FALSE)
+	var/atom/movable/product
+	try
+		product = order.generate(staging)
+	catch(var/exception/failure)
+		stack_trace("Trade hub [hub_id] could not generate [pack_type]: [failure]")
+	// Some packs wrap the returned crate in a parcel; preserve that outer delivery as well.
+	var/atom/movable/shipment = product
+	while(shipment && shipment.loc != staging)
+		if(!ismovable(shipment.loc))
+			shipment = null
+			break
+		shipment = shipment.loc
+	var/success = !QDELETED(shipment) && shipment.loc == staging && !QDELETED(src) && is_operational && !panel_open && get_reputation(user) == reputation && can_trade_pack(pack, cash ? trade_hub_cash_access(user) : null, reputation) && get_pad(/obj/machinery/trade_hub_pad/output) == pad && get_turf(pad) == delivery_tile && !get_output_reason()
+	var/cash_charged = FALSE
+	if(success && (cash || terminal))
+		success = !QDELETED(terminal) && terminal.get_core() == src && !terminal.panel_open && terminal.can_interact(user)
+		if(success)
+			success = cash ? !terminal.cash_operator_reason(user) : !trade_hub_cargo_payment_reason(user, terminal)
+	if(success && cash)
+		cash_charged = trade_hub_charge_cash(tender, price, user, counter)
+		success = cash_charged
+	if(success)
+		shipment.forceMove(delivery_tile)
+		success = !QDELETED(shipment) && shipment.loc == delivery_tile
+	var/message
+	if(success)
+		var/source = cash ? "personal cash" : "the cargo budget"
+		message = "Выдан [pack.name]. Оплачено [cash ? "наличными" : "из бюджета карго"]: [price] кр."
+		investigate_log("Trade hub [hub_id] issued [pack_type] to [key_name(user)] for [price] credits from [source].", INVESTIGATE_CARGO)
+		if(pack.order_flags & ORDER_DANGEROUS)
+			message_admins("\A [pack.name] purchased at trade hub [hub_id] by [user ? ADMIN_LOOKUPFLW(user) : "server"] using [source].")
+	else
+		if(!QDELETED(shipment))
+			qdel(shipment)
+		if(cash_charged)
+			trade_hub_give_cash(user, counter, price)
+		else if(account)
+			account.adjust_money(price, "Торговый узел [hub_id]: возврат за невыданный товар")
+		if(!QDELETED(src))
+			stock[pack_type] = min(capacity, stock[pack_type] + 1)
+		message = (cash && !cash_charged) ? "Выдача отменена. Наличные остались у вас." : "Выдача отменена. Оплата возвращена."
+	qdel(staging)
+	qdel(order)
+	busy = FALSE
+	return trade_result(result, success, message)
+
+/** Consume only the requested items offered on this hub's input pad. */
+/obj/machinery/trade_hub_core/proc/accept(request_id, list/result, mob/user, obj/machinery/computer/trade_hub/cash_terminal)
+	var/reason = get_trade_reason()
+	if(reason)
+		return trade_result(result, FALSE, reason)
+	if(!istext(request_id))
+		return trade_result(result, FALSE, "Заявка не найдена.")
+	var/datum/trade_hub_request/request = requests[text2path(request_id)]
+	if(!request || request.renew_at || (!isnull(request.remaining) && request.remaining <= 0))
+		return trade_result(result, FALSE, "Спрос на этот товар закрыт.")
+	if(request.ready_at)
+		return trade_result(result, FALSE, "Партия принята. Дождитесь пополнения запасов.")
+	reason = get_input_reason()
+	if(reason)
+		return trade_result(result, FALSE, reason)
+	var/obj/machinery/trade_hub_pad/pad = get_pad(/obj/machinery/trade_hub_pad/input)
+	var/datum/bank_account/account
+	var/turf/counter
+	if(cash_terminal)
+		if(QDELETED(cash_terminal) || cash_terminal.cash_operator_reason(user))
+			return trade_result(result, FALSE, "Для выплаты подойдите к терминалу.")
+		counter = get_turf(cash_terminal)
+	else
+		account = SSeconomy.get_dep_account(ACCOUNT_CAR)
+		if(!account)
+			return trade_result(result, FALSE, "Счёт карго недоступен.")
+	busy = TRUE
+	var/accepted = request.take_goods(get_turf(pad))
+	var/message
+	if(accepted)
+		var/payment = accepted * sale_price(request.unit_reward, get_reputation(user))
+		message = "Принято [accepted] ед. товара."
+		if(cash_terminal)
+			trade_hub_give_cash(user, counter, payment)
+			message += " Выдан голочип на [payment] кр."
+		else
+			var/balance_before = account.account_balance
+			account.adjust_money(payment, "Торговый узел [hub_id]: [request.name]")
+			message += " [trade_hub_budget_receipt(payment, account.account_balance - balance_before)]"
+		investigate_log("Trade hub [hub_id] accepted [accepted] units of [request.item_type] for [payment] credits to [cash_terminal ? "operator [key_name(user)]" : "cargo"], [isnull(request.remaining) ? "unlimited" : request.remaining] demand remaining.", INVESTIGATE_CARGO)
+		if(!isnull(request.batch_size) && request.delivered == request.batch_size)
+			request.ready_at = world.time + request.restock_delay
+			request.restock_timer = addtimer(CALLBACK(src, PROC_REF(complete_restock), request), request.restock_delay, TIMER_STOPPABLE)
+			message += " Пополнение группы «[request.group]» через [request.restock_delay / (1 SECONDS)] с."
+	else
+		message = "На площадке приёма нет подходящего груза."
+	busy = FALSE
+	return trade_result(result, accepted > 0, message)
+
+/// Describe the posted reward and any part withheld by the bank before it reached the cargo balance.
+/proc/trade_hub_budget_receipt(amount, balance_increase)
+	var/message = "Начислено в бюджет карго: [amount] кр."
+	if(balance_increase < amount)
+		message += " Удержано в счёт долга: [amount - balance_increase] кр. Изменение баланса: +[balance_increase] кр."
+	return message
+
+/// Loose items are considered first, then the contents of open crates and the crates themselves.
+/proc/trade_hub_offered_goods(turf/input_tile)
+	var/list/candidates = list()
+	for(var/obj/item/item in input_tile)
+		candidates += item
+	for(var/obj/structure/closet/crate/crate in input_tile)
+		if(!crate.opened)
+			continue
+		candidates += crate
+		for(var/obj/item/item in crate)
+			candidates += item
+	return candidates
+
+/// Return the units one object can supply, checking its current location and container.
+/proc/trade_hub_offered_quantity(obj/offered, turf/input_tile)
+	if(QDELETED(offered) || offered.anchored || (offered.flags_1 & HOLOGRAM_1))
+		return 0
+	if(istype(offered, /obj/structure/closet/crate))
+		var/obj/structure/closet/crate/crate = offered
+		return crate.loc == input_tile && crate.opened && !length(crate.contents)
+	var/obj/item/item = offered
+	if(item.item_flags & ABSTRACT)
+		return 0
+	if(item.loc != input_tile)
+		var/obj/structure/closet/crate/holder = item.loc
+		if(!istype(holder) || !holder.opened || holder.loc != input_tile)
+			return 0
+	var/obj/item/stack/stack = astype(item)
+	if(!stack)
+		return 1
+	return stack.is_cyborg ? 0 : stack.amount
+
+/// Count subclasses against each requested parent type without rescanning the pad for each open quota.
+/proc/trade_hub_quantities_by_type(turf/input_tile)
+	var/list/totals = list()
+	for(var/obj/offered as anything in trade_hub_offered_goods(input_tile))
+		var/amount = trade_hub_offered_quantity(offered, input_tile)
+		if(amount <= 0)
+			continue
+		var/obj/type_path = offered.type
+		while(ispath(type_path, /obj))
+			totals[type_path] += amount
+			type_path = type_path.parent_type
+	return totals
+
+/// A standing crate return has no upper limit, while a rotating request accepts only its current batch.
+/datum/trade_hub_request/proc/acceptance_limit()
+	if(ready_at || renew_at)
+		return 0
+	if(isnull(batch_size))
+		return INFINITY
+	return max(0, min(remaining, batch_size - delivered))
+
+/// Consume only goods still eligible when the customer confirms this delivery.
+/datum/trade_hub_request/proc/take_goods(turf/input_tile)
+	var/limit = acceptance_limit()
+	var/accepted = 0
+	for(var/obj/offered as anything in trade_hub_offered_goods(input_tile))
+		if(accepted >= limit)
+			break
+		if(!istype(offered, item_type))
+			continue
+		var/amount = min(limit - accepted, trade_hub_offered_quantity(offered, input_tile))
+		if(amount <= 0)
+			continue
+		var/obj/item/stack/stack = astype(offered)
+		if(stack)
+			if(!stack.use(amount))
+				continue
+		else
+			qdel(offered)
+		accepted += amount
+	if(!isnull(batch_size))
+		delivered += accepted
+		remaining -= accepted
+	return accepted
+
+/** Commit one due replenishment; loss of power retains the pending batch. */
+/obj/machinery/trade_hub_core/proc/complete_restock(datum/trade_hub_request/request)
+	if(QDELETED(request) || requests[request.type] != request || !request.ready_at || world.time < request.ready_at || !is_operational)
+		return FALSE
+	if(request.restock_timer)
+		deltimer(request.restock_timer)
+		request.restock_timer = null
+	request.ready_at = 0
+	request.delivered = 0
+	for(var/pack_type in stock)
+		if(groups[pack_type] == request.group)
+			stock[pack_type] = min(capacity, stock[pack_type] + request.restock_amount)
+	status = "Пополнены запасы группы «[request.group]»."
+	if(request.remaining <= 0)
+		request.renew_at = world.time + request.renewal_delay
+		request.renewal_timer = addtimer(CALLBACK(src, PROC_REF(renew_request), request), request.renewal_delay, TIMER_STOPPABLE)
+		status += " Другой товар группы «[request.group]» через [request.renewal_delay / (1 SECONDS)] с."
+	return TRUE
+
+/obj/machinery/trade_hub_core/on_set_is_operational(old_value)
+	. = ..()
+	if(!is_operational)
+		return
+	for(var/request_type in requests.Copy())
+		var/datum/trade_hub_request/request = requests[request_type]
+		if(request.ready_at && world.time >= request.ready_at)
+			complete_restock(request)
+		if(request.renew_at && world.time >= request.renew_at)
+			renew_request(request)
+
+/** Cargo transfer tile linked to a hub core by its mapper key. */
+/obj/machinery/trade_hub_pad
+	name = "площадка торгового узла"
+	icon = 'icons/obj/machines/floor.dmi'
+	icon_state = "floor_beacon"
+	idle_power_usage = BASE_MACHINE_IDLE_CONSUMPTION * 0.01
+	/// Same-level core key.
+	var/hub_id
+
+/** Input pad exposes loose cargo and open crate contents to local requests. */
+/obj/machinery/trade_hub_pad/input
+	name = "точка приёма груза"
+	desc = "Принимает подходящие предметы с площадки и из открытых ящиков на ней."
+	color = "#e6aa47"
+
+/** Output pad reserves one clear tile for a purchased crate. */
+/obj/machinery/trade_hub_pad/output
+	name = "точка выдачи груза"
+	desc = "Оставьте площадку свободной для купленного ящика."
+	color = "#66b3e6"
+
+/** Powered, breathable station area for the standalone trade-hub test hall. */
+/area/station/trade_hub_test
+	name = "Зал проверки торговых узлов"
+	requires_power = FALSE
+	default_gravity = STANDARD_GRAVITY
+	static_lighting = FALSE
+	base_lighting_alpha = 255
+
+/** Local cargo terminal; all transaction permissions and amounts are checked on the server. */
+/obj/machinery/computer/trade_hub
+	name = "терминал грузов торгового узла"
+	desc = "Покупка местных запасов и сдача товаров по заявкам узла. Принимает личные наличные и проводит расчёты через бюджет карго."
+	icon = 'modular_bandastation/space_overmap/icons/trade_terminal.dmi'
+	icon_state = MAP_SWITCH("terminal", "terminal_map")
+	icon_screen = "terminal_screen"
+	icon_keyboard = null
+	generate_map_preview = FALSE
+	req_access = list(ACCESS_CARGO)
+	/// Same-level core key.
+	var/hub_id
+	/// Rebuilt terminals bind lazily; deleted cores are never retained.
+	var/datum/weakref/core_ref
+	/// Latest transaction per operator, discarded when their terminal window closes.
+	var/list/receipts
+
+/obj/machinery/computer/trade_hub/Destroy()
+	core_ref = null
+	receipts = null
+	return ..()
+
+/** Bind to one mapped core; a missing or ambiguous mapping cannot trade. */
+/obj/machinery/computer/trade_hub/proc/get_core()
+	var/obj/machinery/trade_hub_core/core = core_ref?.resolve()
+	if(core && core.hub_id == hub_id && core.z == z)
+		return core
+	if(!hub_id)
+		return null
+	core = null
+	for(var/obj/machinery/trade_hub_core/candidate as anything in SSmachines.get_machines_by_type_and_subtypes(/obj/machinery/trade_hub_core))
+		if(candidate.hub_id != hub_id || candidate.z != z)
+			continue
+		if(core)
+			return null
+		core = candidate
+	core_ref = WEAKREF(core)
+	return core
+
+/** Cash changes hands in person even when a remote operator can view the terminal. */
+/obj/machinery/computer/trade_hub/proc/cash_operator_reason(mob/user)
+	if(!isliving(user) || !user.can_hold_items() || !Adjacent(user))
+		return "Для расчёта наличными подойдите к терминалу."
+	return null
+
+/// Station cargo credentials authorize department purchases except when presented by an independently funded patrol.
+/proc/trade_hub_cargo_payment_reason(mob/user, obj/machinery/computer/trade_hub/terminal)
+	if(user?.uses_patrol_budget())
+		return "Патруль снабжается за счёт эсминца. Выберите личные наличные."
+	if(terminal && !terminal.allowed(user))
+		return "Нужен доступ карго. Проверьте ID-карту."
+	return null
+
+/** Return the common machinery and selected payment method's denial at the point of action. */
+/obj/machinery/computer/trade_hub/proc/get_trade_reason(mob/user, obj/machinery/trade_hub_core/core, cash = FALSE)
+	if(!core)
+		return "Нет связи с ядром. Проверьте подключение терминала."
+	var/reason = trade_hub_machine_reason(src, "Терминал")
+	if(reason)
+		return reason
+	if(cash)
+		reason = cash_operator_reason(user)
+		if(reason)
+			return reason
+	else
+		reason = trade_hub_cargo_payment_reason(user, src)
+		if(reason)
+			return reason
+	return core.get_trade_reason()
+
+/** A handled denial also triggers an immediate TGUI update. */
+/obj/machinery/computer/trade_hub/proc/transaction_result(mob/user, action, id, success, message)
+	if(!QDELETED(user))
+		var/list/previous = LAZYACCESS(receipts, user)
+		var/list/receipt = list(
+			"action" = action, "id" = id, "success" = success, "message" = message,
+			"sequence" = (previous?["sequence"] || 0) + 1,
+		)
+		LAZYSET(receipts, user, receipt)
+	return TRUE
+
+/obj/machinery/computer/trade_hub/ui_close(mob/user)
+	. = ..()
+	LAZYREMOVE(receipts, user)
+
+/obj/machinery/computer/trade_hub/ui_interact(mob/user, datum/tgui/ui)
+	. = ..()
+	open_overmap_console(user, ui, "TradeHub")
+
+/obj/machinery/computer/trade_hub/ui_status(mob/user, datum/ui_state/state)
+	return overmap_console_status(user, ..())
+
+/obj/machinery/computer/trade_hub/ui_data(mob/user)
+	var/obj/machinery/trade_hub_core/core = get_core()
+	var/catalogue_ready = core?.ensure_catalog()
+	var/cargo_access = !trade_hub_cargo_payment_reason(user, src)
+	var/reputation = core?.get_reputation(user)
+	var/terminal_reason = get_trade_reason(user, core)
+	var/cash_reason = get_trade_reason(user, core, cash = TRUE)
+	var/obj/item/tender = trade_hub_cash_in_hand(user)
+	var/input_reason = core ? core.get_input_reason() : "Нет связи с площадкой приёма."
+	var/output_reason = core ? core.get_output_reason() : "Нет связи с площадкой выдачи."
+	var/datum/bank_account/account = SSeconomy.get_dep_account(ACCOUNT_CAR)
+	var/list/data = list(
+		"name" = core?.name || name,
+		"specialization" = core?.specialization,
+		"connected" = !!core,
+		"reputation" = reputation,
+		"operational" = !terminal_reason,
+		"terminal_reason" = terminal_reason,
+		"input_reason" = input_reason,
+		"output_reason" = output_reason,
+		"receipt" = LAZYACCESS(receipts, user),
+		"cargo_access" = cargo_access,
+		"cash_reason" = cash_reason,
+		"cash_balance" = tender?.get_item_credit_value() || 0,
+		"balance" = cargo_access ? (account?.account_balance || 0) : 0,
+		"status" = core?.status,
+		"input_ready" = !input_reason,
+		"output_ready" = !output_reason,
+		"offers" = list(),
+		"requests" = list(),
+	)
+	if(!catalogue_ready)
+		return data
+	var/obj/machinery/trade_hub_pad/input = input_reason ? null : core.find_pad(/obj/machinery/trade_hub_pad/input)
+	data["reward_market"] = core.reward_market_data(get_turf(input), reputation)
+	var/list/personal_access = trade_hub_cash_access(user)
+	for(var/pack_type in core.stock)
+		var/datum/supply_pack/pack = SSshuttle.trade_hub_supply_packs[pack_type]
+		var/cash_allowed = core.can_trade_pack(pack, personal_access, reputation)
+		if(!cash_allowed && !(cargo_access && core.can_trade_pack(pack, reputation = reputation)))
+			continue
+		data["offers"] += list(list(
+			"id" = "[pack_type]", "name" = pack.name, "description" = pack.desc,
+			"group" = core.groups[pack_type], "price" = core.purchase_price(pack.get_cost(), reputation),
+			"stock" = core.stock[pack_type], "capacity" = core.capacity, "cash_allowed" = cash_allowed,
+		))
+	var/list/offered_quantities = input && !core.get_trade_reason() ? trade_hub_quantities_by_type(get_turf(input)) : null
+	for(var/request_type in core.requests)
+		var/datum/trade_hub_request/request = core.requests[request_type]
+		var/deadline = request.ready_at || request.renew_at
+		var/waiting_for_core = deadline && deadline <= world.time && !core.is_operational
+		data["requests"] += list(list(
+			"id" = "[request_type]", "name" = request.name, "group" = request.group,
+			"icon" = request.icon_base64,
+			"ready_quantity" = min(request.acceptance_limit(), offered_quantities?[request.item_type] || 0),
+			"category" = request.category, "base_unit_reward" = request.base_unit_reward,
+			"price_multiplier" = request.price_multiplier, "regular_unit_reward" = core.sale_price(request.regular_unit_reward, reputation),
+			"highDemand" = request.high_demand, "high_demand_bonus" = request.high_demand ? request.premium_percent : 0,
+			"delivered" = request.delivered, "required" = request.batch_size,
+			"remaining" = request.remaining, "unit_reward" = core.sale_price(request.unit_reward, reputation),
+			"restock_amount" = request.restock_amount,
+			"restock_pending" = !!request.ready_at, "renewal_pending" = !!request.renew_at,
+			"waiting_for_core" = waiting_for_core, "waiting_for_power" = waiting_for_core && (core.machine_stat & NOPOWER),
+			"ready_in" = max(0, ceil((request.ready_at - world.time) / (1 SECONDS))),
+			"renew_in" = max(0, ceil((request.renew_at - world.time) / (1 SECONDS))),
+		))
+	return data
+
+/obj/machinery/computer/trade_hub/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
+	if(..())
+		return TRUE
+	if(action != "buy" && action != "accept" && action != "sell_reward")
+		return FALSE
+	var/mob/user = ui.user
+	var/id = istext(params["id"]) ? params["id"] : null
+	var/obj/machinery/trade_hub_core/core = get_core()
+	var/payment = params["payment"]
+	if(!isnull(payment) && payment != "cash" && payment != "cargo")
+		return transaction_result(user, action, id, FALSE, "Неизвестный способ расчёта.")
+	var/cash = payment == "cash"
+	var/reason = get_trade_reason(user, core, cash)
+	if(reason || !can_interact(user))
+		return transaction_result(user, action, id, FALSE, reason || "Не удаётся воспользоваться терминалом.")
+	var/list/result = list()
+	var/success
+	switch(action)
+		if("buy")
+			success = core.buy(id, user, result, src, cash)
+		if("accept")
+			success = core.accept(id, result, user, cash ? src : null)
+		if("sell_reward")
+			success = core.sell_rewards(id, params, result, user, cash ? src : null)
+	if(QDELETED(ui) || ui.closing)
+		return TRUE
+	return transaction_result(user, action, id, success, result["message"])

@@ -1,0 +1,219 @@
+# Источники космической овермапы
+
+Атрибуция новых материалов `space_overmap`. Общая навигация указана в
+[overmap/ATTRIBUTION.md](../overmap/ATTRIBUTION.md), биомы — в
+[expedition_planets/ATTRIBUTION.md](../expedition_planets/ATTRIBUTION.md), корабли — в
+[overmap_ships/ATTRIBUTION.md](../overmap_ships/ATTRIBUTION.md), руины — в
+[overmap_ruins/ATTRIBUTION.md](../overmap_ruins/ATTRIBUTION.md).
+
+## Космический глист
+
+Исходный рисунок глиста создан для BandaStation генератором изображений OpenAI.
+Для игры подготовлены палитра и восемь кадров движения размером 96×192 пикселя.
+Лицензия CC BY-SA 3.0. [Спрайт глиста](icons/space_worm.dmi)
+
+## Посадка и взлёт на планетах
+
+Виды с борта и с поверхности, анимации, спрайты и звуковые эффекты взяты из Voidcrew. Автор Jackriip и участники Voidcrew. Код адаптирован под навигацию, освещение, профили планет и перемещение шаттлов Primera по AGPL-3.0. Файлы DMI и OGG перенесены без изменений по CC BY-SA 3.0. Пути и контрольные суммы указаны в `ASSETS.json`. [Voidcrew PR #588](https://github.com/voidcrew/Voidcrew/pull/588) · [Лицензия исходной ревизии](https://github.com/voidcrew/Voidcrew/blob/5e0a0d9dbfb307bed03c95301e80f53d3336f8b4/README.md#license).
+
+## Лицензии и авторы
+
+Исходный код и адаптации используют GNU AGPL v3; полный текст уже находится в
+корневом [LICENSE](../../LICENSE). Исторические GPL-компоненты сохраняют условия
+источника. Для планировок и графики сохраняется CC BY-SA 3.0; включённый исходный
+код сохраняет лицензию кода донора. Исключения отдельных ресурсов не отменяются.
+
+| Источник и авторы | Версия и лицензионная политика |
+| --- | --- |
+| SierraBay/SierraBay12, участники SierraBay и Baystation | [8623b35f6943130998002e94cf001a9c6ccb3f4c](https://github.com/SierraBay/SierraBay12/blob/8623b35f6943130998002e94cf001a9c6ccb3f4c/README.md#лизцензия) |
+| Void-Crew/Voidcrew-LRP, участники Voidcrew, Shiptest, Whitesands и TG | [66c552922bf2a28963c2a8f5d89993623a141a1f](https://github.com/Void-Crew/Voidcrew-LRP/blob/66c552922bf2a28963c2a8f5d89993623a141a1f/README.md#license) |
+| CeladonSS13/Shiptest, участники Celadon, Shiptest, Whitesands и TG | [4214796c7289b74779f10dd25df2d695c264aa8f](https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/README.md) |
+| Baystation12/Baystation12, участники Baystation | [a50f180528a54d72f08ddad2f49a8c994fd24185](https://github.com/Baystation12/Baystation12/blob/a50f180528a54d72f08ddad2f49a8c994fd24185/README.md#license) |
+| ParadiseSS13/Paradise, участники Paradise | [8e4ad940e497f64443c3fc635a09840a8fa7a1d2](https://github.com/ParadiseSS13/Paradise/blob/8e4ad940e497f64443c3fc635a09840a8fa7a1d2/README.md#licenses) |
+| TG, BandaStation и Primera contributors | [65a9bd040b816783f0b6c24ba1e84ee7aab48456](https://github.com/SpaceStation220/Primera/blob/65a9bd040b816783f0b6c24ba1e84ee7aab48456/README.md#license) |
+
+[Полный текст CC BY-SA 3.0](LICENSE-ASSETS-CC-BY-SA-3.0.txt),
+[официальная страница лицензии](https://creativecommons.org/licenses/by-sa/3.0/).
+Указание авторства не означает одобрения этой адаптации исходными проектами.
+
+## Патрульный эсминец НТ
+
+Пиктограммы отсеков эсминца и реакторной шаттла «Шершень» нарисованы для редактора карт BandaStation. Авторы — участники BandaStation, лицензия CC BY-SA 3.0. [Атлас пиктограмм](icons/nt_patrol_areas.dmi)
+
+Значок заместителя в SecHUD нарисован для BandaStation на основе рамки ОБР участников TG и BandaStation. Лицензия CC BY-SA 3.0. [Атлас SecHUD](../../icons/mob/huds/hud.dmi)
+
+## Настенные шкафчики
+
+Код и спрайты из [Voidcrew #469](https://github.com/voidcrew/Voidcrew/pull/469)
+от Aliceee2ch и участников Voidcrew. [Код](https://github.com/voidcrew/Voidcrew/blob/779fd6d0889cc6e372b4a3355f9c385ea51de6da/voidcrew/modules/storage/wall_locker.dm)
+адаптирован под крепления и шкафы BandaStation, лицензия GNU AGPL v3.
+Графика `icons/wallcloset.dmi` сохраняет CC BY-SA 3.0. Для вариантов атмосферного
+техника, ботаника и уборщика добавлены состояния корпуса из существующих кадров,
+чтобы использовать нарисованные для них открытые и закрытые двери. Пожарный шкафчик
+(`fire`, `fire_open`, `fire_back`, `fire_door`) — аварийные кадры, перекрашенные
+в красный, со снятым с двери значком кислорода.
+
+## Орбитальные планеты экспедиции
+
+`icons/planets.dmi`: пять слоёв 480×480, адаптированных непосредственно из пикселей
+`icons/effects/parallax.dmi` участников TG, BandaStation и Primera
+([исходник](https://github.com/SpaceStation220/Primera/blob/84ad68cbd1f99c5021af540407d1de5389651f6d/icons/effects/parallax.dmi)).
+Адаптация StationTrauma, 2026-11-06; арт-дирекция Junkkky. Лицензия — CC BY-SA 3.0.
+Ледяная планета сохраняет штатный кадр `icemoon` без изменений. Каменистая,
+пустынная и зелёная используют его пиксельные узоры с изменёнными палитрами,
+кратерами и материками. Лавовая сохраняет рисунок штатного `planet` без луны
+и обломков; перекрытые ими участки восстановлены, палитра очищена до пяти цветов.
+Масштабирование и реалистичное текстурирование не применялись. Исходный DMI
+не изменён; его звёзды, туманности и астероиды используются как прежде.
+
+## Термоядерное ядро Raven
+
+`icons/fusion_core.dmi`: нативная пиксельная отрисовка 96×96 для StationTrauma,
+2026-11-06, по предметным референсам и арт-дирекции Junkkky. Образец палитры и
+манеры отрисовки — существующий `icons/obj/machines/cannon.dmi`, авторы TG и
+BandaStation. Корпус неподвижен; анимируются только энергия и аварийные лампы.
+Отдельные маски используются для emissive. Лицензия нового ресурса — CC BY-SA 3.0.
+Фотографии-референсы в ресурс не копировались.
+
+Звуки ядра переиспользуют существующие ресурсы сборки:
+`sound/machines/hypertorus/loops/hypertorus_nominal.ogg` и
+`sound/machines/sm/loops/{calm_start,calm_end,delamming}.ogg`.
+Их исходные авторство и лицензии сохраняются; новых аудиофайлов не добавлено.
+
+## Компактное каталитическое ядро
+
+`icons/compact_core.dmi` собран из
+[`icons/obj/machines/research/suspension_generator.dmi`](https://github.com/Baystation12/Baystation12/blob/a50f180528a54d72f08ddad2f49a8c994fd24185/icons/obj/machines/research/suspension_generator.dmi)
+участников Baystation12, коммит `a50f180528a54d72f08ddad2f49a8c994fd24185`, лицензия CC BY-SA 3.0.
+Корпус машины не изменён. Состояния переименованы под режимы ядра: покой из `suspension_wrenched`
+(бирюзовый эмиттер перекрашен в тусклый фиолетовый),
+открытая панель — он же с наложенным `suspension_panel`, рабочие режимы — пять кадров `suspension_on`
+с перекрашенным свечением поля (фиолетовое, бледное, яркое, красное) и своими задержками кадров.
+Маски `*_glow` для emissive содержат только свечение поля. Звуки ядра — существующие звуки
+термоядерного ядра сборки.
+
+## Корабельное реле дроидов
+
+[`icons/droid_relay.dmi`](icons/droid_relay.dmi) и
+[`icons/droid_relay_actions.dmi`](icons/droid_relay_actions.dmi) — оригинальная
+пиксельная графика 32×32, отрисованная для этой интеграции 2026-11-18.
+Для масштаба и манеры отрисовки использовались штатные
+[`hivebot.dmi`](../../icons/mob/simple/hivebot.dmi),
+[`robots.dmi`](../../icons/mob/silicon/robots.dmi),
+[`hivebot_fabricator.dmi`](../../icons/obj/machines/hivebot_fabricator.dmi),
+[`computer.dmi`](../../icons/obj/machines/computer.dmi) и
+[`backgrounds.dmi`](../../icons/mob/actions/backgrounds.dmi) участников TG,
+BandaStation и Primera, а также [спрайт компактного ядра](icons/compact_core.dmi)
+на основе работы участников Baystation12. Все кадры реле отрисованы с нуля.
+Лицензия новых ресурсов — CC BY-SA 3.0.
+
+[`icons/relay_logistics.dmi`](icons/relay_logistics.dmi) — оригинальные кадры
+силоса, труб и соединительных муфт 32×32, 2026-11-20, CC BY-SA 3.0. Для формы силоса
+использован штатный [`ore_silo.dmi`](../../icons/obj/machines/ore_silo.dmi),
+для палитры и отделки — спрайты оборудования «Дозора».
+
+## Космические локации
+
+| Локальный файл | Источник |
+| --- | --- |
+| `maps/asteroid_field.dmm` | Собственная планировка StationTrauma на штатных ресурсах сборки |
+| `maps/drift_cargo.dmm` | Собственная планировка StationTrauma на штатных ресурсах сборки |
+
+`asteroid_field.dmm` и `drift_cargo.dmm` созданы для этой интеграции на штатных
+ресурсах. Существующие TG-руины подключаются по исходным шаблонам без копирования
+графики и изменения их лицензий.
+
+[ASSETS.json](ASSETS.json) перечисляет неаудиоресурсы экспедиции: две карты локаций,
+семь карт аванпостов, тестовый зал,
+78 деталей рельефа планет (их источники указаны в
+[expedition_planets/ATTRIBUTION.md](../expedition_planets/ATTRIBUTION.md)),
+`icons/obj/fluff/map_previews.dmi`, `icons/fusion_core.dmi`, `icons/compact_core.dmi`,
+`icons/planets.dmi`, `icons/trade_terminal.dmi`, `icons/dock_wall.dmi` и `icons/ship_hatch.dmi`.
+Секции стыковочной стены и корабельный шлюз нарисованы для BandaStation в палитре станционных стен и настила (CC BY-SA 3.0). На иллюстрации в руководстве также использованы штатные спрайты стен и пола.
+Реестр содержит permalink, коммиты и SHA-256
+исходников и локальных файлов.
+Превью карт создаётся штатным генератором и сохраняет авторство исходных карт и
+ресурсов; это не самостоятельно нарисованная новая графика.
+
+CRT-оформление TGUI и SVG-индикаторы созданы кодом для адаптации. Растровые
+референсы других игр в модуль не включены. Штатные компьютерные спрайты, иконки,
+шрифты и остальные существующие ресурсы сохраняют свои исходные уведомления.
+
+Оригинальные тайловые схемы в [гайде по докам и ангарам](DOCKS_AND_HANGARS.md) показывают геометрию по коду. Лицензия — CC BY-SA 3.0.
+
+## Торговые узлы
+
+`_maps/map_files/debug/trade_hubs.dmm` — новая планировка тестового зала BandaStation
+со штатными стенами, полами, декалями и объектами сборки. Заимствованных планировок
+и новых внешних изображений нет; используются существующие ресурсы TG/BandaStation,
+CC BY-SA 3.0, с сохранением исходных уведомлений.
+
+`maps/trade_outpost_*.dmm` — семь новых аванпостов на штатных ресурсах TG/BandaStation,
+CC BY-SA 3.0.
+
+`icons/trade_terminal.dmi` — новый спрайт терминала, созданный встроенным генератором
+изображений OpenAI по предметному референсу пользователя, 2026-11-06. Образцы стиля —
+штатные машины TG/BandaStation (`icons/obj/machines/computer.dmi`, `vending.dmi`,
+`nuke_terminal.dmi`). Спрайт приведён к 32×48 пикселям и доработан автором референса.
+Корпус общий, включённые и разбитые экраны вынесены в отдельные
+слои. Полный вид для редактора карты находится в том же DMI. Референс в репозиторий
+не включён. Лицензия нового ресурса — CC BY-SA 3.0.
+
+## Звуки корабля
+
+### Кнопки навигационной консоли
+
+`sound/navigation_button.wav` — собственный звук Junkky__ (Junkkky), предоставленный
+автором 2026-11-08 как `SK_BUTTON_INTERFACE_SC-FI (mp3cut.net).wav`.
+Автор подтвердил, что сделал запись сам. Для совместимости с BYOND стереозапись
+float32 сведена в моно PCM16; частота 48 кГц и длительность 0,843 с сохранены.
+Рычаг тяги использует прежний штатный щелчок.
+
+### Звуки двигателя
+
+`sound/engine/` содержит звуки маршевых двигателей, которые проигрывает
+`code/ship_audio.dm`. Внешние варианты — исходные записи после сведения в моно,
+нормализации пика к −1 дБ и конвертации в OGG Vorbis. Внутренние варианты получены
+из внешних низкочастотным фильтром (срез около 700 Гц) с подъёмом низа под 150 Гц;
+петли обработаны по кругу, чтобы стык остался бесшовным.
+
+| Локальные файлы | Исходная запись | Автор и условия |
+| --- | --- | --- |
+| `engine_exterior_start.ogg`, `engine_interior_start.ogg` | `SFX_REACTORS_TAKE-ON_SPACESHIP.wav` | vycksounds (Vyck21) |
+| `engine_exterior_idle.ogg`, `engine_interior_idle.ogg` | `SFX_REACTORS_IDLE_SPACESHIP(L).wav` | vycksounds (Vyck21) |
+| `engine_exterior_stop.ogg`, `engine_interior_stop.ogg` | `SFX_REACTORS_LAND_SPACESHIP.wav` | vycksounds (Vyck21) |
+| `engine_exterior_thrust.ogg`, `engine_interior_thrust.ogg` | «Plane Loop», громкость приведена к петле холостого хода | qubodup, [Freesound 184723](https://freesound.org/people/qubodup/sounds/184723/), CC0 1.0 |
+
+Записи vycksounds взяты из набора [Spaceship SFX](https://vycksounds-21.itch.io/spaceship-sfx)
+(«SB SPACESHIP TRAVEL»). Условия автора: файлы можно использовать в некоммерческих
+и коммерческих проектах, но нельзя продавать отдельно, как есть, в том числе после
+изменения; автор просит указывать «vycksounds(Vyck21)». Эти файлы не распространяются
+по CC BY-SA 3.0 и сохраняют условия автора.
+
+### Существующие ресурсы сборки
+
+Остальные звуки берутся из сборки без копирования и изменения. Для них сохраняются
+исходные уведомления:
+
+| Назначение | Ресурс сборки | Источник и лицензия |
+| --- | --- | --- |
+| Розжиг камеры сгорания | `sound/items/jet_ignite.ogg` | kyles, [Freesound 453408](https://freesound.org/people/kyles/sounds/453408/), CC0; обработка ArcaneMusic, см. [sound/attributions.txt](../../sound/attributions.txt) |
+| Продувка камеры сгорания | `sound/items/jet_active.ogg` | Тот же источник, CC0; очистка шума, небольшое изменение высоты тона, нарезка и конвертация в OGG указаны в исходном уведомлении |
+| Фон внутри корпуса | `sound/ambience/general/shipambience.ogg` | Существующий фон `/area`, участники TG; [общая лицензия ресурсов сборки](../../README.md#license), CC BY-SA 3.0 |
+| Посадка и стыковка | `sound/machines/airlock/airlock_latch_hiss.ogg` | Usernameis1337, [Freesound 632755](https://freesound.org/people/Usernameis1337/sounds/632755/), CC BY 4.0; см. [исходное уведомление](../../sound/machines/airlock/attributions.txt) |
+
+Ранее добавленные `sound/ship_engine_starts.ogg`, `sound/ship_engine_processing.ogg`,
+`sound/ship_engine_stops.ogg`, `sound/ship_interior_ambience.ogg` и
+`sound/ship_landing.ogg` удалены: их точный источник и условия распространения не
+подтверждены. В `ASSETS.json` отдельно перечислены звуки посадки и взлёта, перенесённые из Voidcrew.
+
+## Границы записи
+
+Подводные модули и неизменённые ресурсы основной Primera целиком здесь не аудируются.
+
+`ASSETS.json` не содержит AI-комментариев, поскольку JSON их не допускает.
+Текст лицензии скопирован без изменений и не размечается AI-комментариями.
+
+## Эмбиент блюспейс-перехода
+
+`sound/bluespace_ambience.ogg` — эмбиент «In Bluespace», автор dj-34, передан проекту в WAV и перекодирован в стерео OGG Vorbis без других изменений. Звучит на борту один раз с запуска блюспейс-привода и доигрывает до конца.

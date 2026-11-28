@@ -30,6 +30,8 @@
 #define ACCESS_CHANGE_IDS "change_ids"
 /// Access the PDA shopping app checks for to see if you can only request or place orders immediately
 #define ACCESS_BUDGET "department_budget"
+/// Credentials issued to the NT patrol. Their procurement is funded independently of the station.
+#define ACCESS_NT_PATROL "nt_patrol"
 /// Access used for the Captain's personal quarters in mapping, as well as what allows one to order emergency shuttles.
 #define ACCESS_CAPTAIN "captain"
 /// Access used for the Head of Personnel's personal quarters in mapping, as well as the security console and other HoP-related things.
@@ -160,6 +162,10 @@
 #define ACCESS_MAGISTRATE "magistrate"
 /// Access to Explorer's closets
 #define ACCESS_EXPLORER "explorer"
+#define ACCESS_EXPEDITION_LEADER "expedition_leader"
+#define ACCESS_EXPEDITION_PILOT "expedition_pilot"
+#define ACCESS_EXPEDITION_MEDIC "expedition_medic"
+#define ACCESS_EXPEDITION_ENGINEER "expedition_engineer"
 // BANDASTATION ADD - END
 
 /// - - - AWAY MISSIONS - - -
@@ -327,6 +333,9 @@
 	ACCESS_EVA, \
 	ACCESS_EXTERNAL_AIRLOCKS, \
 	ACCESS_EXPLORER, \
+	ACCESS_EXPEDITION_ENGINEER, \
+	ACCESS_EXPEDITION_MEDIC, \
+	ACCESS_EXPEDITION_PILOT, \
 	ACCESS_GATEWAY, \
 	ACCESS_GENETICS, \
 	ACCESS_HYDROPONICS, \
@@ -386,6 +395,7 @@
 
 /// Private head of staff offices, usually only granted to most cards by trimming. Do not use direct, access via SSid_access.get_flag_access_list(ACCESS_FLAG_PRV_COMMAND)
 #define PRIVATE_COMMAND_ACCESS list( \
+	ACCESS_EXPEDITION_LEADER, \
 	ACCESS_CE, \
 	ACCESS_CMO, \
 	ACCESS_HOS, \
@@ -549,8 +559,10 @@
 	ACCESS_QM, \
 	ACCESS_SHIPPING, \
 	ACCESS_VAULT, \
-	ACCESS_EXPLORER, \
 )
+/// Independent expedition corps facilities and its head's office and armoury.
+#define REGION_EXPEDITION "Expeditionary Corps"
+#define REGION_ACCESS_EXPEDITION list(ACCESS_EXPLORER, ACCESS_EXPEDITION_LEADER, ACCESS_EXPEDITION_PILOT, ACCESS_EXPEDITION_MEDIC, ACCESS_EXPEDITION_ENGINEER)
 /// Name for the Command region.
 #define REGION_COMMAND "Command"
 /// Used to seed the accesses_by_region list in SSid_access. A list of all command regional accesses that are overseen by the Captain.
@@ -597,6 +609,7 @@
 
 /// All regions that make up the station area. Helper define to quickly designate a region as part of the station or not. Access via SSid_access.station_regions.
 #define REGION_AREA_STATION list( \
+	REGION_EXPEDITION, \
 	REGION_COMMAND, \
 	REGION_ENGINEERING, \
 	REGION_GENERAL, \

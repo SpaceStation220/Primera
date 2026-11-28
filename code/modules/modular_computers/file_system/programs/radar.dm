@@ -370,13 +370,13 @@
 		)
 	objects += list(disk_info)
 
-	// The infiltrator
-	var/obj/docking_port/mobile/infiltrator = SSshuttle.getShuttle("syndicate")
-	var/list/ship_info = list(
-		ref = REF(infiltrator),
-		name = "Infiltrator",
+	var/obj/docking_port/mobile/infiltration_ship = get_nukeop_infiltration_ship()
+	if(infiltration_ship)
+		var/list/ship_info = list(
+			ref = REF(infiltration_ship),
+			name = istype(infiltration_ship, /obj/docking_port/mobile/stationtrauma_space/nukeops) ? infiltration_ship.name : "Infiltrator",
 		)
-	objects += list(ship_info)
+		objects += list(ship_info)
 
 ///Shows how long until the nuke detonates, if one is active.
 /datum/computer_file/program/radar/fission360/on_examine(obj/item/modular_computer/source, mob/user)
@@ -524,7 +524,7 @@
 		return NONE
 	if(target.value in SSpoints_of_interest.real_nuclear_disks)
 		return NONE
-	if(target.value == SSshuttle.getShuttle("syndicate"))
+	if(target.value == get_nukeop_infiltration_ship())
 		return NONE
 	return ..()
 

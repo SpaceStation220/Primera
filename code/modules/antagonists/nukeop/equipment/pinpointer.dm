@@ -51,7 +51,7 @@
 				if(apc.malfhack && apc.occupier)
 					target = apc
 		if(TRACK_INFILTRATOR)
-			target = SSshuttle.getShuttle("syndicate")
+			target = get_nukeop_infiltration_ship()
 	..()
 
 /obj/item/pinpointer/nuke/proc/switch_mode_to(new_mode)

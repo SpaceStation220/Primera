@@ -36,6 +36,11 @@
 #define RADIO_TOKEN_SUPPLY ":u"
 #define RADIO_COLOR_SUPPLY "#b88646"
 
+#define RADIO_CHANNEL_EXPEDITION "Экспедиция"
+#define RADIO_KEY_EXPEDITION "h"
+#define RADIO_TOKEN_EXPEDITION ":h"
+#define RADIO_COLOR_EXPEDITION "#a964c1"
+
 #define RADIO_CHANNEL_SERVICE "Обслуживание"
 #define RADIO_KEY_SERVICE "v"
 #define RADIO_TOKEN_SERVICE ":v"
@@ -70,6 +75,11 @@
 #define RADIO_TOKEN_CENTCOM ":y"
 #define RADIO_COLOR_CENTCOM "#2681a5"
 
+#define RADIO_CHANNEL_NT_PATROL "Патруль НТ"
+#define RADIO_KEY_NT_PATROL "q"
+#define RADIO_TOKEN_NT_PATROL ":q"
+#define RADIO_COLOR_NT_PATROL "#79b5e3"
+
 #define RADIO_CHANNEL_UPLINK "Аплинк"
 #define RADIO_KEY_UPLINK "z"
 #define RADIO_TOKEN_UPLINK ":z"
@@ -96,6 +106,7 @@
 #define FREQ_CTF_YELLOW 1221 // CTF yellow team comms frequency, yellow
 #define FREQ_FUGITIVE_HUNTER 1243
 #define FREQ_CENTCOM 1337 // CentCom comms frequency, gray
+#define FREQ_NT_PATROL 1339
 #define FREQ_SUPPLY 1347 // Supply comms frequency, light brown
 #define FREQ_SERVICE 1349 // Service comms frequency, green
 #define FREQ_SCIENCE 1351 // Science comms frequency, plum
@@ -104,6 +115,7 @@
 #define FREQ_ENGINEERING 1357 // Engineering comms frequency, orange
 #define FREQ_SECURITY 1359 // Security comms frequency, red
 #define FREQ_JUSTICE 1361 // Precedure comms frequency, raspberry pink // BANDASTATION ADD - Jobs Module
+#define FREQ_EXPEDITION 1363
 #define FREQ_ENTERTAINMENT 1415 // Used by entertainment monitors, cyan
 #define FREQ_INTERROGATION 1423
 #define FREQ_HOLOGRID_SOLUTION 1433
@@ -177,6 +189,8 @@
 #define RADIO_SPECIAL_CENTCOM (1<<1)
 ///Bitflag for if a headset can use the binary radio channel
 #define RADIO_SPECIAL_BINARY (1<<2)
+/// Allows sending and receiving on the independent NT Patrol frequency.
+#define RADIO_SPECIAL_NT_PATROL (1<<3)
 
 /// Past this amount of compression, the resulting gibberish will actually
 /// replace characters, making it even harder to understand.

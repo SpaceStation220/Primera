@@ -1,0 +1,384 @@
+/**
+ * # Dig sites
+ *
+ * A pass once per level, chosen on what lies there (the plan, on the surface) and built once its ground
+ * is laid, before flora and fauna, which keep off it. Each site is a short run of mountain
+ * wall facing open ground. Survey stakes and a spoil heap mark those sites, while a buried site lies
+ * in solid rock without surface signs. Both use the same scannable veins. Random
+ * draws first, then an exhaustive scan, keeping off the camp, its corridors and ruins, and spacing
+ * sites XENOARCH_SITE_SPACING apart. Adapted from Voidcrew PR #506 for our expedition generator.
+ */
+
+/// Random tries for a site's spot before the exhaustive scan.
+#define DIG_SITE_RANDOM_ATTEMPTS 250
+/// Tiles of plain planet a site keeps between itself and reserved ground.
+#define DIG_SITE_CLEARANCE 4
+/// How far from its anchor tile a site's walls may run.
+#define DIG_SITE_REACH 3
+/// Maximum number of mineable walls on the route from open ground to a buried find.
+#define DIG_SITE_BURIED_REACH 6
+/// Step along a direction across the plan's columns and rows
+#define DIG_STEP_X(dir) ((dir & EAST) ? 1 : ((dir & WEST) ? -1 : 0))
+#define DIG_STEP_Y(dir) ((dir & NORTH) ? 1 : ((dir & SOUTH) ? -1 : 0))
+
+/datum/map_generator/expedition_barren
+	/// Relative anchors of the dig sites planned on the level being decorated
+	var/list/dig_anchors
+
+/**
+ * Plans the dig sites of the level being decorated on `surface`; each is built once its ground is laid. Records go to
+ * `planet`, which owns them for the round. Returns how many were planned.
+ */
+/datum/map_generator/expedition_barren/proc/place_dig_sites(area/surface, datum/stationtrauma_overmap_site/space/planet/planet, surface_sites = XENOARCH_SITES_PER_PLANET, buried_sites = 1)
+	if(!planet)
+		return 0
+	var/band = xenoarch_band_for_level(planet.modifier_level)
+	var/list/fauna = list()
+	for(var/biome_type in biomes)
+		var/datum/biome/biome = biomes[biome_type]
+		if(biome.fauna_density > 0)
+			fauna |= biome.fauna_types
+	planet.dig_sites ||= list()
+	dig_anchors ||= list()
+	var/planned = 0
+	for(var/i in 1 to surface_sites + buried_sites)
+		var/buried = i > surface_sites
+		var/datum/dig_site_record/site = new(band, xenoarch_pick_site_kind(planet.type))
+		site.ambush_fauna = fauna
+		if(buried)
+			site.large_left = 1
+			site.small_left = prob(50)
+		var/list/anchor = find_dig_site_spot(site, buried)
+		if(!anchor)
+			qdel(site)
+			continue
+		dig_anchors += list(anchor)
+		plan_take(anchor[1], anchor[2])
+		var/reach = buried ? DIG_SITE_BURIED_REACH : DIG_SITE_REACH + 1
+		plan_work(anchor[1] - reach, anchor[2] - reach, anchor[1] + reach, anchor[2] + reach, CALLBACK(src, PROC_REF(build_planned_dig_site), site, level_turf(anchor[1], anchor[2]), surface, planet, buried))
+		planned++
+	return planned
+
+/// Builds a planned site worked from [anchor] on the laid ground; a site whose rock turned out to hold ore is given up.
+/datum/map_generator/expedition_barren/proc/build_planned_dig_site(datum/dig_site_record/site, turf/anchor, area/surface, datum/stationtrauma_overmap_site/space/planet/planet, buried)
+	var/needed = max(site.large_left + site.small_left, 1)
+	var/list/walls = buried ? collect_buried_dig_site_walls(anchor, surface, needed) : collect_dig_site_walls(anchor, surface, needed)
+	if(!walls)
+		qdel(site)
+		return
+	// flora grows after the sites and keeps off their stakes and spoil, as the dressing would have cleared it
+	for(var/atom/dressing as anything in build_dig_site(site, buried ? null : anchor, walls))
+		LAZYSET(feature_turfs, get_turf(dressing), TRUE)
+	planet.dig_sites += site
+
+/// Finds the relative anchor (the open tile a site is worked from) for [site] on the level being decorated, or null.
+/datum/map_generator/expedition_barren/proc/find_dig_site_spot(datum/dig_site_record/site, buried = FALSE)
+	var/needed = max(site.large_left + site.small_left, 1)
+	var/cells = width * width
+	for(var/attempt in 1 to DIG_SITE_RANDOM_ATTEMPTS + cells)
+		budget?.yield()
+		var/cell = attempt <= DIG_SITE_RANDOM_ATTEMPTS ? rand(1, cells) : attempt - DIG_SITE_RANDOM_ATTEMPTS
+		var/x = (cell - 1) % width + 1
+		var/y = round((cell - 1) / width) + 1
+		if(plan_dig_site_ok(x, y, needed, buried))
+			return list(x, y)
+	return null
+
+/**
+ * Whether a site anchored at relative [x], [y] fits, judged on what lies there: open ground spaced from other sites, clear
+ * of reserved ground, with [needed] usable walls in reach. Whether a wall holds ore is learnt only once it is laid.
+ */
+/datum/map_generator/expedition_barren/proc/plan_dig_site_ok(x, y, needed, buried)
+	if(!plan_ground(x, y))
+		return FALSE
+	for(var/list/taken as anything in dig_anchors)
+		if(max(abs(taken[1] - x), abs(taken[2] - y)) < XENOARCH_SITE_SPACING)
+			return FALSE
+	for(var/near_y in y - DIG_SITE_CLEARANCE to y + DIG_SITE_CLEARANCE)
+		for(var/near_x in x - DIG_SITE_CLEARANCE to x + DIG_SITE_CLEARANCE)
+			if(near_x < 1 || near_y < 1 || near_x > width || near_y > width || is_reserved(near_x, near_y))
+				return FALSE
+	var/list/queue = list()
+	var/list/depths = list()
+	var/found = 0
+	if(buried)
+		queue += plan_cell(x, y)
+		depths["[plan_cell(x, y)]"] = 0
+	else
+		for(var/direction in GLOB.cardinals)
+			var/cell = plan_cell(x + DIG_STEP_X(direction), y + DIG_STEP_Y(direction))
+			if(plan_dig_wall_ok(x + DIG_STEP_X(direction), y + DIG_STEP_Y(direction)) && isnull(depths["[cell]"]))
+				queue += cell
+				depths["[cell]"] = 0
+	for(var/index = 1; index <= length(queue) && found < needed; index++)
+		var/here = queue[index]
+		var/here_x = (here - 1) % width + 1
+		var/here_y = round((here - 1) / width) + 1
+		var/depth = depths["[here]"]
+		if(buried)
+			if(depth >= 2 && plan_buried_wall_ok(here_x, here_y))
+				found++
+			if(depth >= DIG_SITE_BURIED_REACH)
+				continue
+		else
+			found++
+		for(var/direction in (buried ? GLOB.cardinals : GLOB.alldirs))
+			var/next_x = here_x + DIG_STEP_X(direction)
+			var/next_y = here_y + DIG_STEP_Y(direction)
+			if(next_x < 1 || next_y < 1 || next_x > width || next_y > width)
+				continue
+			var/next = plan_cell(next_x, next_y)
+			if(!isnull(depths["[next]"]))
+				continue
+			if(buried ? (!plan_mineable(next_x, next_y) || is_reserved(next_x, next_y)) : (max(abs(next_x - x), abs(next_y - y)) > DIG_SITE_REACH || !plan_dig_wall_ok(next_x, next_y)))
+				continue
+			depths["[next]"] = depth + 1
+			queue += next
+	return found >= needed
+
+/// Mineable rock at relative [x], [y], as dig_site_mineable_rock() judges a laid wall
+/datum/map_generator/expedition_barren/proc/plan_mineable(x, y)
+	var/terrain = terrain_at(x, y)
+	return ispath(terrain, /turf/closed/mineral) && !ispath(terrain, /turf/closed/mineral/gibtonite) && !ispath(terrain, /turf/closed/mineral/strong) && plan_free(x, y)
+
+/// Rock at relative [x], [y] facing open ground, as dig_site_wall_ok() judges a laid wall
+/datum/map_generator/expedition_barren/proc/plan_dig_wall_ok(x, y)
+	if(!plan_mineable(x, y))
+		return FALSE
+	for(var/direction in GLOB.cardinals)
+		if(plan_ground(x + DIG_STEP_X(direction), y + DIG_STEP_Y(direction)))
+			return TRUE
+	return FALSE
+
+/// Rock at relative [x], [y] with rock on all four faces, as buried_dig_site_wall_ok() judges a laid wall
+/datum/map_generator/expedition_barren/proc/plan_buried_wall_ok(x, y)
+	for(var/direction in GLOB.cardinals)
+		if(!plan_mineable(x + DIG_STEP_X(direction), y + DIG_STEP_Y(direction)))
+			return FALSE
+	return TRUE
+
+/// Open surface ground: not water, lava or chasm, nor reserved for the camp, its corridors or a ruin.
+/datum/map_generator/expedition_barren/proc/dig_site_ground_ok(turf/ground, area/surface)
+	if(!isopenturf(ground) || ground.loc != surface || isgroundlessturf(ground))
+		return FALSE
+	if(istype(ground, /turf/open/water) || istype(ground, /turf/open/lava))
+		return FALSE
+	if(is_reserved(ground.x - origin_x + 1, ground.y - origin_y + 1))
+		return FALSE
+	return !ground.is_blocked_turf(exclude_mobs = TRUE)
+
+/// Mineable surface rock through which the crew can reach a find.
+/datum/map_generator/expedition_barren/proc/dig_site_mineable_rock(turf/closed/mineral/wall, area/surface)
+	return istype(wall) && wall.loc == surface \
+		&& !istype(wall, /turf/closed/mineral/gibtonite) && !istype(wall, /turf/closed/mineral/strong)
+
+/// Plain surface rock that faces open ground and is free to receive a find.
+/datum/map_generator/expedition_barren/proc/dig_site_wall_ok(turf/closed/mineral/wall, area/surface)
+	if(!dig_site_mineable_rock(wall, surface) || wall.dig_find || wall.mineral_type || wall.spawned_boulder)
+		return FALSE
+	for(var/direction in GLOB.cardinals)
+		if(dig_site_ground_ok(get_step(wall, direction), surface))
+			return TRUE
+	return FALSE
+
+/// A connected run of usable face walls within DIG_SITE_REACH of the anchor, or null if too short.
+/datum/map_generator/expedition_barren/proc/collect_dig_site_walls(turf/anchor, area/surface, needed)
+	var/list/queue = list()
+	for(var/direction in GLOB.cardinals)
+		var/turf/closed/mineral/wall = get_step(anchor, direction)
+		if(dig_site_wall_ok(wall, surface))
+			queue += wall
+	var/list/walls = list()
+	var/list/seen = list()
+	while(length(queue) && length(walls) < needed)
+		var/turf/closed/mineral/wall = queue[1]
+		queue.Cut(1, 2)
+		if(seen[wall])
+			continue
+		seen[wall] = TRUE
+		walls += wall
+		for(var/direction in GLOB.alldirs)
+			var/turf/closed/mineral/next = get_step(wall, direction)
+			if(!next || seen[next] || get_dist(next, anchor) > DIG_SITE_REACH)
+				continue
+			if(dig_site_wall_ok(next, surface))
+				queue += next
+	return length(walls) >= needed ? walls : null
+
+/** Find buried walls along a short connected mining route. The route can turn and can pass through ore. */
+/datum/map_generator/expedition_barren/proc/collect_buried_dig_site_walls(turf/anchor, area/surface, needed)
+	var/list/turf/queue = list(anchor)
+	var/alist/depths = alist()
+	depths[anchor] = 0
+	var/list/walls = list()
+	for(var/index = 1; index <= length(queue); index++)
+		var/turf/here = queue[index]
+		var/depth = depths[here]
+		if(depth >= 2 && buried_dig_site_wall_ok(here, surface))
+			walls += here
+			if(length(walls) == needed)
+				return walls
+		if(depth >= DIG_SITE_BURIED_REACH)
+			continue
+		for(var/direction in GLOB.cardinals)
+			var/turf/closed/mineral/next = get_step(here, direction)
+			if(!dig_site_mineable_rock(next, surface) || !isnull(depths[next]))
+				continue
+			if(is_reserved(next.x - origin_x + 1, next.y - origin_y + 1))
+				continue
+			depths[next] = depth + 1
+			queue += next
+	return null
+
+/// A buried find has mineable rock on all four faces and no existing deposit.
+/datum/map_generator/expedition_barren/proc/buried_dig_site_wall_ok(turf/closed/mineral/wall, area/surface)
+	if(wall.dig_find || wall.mineral_type || wall.spawned_boulder)
+		return FALSE
+	for(var/direction in GLOB.cardinals)
+		if(!dig_site_mineable_rock(get_step(wall, direction), surface))
+			return FALSE
+	return TRUE
+
+/**
+ * Flags the walls. When there is an open anchor, place stakes and a spoil heap around it.
+ */
+/datum/map_generator/expedition_barren/proc/build_dig_site(datum/dig_site_record/site, turf/anchor, list/walls)
+	var/list/kinds = list()
+	for(var/i in 1 to site.large_left)
+		kinds += XENOARCH_FIND_LARGE
+	for(var/i in 1 to site.small_left)
+		kinds += XENOARCH_FIND_SMALL
+	shuffle_inplace(kinds)
+	for(var/i in 1 to min(length(kinds), length(walls)))
+		var/turf/closed/mineral/wall = walls[i]
+		wall.make_dig_site_wall(site, kinds[i])
+	if(anchor)
+		return dress_dig_site(site, anchor, walls)
+
+/// Places stakes and the spoil heap around a site. Returns the decorations placed.
+/proc/dress_dig_site(datum/dig_site_record/site, turf/anchor, list/walls)
+	// Ground right against the face, where the work happens, and a ring a step back for the dressing.
+	var/list/front = list()
+	var/list/back = list()
+	for(var/turf/closed/mineral/wall as anything in walls)
+		for(var/direction in GLOB.cardinals)
+			var/turf/side = get_step(wall, direction)
+			if(dig_site_dressing_ok(side))
+				front |= side
+	for(var/turf/near as anything in RANGE_TURFS(2, anchor))
+		if(!(near in front) && dig_site_dressing_ok(near))
+			back += near
+	. = list()
+
+	// Stakes go on the two back tiles furthest apart, so the face is bracketed by them.
+	if(length(back) >= 2)
+		var/turf/stake_a
+		var/turf/stake_b
+		var/best = -1
+		for(var/turf/one as anything in back)
+			for(var/turf/two as anything in back)
+				var/distance = get_dist(one, two)
+				if(distance > best)
+					best = distance
+					stake_a = one
+					stake_b = two
+		back -= stake_a
+		back -= stake_b
+		var/tape = pick("orange", "red")
+		. += new /obj/structure/xenoarch_stake(stake_a, tape)
+		. += new /obj/structure/xenoarch_stake(stake_b, tape)
+		if(length(back) && prob(50))
+			. += new /obj/structure/xenoarch_stake(pick_n_take(back), tape)
+	if(length(back))
+		. += new /obj/structure/xenoarch_spoil_heap(pick_n_take(back))
+
+/// A tile the dressing can stand on: open, walkable, unclaimed ground. Plants on it are cleared.
+/proc/dig_site_dressing_ok(turf/tile)
+	if(!isopenturf(tile) || isgroundlessturf(tile))
+		return FALSE
+	if(istype(tile, /turf/open/water) || istype(tile, /turf/open/lava))
+		return FALSE
+	if(locate(/obj/structure/xenoarch_boulder) in tile)
+		return FALSE
+	if(locate(/obj/structure/xenoarch_stake) in tile)
+		return FALSE
+	if(locate(/obj/structure/xenoarch_spoil_heap) in tile)
+		return FALSE
+	for(var/obj/structure/flora/plant in tile)
+		qdel(plant)
+	return !tile.is_blocked_turf(exclude_mobs = TRUE)
+
+/**
+ * # Survey stake
+ *
+ * A wooden stake with flagging tape, left by whoever marked the site out. Pull it up by hand.
+ */
+/obj/structure/xenoarch_stake
+	name = "разметочный колышек"
+	desc = "Деревянный колышек, вбитый в землю, с сигнальной лентой у верхушки."
+	icon = 'modular_bandastation/xenoarchaeology/icons/dig_site.dmi'
+	icon_state = "stake_orange"
+	anchored = TRUE
+	density = FALSE
+	layer = BELOW_MOB_LAYER
+	max_integrity = 30
+	resistance_flags = FLAMMABLE
+
+/obj/structure/xenoarch_stake/Initialize(mapload, tape_color)
+	. = ..()
+	if(tape_color)
+		icon_state = "stake_[tape_color]"
+	pixel_x = base_pixel_x + rand(-5, 5)
+	pixel_y = base_pixel_y + rand(-3, 4)
+
+/obj/structure/xenoarch_stake/attack_hand(mob/living/user, list/modifiers)
+	. = ..()
+	if(.)
+		return
+	user.visible_message(
+		span_notice("[user] расшатывает [src] в земле."),
+		span_notice("Вы начинаете расшатывать [src]."),
+	)
+	if(!do_after(user, 2 SECONDS, target = src))
+		return TRUE
+	playsound(src, 'sound/effects/shovel_dig.ogg', 30, TRUE)
+	user.visible_message(span_notice("[user] выдёргивает [src] и отбрасывает в сторону."), span_notice("Вы выдёргиваете [src]."))
+	qdel(src)
+	return TRUE
+
+/**
+ * # Spoil heap
+ *
+ * Earth and broken rock shovelled out of the dig. Scenery; a shovel clears it.
+ */
+/obj/structure/xenoarch_spoil_heap
+	name = "отвал породы"
+	desc = "Куча земли и битого камня, выброшенная из раскопа."
+	icon = 'modular_bandastation/xenoarchaeology/icons/dig_site.dmi'
+	icon_state = "spoil1"
+	anchored = TRUE
+	density = FALSE
+	layer = BELOW_OBJ_LAYER
+	max_integrity = 60
+
+/obj/structure/xenoarch_spoil_heap/Initialize(mapload)
+	. = ..()
+	icon_state = "spoil[rand(1, 2)]"
+	pixel_x = base_pixel_x + rand(-4, 4)
+	pixel_y = base_pixel_y + rand(-2, 3)
+
+/obj/structure/xenoarch_spoil_heap/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
+	if(tool.tool_behaviour != TOOL_SHOVEL)
+		return NONE
+	if(!tool.use_tool(src, user, 3 SECONDS, volume = 50))
+		return ITEM_INTERACT_BLOCKING
+	user.visible_message(span_notice("[user] разравнивает [src]."), span_notice("Вы разравниваете [src]."))
+	qdel(src)
+	return ITEM_INTERACT_SUCCESS
+
+#undef DIG_SITE_RANDOM_ATTEMPTS
+#undef DIG_SITE_CLEARANCE
+#undef DIG_SITE_REACH
+#undef DIG_SITE_BURIED_REACH
+#undef DIG_STEP_X
+#undef DIG_STEP_Y

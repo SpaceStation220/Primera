@@ -1,0 +1,118 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: CeladonSS13/Shiptest contributors; CC BY-SA 3.0; adapted to local TG types. | https://github.com/CeladonSS13/Shiptest/blob/4214796c7289b74779f10dd25df2d695c264aa8f/_maps/templates/greebles/whitesands/sulfur_pool_2.dmm
+"a" = (
+/turf/template_noop,
+/area/template_noop)
+"s" = (
+/turf/open/water/expedition_arid,
+/area/expedition_planet/barren)
+"t" = (
+/obj/effect/spawner/random/expedition_arid/fauna,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"D" = (
+/obj/effect/spawner/random/expedition_arid/rock,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"E" = (
+/obj/effect/spawner/random/expedition_arid/shroom,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"M" = (
+/turf/closed/mineral,
+/area/expedition_planet/barren)
+"W" = (
+/obj/effect/spawner/random/expedition_arid/cactus,
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+"X" = (
+/turf/open/misc/asteroid/airless,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+a
+a
+X
+E
+s
+X
+M
+M
+a
+"}
+(2,1,1) = {"
+a
+M
+t
+s
+s
+s
+X
+M
+M
+"}
+(3,1,1) = {"
+X
+s
+W
+s
+s
+s
+s
+E
+M
+"}
+(4,1,1) = {"
+E
+s
+s
+s
+s
+s
+s
+s
+E
+"}
+(5,1,1) = {"
+M
+E
+s
+s
+s
+s
+s
+X
+X
+"}
+(6,1,1) = {"
+M
+E
+s
+s
+s
+s
+s
+D
+a
+"}
+(7,1,1) = {"
+M
+M
+M
+s
+s
+s
+W
+t
+a
+"}
+(8,1,1) = {"
+a
+M
+M
+E
+W
+X
+X
+a
+a
+"}

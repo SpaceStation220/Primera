@@ -99,6 +99,8 @@ SUBSYSTEM_DEF(shuttle)
 
 	/// All of the possible supply packs that can be purchased by cargo.
 	var/list/supply_packs = list()
+	/// All registered packs, including local offers sold exclusively through trade hubs.
+	var/list/trade_hub_supply_packs = list()
 
 	/// Queued supplies to be purchased for the chef.
 	var/list/chef_groceries = list()
@@ -185,7 +187,9 @@ SUBSYSTEM_DEF(shuttle)
 		else if(pack.access_view)
 			pack.desc += " Requires [SSid_access.get_access_desc(pack.access_view)] access to purchase."
 
-		supply_packs[pack.id] = pack
+		trade_hub_supply_packs[pack.id] = pack
+		if(!(pack.order_flags & ORDER_TRADE_HUB_ONLY))
+			supply_packs[pack.id] = pack
 
 	setup_shuttles(stationary_docking_ports)
 	has_purchase_shuttle_access = init_has_purchase_shuttle_access()
@@ -196,7 +200,7 @@ SUBSYSTEM_DEF(shuttle)
 		log_mapping("No /obj/docking_port/mobile/emergency placed on the map!")
 	if(!backup_shuttle)
 		log_mapping("No /obj/docking_port/mobile/emergency/backup placed on the map!")
-	if(!supply)
+	if(!supply && SSmapping.current_map.cargo_shuttle_enabled())
 		log_mapping("No /obj/docking_port/mobile/supply placed on the map!")
 	return SS_INIT_SUCCESS
 
@@ -579,6 +583,8 @@ SUBSYSTEM_DEF(shuttle)
 		if(!istype(d) || QDELETED(d))
 			trade_blockade -= d
 	supply_blocked = trade_blockade.len
+	if(!supply)
+		return
 
 	if(supply_blocked && (supply.mode == SHUTTLE_IGNITING))
 		supply.mode = SHUTTLE_STRANDED
@@ -775,6 +781,8 @@ SUBSYSTEM_DEF(shuttle)
 
 /datum/controller/subsystem/shuttle/Recover()
 	initialized = SSshuttle.initialized
+	supply_packs = SSshuttle.supply_packs
+	trade_hub_supply_packs = SSshuttle.trade_hub_supply_packs
 	if (istype(SSshuttle.mobile_docking_ports))
 		mobile_docking_ports = SSshuttle.mobile_docking_ports
 	if (istype(SSshuttle.stationary_docking_ports))

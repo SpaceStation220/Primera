@@ -56,12 +56,12 @@ All ShuttleMove procs go here
 				qdel(thing)
 
 // Called on the old turf to move the turf data
-/turf/proc/onShuttleMove(turf/new_turf, list/movement_force, move_dir, ignore_area_change = FALSE)
+/turf/proc/onShuttleMove(turf/new_turf, list/movement_force, move_dir, ignore_area_change = FALSE, selected_depth)
 	if(new_turf == src) // In case of in place shuttle rotation shenanigans.
 		return
 	// Destination turf changes.
 	// Baseturfs is definitely a list or this proc wouldnt be called.
-	var/shuttle_depth = depth_to_find_baseturf(/turf/baseturf_skipover/shuttle)
+	var/shuttle_depth = isnull(selected_depth) ? depth_to_find_baseturf(/turf/baseturf_skipover/shuttle) : selected_depth
 
 	if(!shuttle_depth)
 		CRASH("A turf queued to move via shuttle somehow had no skipover in baseturfs. [src]([type]):[loc]")
@@ -78,12 +78,12 @@ All ShuttleMove procs go here
 	return TRUE
 
 // Called on the new turf after everything has been moved
-/turf/proc/afterShuttleMove(turf/oldT, rotation)
+/turf/proc/afterShuttleMove(turf/oldT, rotation, selected_depth)
 	//Dealing with the turf we left behind
 	oldT.TransferComponents(src)
 
 	SSexplosions.wipe_turf(src)
-	var/shuttle_depth = depth_to_find_baseturf(/turf/baseturf_skipover/shuttle)
+	var/shuttle_depth = isnull(selected_depth) ? depth_to_find_baseturf(/turf/baseturf_skipover/shuttle) : selected_depth
 
 	if(shuttle_depth)
 		oldT.ScrapeAway(shuttle_depth)
@@ -382,14 +382,21 @@ All ShuttleMove procs go here
 	if(. & MOVE_AREA)
 		. |= MOVE_CONTENTS
 
-/obj/structure/cable/beforeShuttleMove(turf/newT, rotation, move_mode, obj/docking_port/mobile/moving_dock)
-	. = ..()
+/obj/structure/cable/onShuttleMove(turf/newT, turf/oldT, list/movement_force, move_dir, obj/docking_port/stationary/old_dock, obj/docking_port/mobile/moving_dock)
+	// Disconnect only on committed takeoff, and discard links to the source turfs before the move can yield.
 	cut_cable_from_powernet(FALSE)
+	disconnect_cable()
+	linked_dirs = NONE
+	return ..()
 
 /obj/structure/cable/lateShuttleMove(turf/oldT, list/movement_force, move_dir)
 	. = ..()
 	connect_cable(TRUE)
-	propagate_if_no_network()
+	// A neighbour's callback may have already assigned this cable to a partial network.
+	for(var/direction in GLOB.cardinals)
+		if(linked_dirs & direction)
+			mergeConnectedNetworks(direction)
+	mergeConnectedNetworksOnTurf()
 
 /obj/machinery/power/shuttle_engine/hypotheticalShuttleMove(move_mode)
 	. = ..()

@@ -201,13 +201,15 @@
 
 	return max(final_weight, 0)
 
-/// Returns what the antag cap with the given population is.
+/// Calculate the cap for this population, including an optional absolute maximum for a formula.
 /datum/dynamic_ruleset/proc/get_antag_cap(population_size, antag_cap)
 	SHOULD_NOT_OVERRIDE(TRUE)
 	if (isnum(antag_cap))
 		return antag_cap
 
-	return ceil(population_size / antag_cap["denominator"]) + antag_cap["offset"]
+	var/scaled_cap = ceil(population_size / antag_cap["denominator"]) + antag_cap["offset"]
+	var/maximum = antag_cap["maximum"]
+	return isnum(maximum) ? min(scaled_cap, maximum) : scaled_cap
 
 /**
  * Prepares the ruleset for execution, primarily used for selecting the players who will be assigned to this ruleset

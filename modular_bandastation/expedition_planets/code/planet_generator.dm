@@ -1,0 +1,570 @@
+// Biome selection, tables and densities adapted from CeladonSS13/Shiptest, AGPL-3.0; contents use local TG types.
+// https://github.com/CeladonSS13/Shiptest/tree/4214796c7289b74779f10dd25df2d695c264aa8f/code/datums/mapgen/planetary
+/**
+ * Sierra's airless, mineral-rich profile, using TG's seeded rust-g noise.
+ *
+ * Height, heat and humidity noise choose Celadon biomes: mountains above [/datum/map_generator/expedition_barren/var/mountain_height]
+ * use the cave table and keep ore-bearing rock around a native tunnel system. Biomes and mountains follow the seed; tunnels, ore veins,
+ * flora and fauna use TG's random cave system, vein growth and biome population.
+ */
+/datum/map_generator/expedition_barren
+	/// Deterministic terrain seed, between 1 and 1000000.
+	var/seed
+	/// Height, heat and humidity noise scale in turfs; larger values give wider biomes.
+	var/biome_zoom = 65
+	/// Height noise above which terrain becomes mountain rock with cave pockets. Celadon's moon uses 0.8; Sierra's barren profile stays mineral-rich.
+	var/mountain_height = 0.5
+	/// Initial open share of a tunnel system carved through the whole surface, as on native lavaland; null keeps separate mountains.
+	var/surface_open_percent
+	/// Surface biomes by heat band (coldest first), then humidity band (driest first).
+	var/list/biome_table = list(
+		list(/datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar),
+		list(/datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar),
+		list(/datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar),
+		list(/datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar),
+		list(/datum/biome/expedition/lunar/rocky, /datum/biome/expedition/lunar/rocky, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar, /datum/biome/expedition/lunar),
+		list(/datum/biome/expedition/lunar/rocky, /datum/biome/expedition/lunar/rocky, /datum/biome/expedition/lunar/rocky, /datum/biome/expedition/lunar/rocky, /datum/biome/expedition/lunar),
+	)
+	/// Mountain cave biomes by cave heat band, then humidity band; a single biome type fills every cave.
+	var/cave_biome_table = /datum/biome/expedition/lunar
+	/// Mountain rock; ore veins are grown inside it after the terrain pass.
+	var/rock_type = /turf/closed/mineral
+	/// Percent chance that a mountain rock tile seeds an ore vein.
+	var/mineral_chance = 11
+	/// Weighted ore stacks for vein seeds; each ore's own vein type and size shape the deposit.
+	var/list/ore_types = list(
+		/obj/item/stack/ore/diamond = 5,
+		/obj/item/stack/ore/gold = 15,
+		/obj/item/stack/ore/silver = 20,
+		/obj/item/stack/ore/uranium = 20,
+		/obj/item/stack/ore/titanium = 30,
+		/obj/item/stack/ore/iron = 150,
+	)
+	/// Generated open turfs of each biome, populated after the camp and ruins are placed.
+	var/list/biome_turfs
+	/// Distance in turfs around the camp where flora still grows but hostile fauna never starts.
+	var/fauna_clearance = 15
+	/// Whether this profile's biomes spawn fauna that modifiers can thin out or multiply.
+	var/wildlife = TRUE
+	/// Fauna density multiplier from modifiers, applied to this planet's own biome copies.
+	var/fauna_multiplier = 1
+	/// Names of the applied modifiers for admin logs; the survey shows only crew-facing lines.
+	var/list/modifier_log = list()
+	/// Applied modifiers placing surface objects through [/datum/map_generator/expedition_barren/proc/place_nests].
+	var/list/datum/expedition_planet_modifier/nests = list()
+	/// This planet's biome copies by type, so modifier densities never reach other planets.
+	var/list/biomes
+	/// Z-level trait of the profile's periodic storm weather, if it has one.
+	var/storm_trait
+	/// Whether a modifier enabled the periodic storm weather.
+	var/storms = FALSE
+	/// Endless variant of the profile's storm weather, if it has one.
+	var/datum/weather/endless_storm_type
+	/// Whether a modifier set the endless storm raging over the surface.
+	var/endless_storm = FALSE
+	/// Whether a modifier added a cave level beneath the surface.
+	var/underground = FALSE
+	/// Colour of the open surface's base light under this profile's sky.
+	var/sky_color = "#d8e0ff"
+	/// Base light alpha of the open surface from modifiers; zero keeps TG's dark planetary surface.
+	var/light_alpha = 0
+	/// Set while the cave level is planned or built instead of the surface.
+	var/cave_level = FALSE
+	/// Planned terrain of the cave level, as surface_terrain is the surface's: see plan_caves()
+	var/list/cave_terrain
+	/// Open space carrying this profile's atmosphere, used for drops into the cave level.
+	var/turf/open/openspace/hole_type = /turf/open/openspace/airless/planetary
+	/// Relative coordinates of surface ladders and drops; the cave level keeps a clearing beneath each.
+	var/list/connector_points = list()
+	/// Generated square side length in turfs.
+	var/width = 128
+	/// Greatest depth of the mineable cliff band inside the rim, as a fraction of half the width.
+	var/edge_roughness = 0.25
+	/// World X of the generated square southwest corner.
+	var/origin_x
+	/// World Y of the generated square southwest corner.
+	var/origin_y
+	/// Protected landing clearings and access routes, indexed by their relative position.
+	var/list/surface_layout
+	/// Relative rectangles of the landing pads inside the camp, as west, south, east, north; kept bare for the hulls.
+	var/list/landing_pads = list()
+	/// Flora grows this many times thicker around the landing clearing than in the same biome elsewhere.
+	var/camp_flora_multiplier = 2
+	/// Default walkable ground type for this environment profile.
+	var/turf/open/floor_type = /turf/open/misc/asteroid/airless
+	/// Research source type placed on accessible surface terrain.
+	var/source_type = /obj/structure/stationtrauma_research_source/mineral/expedition_barren
+	/// Optional tint applied to generated mineral terrain.
+	var/rock_color
+	/// Small surface feature maps with pick weights; placeholders adapt to this profile's ground and rock.
+	var/list/feature_maps = list(
+		"modular_bandastation/expedition_planets/maps/features/celadon_moon_crater1.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_moon_crater2.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_moon_crater3.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_moon_crater4.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_moon_crater5.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_moon_crater6.dmm" = 1,
+	)
+	/// Surface features placed on each planet when free space allows.
+	var/feature_count = 10
+	/// Cave-level feature maps with pick weights; the default set of shacks, bunkers, wells and mushroom groves suits every profile.
+	var/list/cave_feature_maps = list(
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_2.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_4.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_5.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_7.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_9.dmm" = 1,
+		"modular_bandastation/expedition_planets/maps/features/celadon_junglecave_10.dmm" = 1,
+	)
+	/// Cave features placed on each cave level when free space allows.
+	var/cave_feature_count = 10
+	/// Upper limit for optional research sources in cave pockets.
+	var/cave_source_count = 5
+	/// Number of the planned cave entrances that have ladders back to the surface.
+	var/cave_ladders = 0
+	/// Cave biomes breed this many times the fauna of the same biome on the surface; pockets are small and far apart.
+	var/cave_fauna_multiplier = 2
+	/// Turfs covered by placed features; flora and fauna never start on them.
+	var/list/feature_turfs
+	/// Work slice shared by every generation step of this surface.
+	var/datum/stationtrauma_work_budget/budget
+
+/datum/map_generator/expedition_barren/New(chosen_seed)
+	. = ..()
+	if(!ISINTEGER(chosen_seed) || chosen_seed < 1 || chosen_seed > 1000000)
+		CRASH("Invalid expedition planet seed [chosen_seed]")
+	seed = chosen_seed
+
+/** Whether a tile or rectangle overlaps the safe buffer around either landing. */
+/datum/map_generator/expedition_barren/proc/in_camp_clearance(x, y, right = x, top = y, clearance = fauna_clearance)
+	for(var/list/pad as anything in landing_pads)
+		if(right >= pad[1] - clearance && x <= pad[3] + clearance && top >= pad[2] - clearance && y <= pad[4] + clearance)
+			return TRUE
+	return FALSE
+
+/** Whether relative coordinates are reserved for a camp, access corridor or ruin. */
+/datum/map_generator/expedition_barren/proc/is_reserved(x, y)
+	if(cave_level)
+		return in_clearing(x, y)
+	return surface_layout && x >= 1 && x <= width && y >= 1 && y <= width && surface_layout[(y - 1) * width + x]
+
+/** Celadon biome for relative coordinates, from the surface or mountain cave table. */
+/datum/map_generator/expedition_barren/proc/biome_at(x, y, mountain)
+	var/static/list/heat_bands = list(0.2, 0.4, 0.6, 0.65, 0.8)
+	var/static/list/cave_heat_bands = list(0.25, 0.5, 0.75)
+	var/static/list/humidity_bands = list(0.2, 0.4, 0.6, 0.8)
+	var/table = mountain ? cave_biome_table : biome_table
+	if(!islist(table))
+		return local_biome(table)
+	// Seed offsets keep consecutive planet seeds from sharing noise fields.
+	var/heat = text2num(rustg_noise_get_at_coordinates("[seed + 1000000]", "[x / biome_zoom]", "[y / biome_zoom]"))
+	var/humidity = text2num(rustg_noise_get_at_coordinates("[seed + 2000000]", "[x / biome_zoom]", "[y / biome_zoom]"))
+	var/list/row = table[noise_band(heat, mountain ? cave_heat_bands : heat_bands)]
+	return local_biome(row[noise_band(humidity, humidity_bands)])
+
+/** This planet's own biome instance, with the modifier fauna density applied once. */
+/datum/map_generator/expedition_barren/proc/local_biome(biome_type)
+	var/datum/biome/biome = LAZYACCESS(biomes, biome_type)
+	if(!biome)
+		biome = new biome_type
+		biome.fauna_density *= fauna_multiplier
+		LAZYSET(biomes, biome_type, biome)
+	return biome
+
+/** One-based band of a noise value among ascending inclusive upper thresholds. */
+/datum/map_generator/expedition_barren/proc/noise_band(value, list/thresholds)
+	var/band = 1
+	for(var/threshold in thresholds)
+		if(value > threshold)
+			band++
+	return band
+
+/datum/map_generator/expedition_barren/generate_terrain(list/turfs, area/generate_in)
+	seed_veins(lay_terrain(turfs, generate_in))
+
+/**
+ * Lays the ground and rock of [turfs] in [generate_in], without ore. Every tile comes from the level's plan alone, so a
+ * level can be laid a chunk at a time in any order. Returns the rock laid, for seed_veins().
+ */
+/datum/map_generator/expedition_barren/proc/lay_terrain(list/turfs, area/generate_in)
+	budget ||= new
+	. = list()
+	var/list/planned = cave_level ? (cave_terrain || plan_caves()) : surface_terrain
+	for(var/turf/tile as anything in turfs)
+		budget.yield()
+		tile.change_area(get_area(tile), generate_in)
+		var/x = tile.x - origin_x + 1
+		var/y = tile.y - origin_y + 1
+		var/terrain = planned[plan_cell(x, y)]
+		var/datum/biome/biome
+		// wildlife keeps off the clearings kept for the camp, its routes, the ruins and the cave entrances
+		if(!is_reserved(x, y) && (cave_level ? !ispath(terrain, /turf/closed) : dry_surface_type(terrain)))
+			biome = biome_at(x, y, cave_level)
+		var/turf/generated = tile.ChangeTurf(terrain, floor_type, CHANGETURF_IGNORE_AIR)
+		if(ismineralturf(generated))
+			prepare_rock(generated)
+			. += generated
+		else if(biome)
+			LAZYADDASSOCLIST(biome_turfs, biome, generated)
+
+/**
+ * Seeds ore veins in [rocks]. A vein spreads into the rock laid around it so far: the whole level, or for a chunk of the
+ * surface, whatever of the chunks around is laid.
+ */
+/datum/map_generator/expedition_barren/proc/seed_veins(list/rocks)
+	budget ||= new
+	// The deeper cave level seeds half again as many veins.
+	var/vein_chance = cave_level ? mineral_chance * 1.5 : mineral_chance
+	// The typed loop skips tiles changed while the budget slept.
+	for(var/turf/closed/mineral/rock in rocks)
+		budget.yield()
+		if(rock.mineral_type || !prob(vein_chance))
+			continue
+		var/obj/item/stack/ore/ore_type = pick_weight(ore_types)
+		rock.change_ore(ore_type)
+		if(prob(ore_type::spread_chance))
+			rock.spread_vein(ore_type)
+
+/**
+ * Plans the cave level's ground and rock: one mountain of tunnels with open rooms beneath the surface entrances, kept
+ * from mirroring the surface caves by its own grid. Returns the plan.
+ */
+/datum/map_generator/expedition_barren/proc/plan_caves()
+	var/cave_grid = cave_system_grid(42)
+	cave_terrain = new /list(width * width)
+	for(var/y in 1 to width)
+		budget?.yield()
+		for(var/x in 1 to width)
+			var/cell = plan_cell(x, y)
+			// The opaque rim bounds the level within its otherwise empty z-level.
+			if(x <= 2 || y <= 2 || x > width - 2 || y > width - 2)
+				cave_terrain[cell] = /turf/closed/indestructible/rock
+				continue
+			if(in_clearing(x, y))
+				cave_terrain[cell] = floor_type
+				continue
+			// Noisy cliffs inside the rim replace its straight edge; rock around the tunnels keeps the mountain mineable.
+			var/edge = max(abs(x - width / 2), abs(y - width / 2)) / (width / 2) + surface_noise(4000000, x, y, 16) * edge_roughness
+			if(edge > 1 || cave_grid[cell] != "1")
+				cave_terrain[cell] = rock_type
+				continue
+			var/datum/biome/biome = biome_at(x, y, TRUE)
+			cave_terrain[cell] = biome.open_turf_type
+	return cave_terrain
+
+/**
+ * Native rust-g cave system carved into mountains: BSP rooms joined by MST corridors with some loops, smoothed by cellular automata.
+ *
+ * Returns a width*width string of "1" (open) and "0" (rock), row-major from the bottom row. On the cave level the clearings beneath
+ * the surface connectors join the network as open rooms. The generator takes no seed, so tunnels do not follow the planet seed.
+ *
+ * Arguments:
+ * * open_percent - Initial open share; null uses the native lavaland value
+ */
+/datum/map_generator/expedition_barren/proc/cave_system_grid(open_percent)
+	var/list/clearings = list()
+	for(var/list/point as anything in connector_points)
+		clearings += list(list("x" = point[1] - 2, "y" = point[2] - 2, "w" = 5, "h" = 5, "isEnclosed" = FALSE))
+	// Native lavaland settings, read as the native generator's initial values; dead edges keep the tunnels off the rim.
+	var/datum/map_generator/cave_generator/native
+	return rustg_cave_system_generator_generate("[width]", "[width]", json_encode(clearings), "[native::min_bsp_size]", "[native::max_ratio]", "[native::padding]", "[native::room_fill_percent]", "[native::corridor_width]", "[native::loop_percent]", "[isnull(open_percent) ? native::noise_percent : open_percent]", "[native::ca_steps]", "[native::birth_limit]", "[native::survival_limit]", "[FALSE]")
+
+/** Native rock must expose this planet's ground, atmosphere and tint when mined. */
+/datum/map_generator/expedition_barren/proc/prepare_rock(turf/closed/mineral/rock)
+	rock.turf_type = floor_type
+	rock.initial_gas_mix = initial(floor_type.initial_gas_mix)
+	if(rock_color)
+		rock.color = rock_color
+
+/**
+ * Swap template placeholder ground and rock for this profile's types and move carrier tiles into the planet surface area.
+ *
+ * Open ground mapped inside a ruin's own area joins the surface too, so it shares the sky light instead of staying dark.
+ */
+/datum/map_generator/expedition_barren/proc/adapt_template_turfs(list/turfs, area/surface)
+	for(var/turf/tile as anything in turfs)
+		var/area/tile_area = tile.loc
+		if(tile_area != surface && (tile_area.type == /area/expedition_planet/barren || istype(tile, /turf/open/misc)))
+			tile.change_area(tile_area, surface)
+		if(tile.type == /turf/open/misc/asteroid/airless && floor_type != tile.type)
+			tile.ChangeTurf(floor_type, floor_type, CHANGETURF_IGNORE_AIR)
+		else if(tile.type == /turf/closed/mineral)
+			prepare_rock(rock_type == tile.type ? tile : tile.ChangeTurf(rock_type, floor_type, CHANGETURF_IGNORE_AIR))
+
+/**
+ * Whether a feature fits at relative coordinates: clear of reserved terrain, the camp's fauna clearance
+ * and earlier features, and mostly open so it does not vanish inside a mountain.
+ */
+/datum/map_generator/expedition_barren/proc/feature_fits(x, y, datum/map_template/template, list/placed)
+	var/right = x + template.width - 1
+	var/top = y + template.height - 1
+	// Features may carry hostile fauna, so surface features stay outside the camp's fauna clearance.
+	if(!cave_level && in_camp_clearance(x, y, right, top))
+		return FALSE
+	for(var/list/bounds as anything in placed)
+		if(x <= bounds[3] + 1 && right >= bounds[1] - 1 && y <= bounds[4] + 1 && top >= bounds[2] - 1)
+			return FALSE
+	var/open = 0
+	for(var/tile_x in x to right)
+		for(var/tile_y in y to top)
+			if(cave_level ? in_clearing(tile_x, tile_y, 6) : is_reserved(tile_x, tile_y))
+				return FALSE
+			if(!plan_free(tile_x, tile_y))
+				return FALSE
+			var/terrain = terrain_at(tile_x, tile_y)
+			if(dry_surface_type(terrain))
+				open++
+			else if(!ispath(terrain, /turf/closed/mineral))
+				return FALSE
+	// Cave features carve their own rooms into the mountain, so a third of open floor is enough there.
+	if(cave_level)
+		return open * 3 >= template.width * template.height
+	return open * 4 >= template.width * template.height * 3
+
+/** Plan small features from `maps` at random free spots of the level being decorated; returns how many were planned. */
+/datum/map_generator/expedition_barren/proc/place_features(area/surface, list/maps = feature_maps, count = feature_count)
+	var/static/list/templates = list()
+	var/list/placed = list()
+	for(var/attempt in 1 to count * 5)
+		if(length(placed) >= count)
+			break
+		var/map = pick_weight(maps)
+		var/datum/map_template/template = templates[map]
+		if(!template)
+			template = new(map)
+			templates[map] = template
+		var/x = rand(4, width - 3 - template.width)
+		var/y = rand(4, width - 3 - template.height)
+		if(!feature_fits(x, y, template, placed))
+			continue
+		var/right = x + template.width - 1
+		var/top = y + template.height - 1
+		for(var/tile_y in y to top)
+			for(var/tile_x in x to right)
+				plan_take(tile_x, tile_y)
+		plan_work(x, y, right, top, CALLBACK(src, PROC_REF(load_feature), template, level_turf(x, y), surface))
+		placed += list(list(x, y, right, top))
+	return length(placed)
+
+/// Loads a planned feature with its south-west corner at [origin]
+/datum/map_generator/expedition_barren/proc/load_feature(datum/map_template/template, turf/origin, area/surface)
+	if(!template.load(origin))
+		return
+	var/list/covered = template.get_affected_turfs(origin)
+	adapt_template_turfs(covered, surface)
+	for(var/turf/tile as anything in covered)
+		LAZYSET(feature_turfs, tile, TRUE)
+
+/** Whether relative cave-level coordinates lie in the clearing beneath a surface ladder or drop. */
+/datum/map_generator/expedition_barren/proc/in_clearing(x, y, radius = 2)
+	for(var/list/point as anything in connector_points)
+		if(abs(x - point[1]) <= radius && abs(y - point[2]) <= radius)
+			return TRUE
+	return FALSE
+
+/** Keep the essential surface routes clear before placing any cave entrances. */
+/datum/map_generator/expedition_barren/proc/reserve_cave_connectors()
+	var/ladder_target = rand(1, 3)
+	var/drop_target = rand(0, 2)
+	for(var/attempt in 1 to 400)
+		var/is_ladder = cave_ladders < ladder_target
+		if(!is_ladder && length(connector_points) >= cave_ladders + drop_target)
+			break
+		budget?.yield()
+		var/x = rand(8, width - 8)
+		var/y = rand(8, width - 8)
+		var/cell = (y - 1) * width + x
+		if(!surface_routes[cell] || is_reserved(x, y) || in_clearing(x, y, 15))
+			continue
+		connector_points += list(list(x, y))
+		if(is_ladder)
+			cave_ladders++
+			protect_surface_route(cell)
+		else
+			surface_layout[cell] = TRUE
+			ruin_interiors[cell] = TRUE
+			refresh_surface_routes()
+
+/**
+ * Plans a cave beneath the planned entrances whose south-west turf is [bottom], to be built a chunk at a time as the
+ * surface is; returns its area. Every cave has at least one ladder back.
+ */
+/datum/map_generator/expedition_barren/proc/plan_underground(turf/surface_bottom, turf/bottom, datum/stationtrauma_overmap_site/space/planet/planet)
+	var/area/expedition_planet/barren/caves_area = new
+	caves_area.name = "[planet.name]: пещеры"
+	cave_level = TRUE
+	plan_caves()
+	begin_decoration(bottom)
+	place_features(caves_area, cave_feature_maps, cave_feature_count)
+	place_nests()
+	place_dig_sites(caves_area, planet, rand(4, 6), rand(2, 3))
+	// Research sources wait in open pockets away from the entrances and features.
+	var/list/pockets = list()
+	for(var/cell in 1 to width * width)
+		var/x = (cell - 1) % width + 1
+		var/y = round((cell - 1) / width) + 1
+		if(dry_surface_type(cave_terrain[cell]) && !in_clearing(x, y, 6) && plan_free(x, y))
+			pockets += cell
+	for(var/index in 1 to min(rand(0, cave_source_count), length(pockets)))
+		var/cell = pick_n_take(pockets)
+		var/x = (cell - 1) % width + 1
+		var/y = round((cell - 1) / width) + 1
+		plan_take(x, y)
+		plan_work(x, y, x, y, CALLBACK(src, PROC_REF(set_source), level_turf(x, y)))
+	for(var/index in 1 to length(connector_points))
+		var/list/point = connector_points[index]
+		plan_take(point[1], point[2])
+		var/turf/upper = locate(surface_bottom.x + point[1] - 1, surface_bottom.y + point[2] - 1, surface_bottom.z)
+		plan_work(point[1], point[2], point[1], point[2], CALLBACK(src, PROC_REF(open_cave_entrance), upper, level_turf(point[1], point[2]), index <= cave_ladders))
+	return caves_area
+
+/// Opens a planned way down from [upper] on the built surface to [lower] in the caves: a [ladder], or else a drop
+/datum/map_generator/expedition_barren/proc/open_cave_entrance(turf/upper, turf/lower, ladder)
+	if(ladder)
+		var/obj/structure/ladder/unbreakable/lower_ladder = new(lower)
+		new /obj/structure/ladder/unbreakable(upper, null, lower_ladder)
+	else
+		upper.ChangeTurf(hole_type, hole_type, CHANGETURF_IGNORE_AIR)
+	return TRUE
+
+/** Populate the generated biomes with flora, then settle their fauna in packs; fauna never starts near the camp or on placed features. */
+/datum/map_generator/expedition_barren/proc/populate_biomes()
+	var/list/wild_by_biome = list()
+	for(var/datum/biome/biome as anything in biome_turfs)
+		var/list/near_camp = list()
+		var/list/wild = list()
+		for(var/turf/tile as anything in biome_turfs[biome])
+			var/x = tile.x - origin_x + 1
+			var/y = tile.y - origin_y + 1
+			// flora and fauna keep off features and off whatever was planned to stand on the ground
+			if(LAZYACCESS(feature_turfs, tile) || plan_taken?[plan_cell(x, y)])
+				continue
+			if(cave_level ? in_clearing(x, y, 6) : in_camp_clearance(x, y))
+				near_camp += tile
+			else
+				wild += tile
+		var/base_flora = biome.flora_density
+		biome.flora_density = min(100, base_flora * camp_flora_multiplier)
+		biome.populate_turfs(near_camp, flora_allowed = TRUE, features_allowed = TRUE, fauna_allowed = FALSE)
+		biome.flora_density = base_flora
+		biome.populate_turfs(wild, flora_allowed = TRUE, features_allowed = TRUE, fauna_allowed = FALSE)
+		wild_by_biome[biome] = wild
+	biome_turfs = null
+	place_packs(wild_by_biome, pack_anchors)
+
+/datum/map_generator/expedition_barren/populate_terrain(list/turfs, area/generate_in)
+	populate_biomes()
+
+/// Plans up to five research sources on the routes of the surface being decorated, apart from one another; returns how many.
+/datum/map_generator/expedition_barren/proc/place_sources()
+	var/target = rand(0, 5)
+	if(!target)
+		return 0
+	var/list/cells = list()
+	for(var/cell in 1 to width * width)
+		cells += cell
+	var/list/placed = list()
+	for(var/cell in shuffle(cells))
+		budget?.yield()
+		if(surface_routes && !surface_routes[cell])
+			continue
+		var/x = (cell - 1) % width + 1
+		var/y = round((cell - 1) / width) + 1
+		if(!plan_ground(x, y))
+			continue
+		var/near_sample = FALSE
+		for(var/list/other as anything in placed)
+			if(max(abs(other[1] - x), abs(other[2] - y)) < 8)
+				near_sample = TRUE
+				break
+		if(near_sample)
+			continue
+		plan_take(x, y)
+		plan_work(x, y, x, y, CALLBACK(src, PROC_REF(set_source), level_turf(x, y)))
+		placed += list(list(x, y))
+		if(length(placed) >= target)
+			break
+	return length(placed)
+
+/// Sets a planned research source on [tile]
+/datum/map_generator/expedition_barren/proc/set_source(turf/tile)
+	new source_type(tile)
+
+/** Celadon planetary biome; its open turf must carry the atmosphere of every planet that uses it. */
+/datum/biome/expedition
+
+/** Place each rolled modifier's objects on free open ground, outside the camp's fauna clearance and its access corridors. */
+/datum/map_generator/expedition_barren/proc/place_nests()
+	for(var/datum/expedition_planet_modifier/modifier as anything in nests)
+		var/list/patch
+		for(var/count in 1 to rand(modifier.nest_count[1], modifier.nest_count[2]))
+			for(var/attempt in 1 to 30)
+				var/x = patch ? patch[1] + rand(-modifier.nest_cluster, modifier.nest_cluster) : rand(4, width - 3)
+				var/y = patch ? patch[2] + rand(-modifier.nest_cluster, modifier.nest_cluster) : rand(4, width - 3)
+				if(x < 4 || y < 4 || x > width - 3 || y > width - 3 || is_reserved(x, y) || in_camp_clearance(x, y))
+					continue
+				// Underground, the clearing beneath a ladder or drop must stay free to arrive in.
+				if(cave_level && in_clearing(x, y, 6))
+					continue
+				if(!ispath(terrain_at(x, y), /turf/open/misc) || !plan_free(x, y))
+					continue
+				var/nest_type = islist(modifier.nest_type) ? pick(modifier.nest_type) : modifier.nest_type
+				if(istype(src, /datum/map_generator/expedition_barren/dead) && ispath(nest_type, /obj/structure/spawner/stationtrauma_zombie_pit))
+					var/datum/map_generator/expedition_barren/dead/dead_profile = src
+					if(!dead_profile.in_zombie_region(x, y))
+						continue
+				plan_take(x, y)
+				// a den's garrison stands up to three tiles around it
+				plan_work(x - 3, y - 3, x + 3, y + 3, CALLBACK(src, PROC_REF(set_nest), level_turf(x, y), nest_type), life = ispath(nest_type, /obj/structure/spawner) ? 3 : 0)
+				if(modifier.nest_cluster && !patch)
+					patch = list(x, y)
+				break
+
+/// Sets a planned nest on [tile]
+/datum/map_generator/expedition_barren/proc/set_nest(turf/tile, nest_type)
+	var/atom/nest = new nest_type(tile)
+	// Spawner dens hold their kind from the start; mines and geysers stand alone.
+	if(istype(nest, /obj/structure/spawner))
+		raise_lair(nest)
+
+/// Xenomorph egg cluster hatching hunters, drones and sentinels until it is torn down.
+/obj/structure/spawner/stationtrauma_xeno_hive
+	name = "кладка ксеноморфов"
+	desc = "Пульсирующая кладка яиц, вросшая в смолу. Изнутри что-то скребётся."
+	icon = 'icons/mob/nonhuman-player/alien.dmi'
+	icon_state = "egg"
+	max_integrity = 200
+	max_mobs = 4
+	spawn_time = 60 SECONDS
+	mob_types = list(/mob/living/basic/alien, /mob/living/basic/alien/drone, /mob/living/basic/alien/sentinel)
+	spawn_text = "выбирается из"
+	faction = list(ROLE_ALIEN)
+	mob_gps_id = "XEN"
+	spawner_gps_id = "Xenomorph Hive"
+
+/// Stable bluespace anomaly anchored to its planet; signalling it frees the core.
+/obj/effect/anomaly/bluespace/stationtrauma
+
+/obj/effect/anomaly/bluespace/stationtrauma/Initialize(mapload, new_lifespan)
+	. = ..()
+	stabilize(anchor = TRUE)
+
+/// Bone pit of a lost expedition, slower than the native pit so a landing party can reach it.
+/obj/structure/spawner/skeleton/stationtrauma
+	max_mobs = 5
+	spawn_time = 40 SECONDS
+
+/// Plague pit raising rotting dead until it is filled in.
+/obj/structure/spawner/stationtrauma_zombie_pit
+	name = "чумная яма"
+	desc = "Яма, полная тел. Некоторые из них ещё шевелятся."
+	icon = 'icons/mob/simple/lavaland/nest.dmi'
+	icon_state = "hole"
+	max_integrity = 150
+	max_mobs = 5
+	spawn_time = 45 SECONDS
+	mob_types = list(/mob/living/basic/zombie/rotten/expedition)
+	spawn_text = "выползает из"
+	faction = list(FACTION_HOSTILE)
+	mob_gps_id = "ZMB"
+	spawner_gps_id = "Plague Pit"

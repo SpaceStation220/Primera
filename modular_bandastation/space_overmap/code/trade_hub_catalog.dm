@@ -1,0 +1,1085 @@
+/** Local demand and the price paid for each delivered unit. */
+/datum/trade_hub_request
+	/// Terminal description of the accepted commodity.
+	var/name
+	/// Type of goods accepted from the input pad.
+	var/item_type
+	/// First-frame item preview generated once without instantiating the requested goods.
+	var/icon_base64
+	/// Commodity units calculated from this hub's credit target.
+	var/batch_size
+	/// Number of batches in a rotating quota. Zero means the request is permanent and has no batches.
+	var/batches_per_quota = 3
+	/// Final credits paid per accepted unit throughout this request.
+	var/unit_reward = 20
+	/// Unmodified unit price stored before applying the hub's category multiplier.
+	var/base_unit_reward
+	/// Ordinary unit price at this hub, before any high-demand premium.
+	var/regular_unit_reward
+	/// Whether the hub pays a premium for this quota.
+	var/high_demand = FALSE
+	/// Nominal high-demand premium, before rounding the price to a whole credit.
+	var/const/premium_percent = 50
+	/// Category used for independent price and selection-frequency modifiers.
+	var/category = "Оборудование"
+	/// Relative selection weight within the replenishment group's pool.
+	var/selection_weight = 1
+	/// Hub's fixed price multiplier for this particular quota.
+	var/price_multiplier = 1
+	/// Inventory group supplied by this request.
+	var/group
+	/// Crates added to each offer of this group, subject to capacity.
+	var/restock_amount = 2
+	/// Delay after a complete batch; prototype balance value.
+	var/restock_delay = 30 SECONDS
+	/// Delay after the exhausted quota's final replenishment before a fresh quota; prototype balance value.
+	var/renewal_delay = 2 MINUTES
+	/// Units still accepted in the current quota. Null for a permanent request.
+	var/remaining
+	/// Units accepted for the current batch.
+	var/delivered = 0
+	/// Completion time, or zero if no batch is pending.
+	var/ready_at = 0
+	/// Cancellable callback owned by this request.
+	var/restock_timer
+	/// Renewal time, or zero if this request is not waiting for a fresh quota.
+	var/renew_at = 0
+	/// Cancellable renewal callback owned by this request.
+	var/renewal_timer
+
+/** Price a new request using the ordinary local rate to determine the size of a rotating batch. */
+/datum/trade_hub_request/New(target_credits = 1000, multiplier = 1, is_high_demand = FALSE)
+	. = ..()
+	base_unit_reward = unit_reward
+	price_multiplier = multiplier
+	regular_unit_reward = max(1, round(base_unit_reward * multiplier + 0.5))
+	unit_reward = regular_unit_reward
+	if(batches_per_quota)
+		high_demand = is_high_demand
+		if(high_demand)
+			unit_reward = round(regular_unit_reward * (1 + premium_percent / 100) + 0.5)
+		batch_size = max(1, round(target_credits / regular_unit_reward + 0.5))
+		remaining = batch_size * batches_per_quota
+	if(ispath(item_type, /obj))
+		var/obj/display = item_type
+		icon_base64 = icon2base64(icon(initial(display.icon), icon_state = initial(display.icon_state), frame = 1))
+
+/datum/trade_hub_request/Destroy()
+	if(restock_timer)
+		deltimer(restock_timer)
+		restock_timer = null
+	if(renewal_timer)
+		deltimer(renewal_timer)
+		renewal_timer = null
+	return ..()
+
+/** Every hub continuously buys back empty freight crates. */
+/datum/trade_hub_request/crates
+	name = "Пустые грузовые ящики"
+	item_type = /obj/structure/closet/crate
+	unit_reward = CARGO_CRATE_VALUE / 5
+	category = "Тара"
+	batches_per_quota = 0
+	restock_amount = 0
+
+/** Industrial iron shipments replenish tools. */
+/datum/trade_hub_request/industrial_iron
+	name = "Железные листы"
+	item_type = /obj/item/stack/sheet/iron
+	category = "Сырьё"
+	group = "Инструменты"
+
+/** Industrial glass shipments replenish electronics. */
+/datum/trade_hub_request/industrial_glass
+	name = "Стеклянные листы"
+	item_type = /obj/item/stack/sheet/glass
+	category = "Сырьё"
+	group = "Электроника"
+	restock_amount = 1
+
+/** Manufactured rods replenish emergency supplies separately from toolmaking iron. */
+/datum/trade_hub_request/industrial_extra
+	name = "Металлические прутья"
+	item_type = /obj/item/stack/rods
+	unit_reward = 10
+	category = "Сырьё"
+	group = "Аварийное снабжение"
+
+/** Medical glass shipments replenish medical equipment. */
+/datum/trade_hub_request/medical_glass
+	name = "Стеклянные листы"
+	item_type = /obj/item/stack/sheet/glass
+	category = "Сырьё"
+	group = "Медоборудование"
+
+/** Medical crop shipments replenish medication. */
+/datum/trade_hub_request/medical_tomato
+	name = "Томаты"
+	item_type = /obj/item/food/grown/tomato
+	unit_reward = 30
+	category = "Продукция"
+	selection_weight = 0.5
+	group = "Медикаменты"
+	restock_amount = 1
+
+/** Agricultural wheat shipments replenish food supplies. */
+/datum/trade_hub_request/agricultural_wheat
+	name = "Пшеница"
+	item_type = /obj/item/food/grown/wheat
+	unit_reward = 50
+	category = "Продукция"
+	group = "Продукты"
+
+/** Agricultural tomato shipments replenish livestock supplies. */
+/datum/trade_hub_request/agriculture_tomato
+	name = "Томаты"
+	item_type = /obj/item/food/grown/tomato
+	unit_reward = 30
+	category = "Продукция"
+	group = "Животноводство"
+
+/** Industrial production replenishes the local tool inventory. */
+/datum/trade_hub_request/industrial_power_tools
+	name = "Челюсти жизни"
+	item_type = /obj/item/crowbar/power
+	unit_reward = 350
+	group = "Инструменты"
+
+/** Advanced surgical tools replenish medical equipment. */
+/datum/trade_hub_request/medical_laser_scalpels
+	name = "Лазерные скальпели"
+	item_type = /obj/item/scalpel/advanced
+	unit_reward = 500
+	group = "Медоборудование"
+
+/** Mutated crops support agricultural equipment imports. */
+/datum/trade_hub_request/agricultural_golden_apples
+	name = "Золотые яблоки"
+	item_type = /obj/item/food/grown/apple/gold
+	unit_reward = 150
+	category = "Продукция"
+	group = "Гидропоника"
+
+/** Researched scanning modules replenish scientific supplies. */
+/datum/trade_hub_request/research_phasic_scanners
+	name = "Фазовые сканирующие модули"
+	item_type = /obj/item/stock_parts/scanning_module/phasic
+	unit_reward = 300
+	category = "Компоненты"
+	group = "Научные товары"
+
+/** Manufactured shields replenish general security equipment. */
+/datum/trade_hub_request/security_telescopic_shields
+	name = "Телескопические щиты"
+	item_type = /obj/item/shield/riot/tele
+	unit_reward = 300
+	group = "Снаряжение охраны"
+
+/** Prepared celebration cakes support service supply imports. */
+/datum/trade_hub_request/service_birthday_cakes
+	name = "Праздничные торты"
+	item_type = /obj/item/food/cake/birthday
+	unit_reward = 250
+	category = "Продукция"
+	group = "Сервисное снабжение"
+
+/** High-end matter bins supply corporate construction projects. */
+/datum/trade_hub_request/corporate_bluespace_bins
+	name = "Блюспейс-накопители материи"
+	item_type = /obj/item/stock_parts/matter_bin/bluespace
+	unit_reward = 110
+	category = "Компоненты"
+	group = "Корпоративные проекты"
+	restock_amount = 1
+
+/** High-end capacitors supply corporate construction projects. */
+/datum/trade_hub_request/corporate_quadratic_capacitors
+	name = "Квадратичные конденсаторы"
+	item_type = /obj/item/stock_parts/capacitor/quadratic
+	unit_reward = 90
+	category = "Компоненты"
+	group = "Корпоративные проекты"
+	restock_amount = 1
+
+/** High-end lasers supply corporate construction projects. */
+/datum/trade_hub_request/corporate_quadultra_lasers
+	name = "Квадроультра микролазеры"
+	item_type = /obj/item/stock_parts/micro_laser/quadultra
+	unit_reward = 60
+	category = "Компоненты"
+	group = "Корпоративные проекты"
+	restock_amount = 1
+
+/** Medical exosuit production supplies corporate construction projects. */
+/datum/trade_hub_request/corporate_odysseus_torsos
+	name = "Торсы «Одиссея»"
+	item_type = /obj/item/mecha_parts/part/odysseus_torso
+	unit_reward = 150
+	selection_weight = 0.5
+	group = "Корпоративные проекты"
+	restock_amount = 1
+
+/** Solid plasma sheets supply industrial cutting tools. */
+/datum/trade_hub_request/industrial_plasma
+	name = "Листы плазмы"
+	item_type = /obj/item/stack/sheet/mineral/plasma
+	unit_reward = 40
+	category = "Сырьё"
+	group = "Инструменты"
+
+/** Refined gold supplies electrical contacts. */
+/datum/trade_hub_request/industrial_gold
+	name = "Золотые слитки"
+	item_type = /obj/item/stack/sheet/mineral/gold
+	unit_reward = 60
+	category = "Сырьё"
+	group = "Электроника"
+
+/** Uranium sheets support emergency supply production. */
+/datum/trade_hub_request/industrial_uranium
+	name = "Урановые листы"
+	item_type = /obj/item/stack/sheet/mineral/uranium
+	unit_reward = 60
+	category = "Сырьё"
+	group = "Аварийное снабжение"
+
+/** Industrial silver stocks support toolmaking. */
+/datum/trade_hub_request/industrial_silver
+	name = "Серебряные листы"
+	item_type = /obj/item/stack/sheet/mineral/silver
+	unit_reward = 50
+	category = "Сырьё"
+	group = "Инструменты"
+
+/** Refined plasteel stocks support toolmaking. */
+/datum/trade_hub_request/industrial_plasteel
+	name = "Пласталь"
+	item_type = /obj/item/stack/sheet/plasteel
+	unit_reward = 80
+	category = "Сырьё"
+	group = "Инструменты"
+
+/** Bulk cable supports electrical supply imports. */
+/datum/trade_hub_request/industrial_cable
+	name = "Кабель"
+	item_type = /obj/item/stack/cable_coil
+	unit_reward = 5
+	category = "Сырьё"
+	group = "Электроника"
+
+/** Manufactured energy storage boards support electrical imports. */
+/datum/trade_hub_request/industrial_smes_boards
+	name = "Платы СМЭС"
+	item_type = /obj/item/circuitboard/machine/smes
+	unit_reward = 100
+	category = "Компоненты"
+	group = "Электроника"
+
+/** Printed diagnostic tools support electrical imports. */
+/datum/trade_hub_request/industrial_multitools
+	name = "Мультитулы"
+	item_type = /obj/item/multitool
+	unit_reward = 50
+	group = "Электроника"
+
+/** Fabricated reinforced glass supports emergency construction. */
+/datum/trade_hub_request/industrial_reinforced_glass
+	name = "Армированное стекло"
+	item_type = /obj/item/stack/sheet/rglass
+	unit_reward = 30
+	category = "Сырьё"
+	group = "Аварийное снабжение"
+
+/** Refined titanium supports emergency construction. */
+/datum/trade_hub_request/industrial_titanium
+	name = "Титановые листы"
+	item_type = /obj/item/stack/sheet/mineral/titanium
+	unit_reward = 125
+	category = "Сырьё"
+	group = "Аварийное снабжение"
+
+/** Powered construction tools support emergency supplies. */
+/datum/trade_hub_request/industrial_power_drills
+	name = "Электродрели"
+	item_type = /obj/item/screwdriver/power
+	unit_reward = 200
+	group = "Аварийное снабжение"
+
+/** Manufactured health analyzers support medical equipment imports. */
+/datum/trade_hub_request/medical_health_analyzers
+	name = "Улучшенные анализаторы здоровья"
+	item_type = /obj/item/healthanalyzer/advanced
+	unit_reward = 300
+	group = "Медоборудование"
+
+/** Manufactured surgical pinches support medical equipment imports. */
+/datum/trade_hub_request/medical_mechanical_pinches
+	name = "Механические зажимы"
+	item_type = /obj/item/retractor/advanced
+	unit_reward = 300
+	group = "Медоборудование"
+
+/** Processed aloe supports medicinal supply imports. */
+/datum/trade_hub_request/medical_aloe
+	name = "Свежие компрессы алоэ"
+	item_type = /obj/item/stack/medical/aloe/fresh
+	unit_reward = 50
+	category = "Продукция"
+	group = "Медикаменты"
+	restock_amount = 1
+
+/** Medicinal ambrosia harvests support medication imports. */
+/datum/trade_hub_request/medical_ambrosia
+	name = "Амброзия обыкновенная"
+	item_type = /obj/item/food/grown/ambrosia/vulgaris
+	unit_reward = 60
+	category = "Продукция"
+	group = "Медикаменты"
+	restock_amount = 1
+
+/** Medicinal flower harvests support medication imports. */
+/datum/trade_hub_request/medical_poppies
+	name = "Маки"
+	item_type = /obj/item/food/grown/flower/poppy
+	unit_reward = 40
+	category = "Продукция"
+	group = "Медикаменты"
+	restock_amount = 1
+
+/** Locally printed cultivators support hydroponics imports. */
+/datum/trade_hub_request/agricultural_cultivators
+	name = "Культиваторы"
+	item_type = /obj/item/cultivator
+	unit_reward = 50
+	group = "Гидропоника"
+
+/** Locally printed secateurs support hydroponics imports. */
+/datum/trade_hub_request/agricultural_secateurs
+	name = "Секаторы"
+	item_type = /obj/item/secateurs
+	unit_reward = 75
+	group = "Гидропоника"
+
+/** Printed plant analyzers support hydroponics imports. */
+/datum/trade_hub_request/agricultural_plant_analyzers
+	name = "Анализаторы растений"
+	item_type = /obj/item/plant_analyzer
+	unit_reward = 75
+	group = "Гидропоника"
+
+/** Rice harvests support food imports. */
+/datum/trade_hub_request/agricultural_rice
+	name = "Рис"
+	item_type = /obj/item/food/grown/rice
+	unit_reward = 50
+	category = "Продукция"
+	group = "Продукты"
+
+/** Corn harvests support food imports. */
+/datum/trade_hub_request/agricultural_corn
+	name = "Кукуруза"
+	item_type = /obj/item/food/grown/corn
+	unit_reward = 40
+	category = "Продукция"
+	group = "Продукты"
+
+/** Potato harvests support food imports. */
+/datum/trade_hub_request/agricultural_potatoes
+	name = "Картофель"
+	item_type = /obj/item/food/grown/potato
+	unit_reward = 40
+	category = "Продукция"
+	group = "Продукты"
+
+/** Animal feed crops support livestock imports. */
+/datum/trade_hub_request/agricultural_cabbage
+	name = "Капуста"
+	item_type = /obj/item/food/grown/cabbage
+	unit_reward = 40
+	category = "Продукция"
+	group = "Животноводство"
+
+/** Root crop harvests support livestock imports. */
+/datum/trade_hub_request/agricultural_carrots
+	name = "Морковь"
+	item_type = /obj/item/food/grown/carrotlike/carrot
+	unit_reward = 40
+	category = "Продукция"
+	group = "Животноводство"
+
+/** Pumpkin harvests support livestock imports. */
+/datum/trade_hub_request/agricultural_pumpkins
+	name = "Тыквы"
+	item_type = /obj/item/food/grown/pumpkin
+	unit_reward = 60
+	category = "Продукция"
+	group = "Животноводство"
+
+/** Quantum transport electronics support research imports. */
+/datum/trade_hub_request/research_quantum_boards
+	name = "Платы квантовой площадки"
+	item_type = /obj/item/circuitboard/machine/quantumpad
+	unit_reward = 150
+	category = "Компоненты"
+	group = "Научные товары"
+
+/** Researched gas analysis tools support research imports. */
+/datum/trade_hub_request/research_ranged_analyzers
+	name = "Дистанционные газоанализаторы"
+	item_type = /obj/item/analyzer/ranged
+	unit_reward = 150
+	group = "Научные товары"
+
+/** Researched surveying tools support research imports. */
+/datum/trade_hub_request/research_mining_scanners
+	name = "Улучшенные шахтёрские сканеры"
+	item_type = /obj/item/t_scanner/adv_mining_scanner/lesser
+	unit_reward = 200
+	group = "Научные товары"
+
+/** Manufactured gas analyzers support expedition supplies. */
+/datum/trade_hub_request/expedition_gas_analyzers
+	name = "Газоанализаторы"
+	item_type = /obj/item/analyzer
+	unit_reward = 50
+	group = "Экспедиционное снабжение"
+
+/** Manufactured meson glasses support expedition supplies. */
+/datum/trade_hub_request/expedition_mesons
+	name = "Мезонные сканеры"
+	item_type = /obj/item/clothing/glasses/meson
+	unit_reward = 100
+	group = "Экспедиционное снабжение"
+
+/** Manufactured positioning devices support expedition supplies. */
+/datum/trade_hub_request/expedition_gps
+	name = "GPS-устройства"
+	item_type = /obj/item/gps
+	unit_reward = 75
+	group = "Экспедиционное снабжение"
+
+/** Printed structural scanners support expedition supplies. */
+/datum/trade_hub_request/expedition_t_ray_scanners
+	name = "Терагерцовые сканеры"
+	item_type = /obj/item/t_scanner
+	unit_reward = 75
+	group = "Экспедиционное снабжение"
+
+/** Printed security barrier projectors support security equipment imports. */
+/datum/trade_hub_request/security_holosign_projectors
+	name = "Генераторы охранных голобарьеров"
+	item_type = /obj/item/holosign_creator/security
+	unit_reward = 150
+	group = "Снаряжение охраны"
+
+/** Researched identification glasses support security equipment imports. */
+/datum/trade_hub_request/security_huds
+	name = "Охранные HUD-очки"
+	item_type = /obj/item/clothing/glasses/hud/security
+	unit_reward = 100
+	group = "Снаряжение охраны"
+
+/** Printed security flashlights support equipment imports without a charge requirement. */
+/datum/trade_hub_request/security_flashlights
+	name = "Охранные фонари"
+	item_type = /obj/item/flashlight/seclite
+	unit_reward = 75
+	group = "Снаряжение охраны"
+
+/** Manufactured firing pins support weapon supply imports. */
+/datum/trade_hub_request/security_firing_pins
+	name = "Экспедиционные бойки"
+	item_type = /obj/item/firing_pin/explorer
+	unit_reward = 100
+	category = "Компоненты"
+	group = "Оружейные поставки"
+
+/** Energy weapon components support weapon supply imports. */
+/datum/trade_hub_request/security_advanced_capacitors
+	name = "Улучшенные конденсаторы"
+	item_type = /obj/item/stock_parts/capacitor/adv
+	unit_reward = 60
+	category = "Компоненты"
+	group = "Оружейные поставки"
+
+/** Manufactured laser components support weapon supply imports. */
+/datum/trade_hub_request/security_high_power_lasers
+	name = "Мощные микролазеры"
+	item_type = /obj/item/stock_parts/micro_laser/high
+	unit_reward = 50
+	category = "Компоненты"
+	group = "Оружейные поставки"
+
+/** Manufactured servos support weapon supply imports. */
+/datum/trade_hub_request/security_nano_servos
+	name = "Наносервоприводы"
+	item_type = /obj/item/stock_parts/servo/nano
+	unit_reward = 75
+	category = "Компоненты"
+	group = "Оружейные поставки"
+
+/** Prepared burgers support service supply imports. */
+/datum/trade_hub_request/service_burgers
+	name = "Гамбургеры"
+	item_type = /obj/item/food/burger/plain
+	unit_reward = 100
+	category = "Продукция"
+	group = "Сервисное снабжение"
+
+/** Prepared donuts support service supply imports. */
+/datum/trade_hub_request/service_donuts
+	name = "Пончики"
+	item_type = /obj/item/food/donut/plain
+	unit_reward = 40
+	category = "Продукция"
+	group = "Сервисное снабжение"
+
+/** Prepared pastries support service supply imports. */
+/datum/trade_hub_request/service_pretzels
+	name = "Маковые крендели"
+	item_type = /obj/item/food/poppypretzel
+	unit_reward = 110
+	category = "Продукция"
+	group = "Сервисное снабжение"
+
+/** Baked muffins replenish service supplies. */
+/datum/trade_hub_request/service_muffins
+	name = "Маффины"
+	item_type = /obj/item/food/muffin
+	unit_reward = 60
+	category = "Продукция"
+	group = "Сервисное снабжение"
+
+/** Researched AI electronics support corporate projects. */
+/datum/trade_hub_request/corporate_ai_boards
+	name = "Платы ядра ИИ"
+	item_type = /obj/item/circuitboard/aicore
+	unit_reward = 250
+	category = "Компоненты"
+	selection_weight = 2
+	group = "Корпоративные проекты"
+	restock_amount = 1
+
+/** Medical exosuit control boards support corporate projects. */
+/datum/trade_hub_request/corporate_odysseus_main_boards
+	name = "Главные платы «Одиссея»"
+	item_type = /obj/item/circuitboard/mecha/odysseus/main
+	unit_reward = 200
+	category = "Компоненты"
+	selection_weight = 2
+	group = "Корпоративные проекты"
+	restock_amount = 1
+
+/** Medical exosuit peripheral boards support corporate projects. */
+/datum/trade_hub_request/corporate_odysseus_peripheral_boards
+	name = "Периферийные платы «Одиссея»"
+	item_type = /obj/item/circuitboard/mecha/odysseus/peripherals
+	unit_reward = 200
+	category = "Компоненты"
+	selection_weight = 2
+	group = "Корпоративные проекты"
+	restock_amount = 1
+
+/datum/trade_hub_request/donk_cardboard
+	name = "Упаковочный картон"
+	item_type = /obj/item/stack/sheet/cardboard
+	unit_reward = 10
+	category = "Сырьё"
+	group = "Игрушки"
+
+/datum/trade_hub_request/donk_plastic
+	name = "Листы пластика"
+	item_type = /obj/item/stack/sheet/plastic
+	unit_reward = 15
+	category = "Сырьё"
+	group = "Игрушки"
+
+/datum/trade_hub_request/industrial_extra/corporate_material_rods
+	group = "Материалы и газы"
+
+/datum/trade_hub_request/industrial_glass/corporate_material_glass
+	group = "Материалы и газы"
+
+/datum/trade_hub_request/industrial_silver/corporate_import_silver
+	group = "Импорт"
+
+/datum/trade_hub_request/industrial_plasteel/corporate_import_plasteel
+	group = "Импорт"
+
+/datum/trade_hub_request/corporate_vend_lights
+	name = "Лампы дневного света"
+	item_type = /obj/item/light/tube
+	unit_reward = 15
+	group = "Снабжение автоматов"
+
+/datum/trade_hub_request/corporate_vend_batteries
+	name = "Ёмкие аккумуляторы"
+	item_type = /obj/item/stock_parts/power_store/cell/high
+	unit_reward = 50
+	group = "Снабжение автоматов"
+
+/obj/machinery/trade_hub_core/industrial
+	name = "Торговый узел концерна Sable"
+	specialization = "Sable (КССП) · промышленное и оборонное снабжение"
+	nt_reputation = 37
+	demand_multipliers = list("Сырьё" = 0.5)
+	demand_weights = list("Сырьё" = 4)
+	catalogue_groups = list(
+		"Armory" = "Оружейные поставки",
+		"Canisters & Materials" = "Электроника",
+		"Requisitions" = "Оружейные поставки",
+	)
+	stock = list(
+		/datum/supply_pack/engineering/tools = 3,
+		/datum/supply_pack/engineering/power = 1,
+	)
+	groups = list(
+		/datum/supply_pack/engineering/tools = "Инструменты",
+		/datum/supply_pack/engineering/ripley = "Инструменты",
+		/datum/supply_pack/engineering/conveyor = "Инструменты",
+		/datum/supply_pack/engineering/engiequipment = "Инструменты",
+		/datum/supply_pack/engineering/power = "Электроника",
+		/datum/supply_pack/engineering/inducers = "Электроника",
+		/datum/supply_pack/emergency/equipment = "Аварийное снабжение",
+		/datum/supply_pack/emergency/firefighting = "Аварийное снабжение",
+		/datum/supply_pack/engineering/rad_nebula_shielding_kit = "Аварийное снабжение",
+		/datum/supply_pack/security/armory/ship_ammunition/light = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/heavy = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/plasma = "Оружейные поставки",
+	)
+	request_types = list(
+		/datum/trade_hub_request/industrial_iron,
+		/datum/trade_hub_request/industrial_plasma,
+		/datum/trade_hub_request/industrial_silver,
+		/datum/trade_hub_request/industrial_plasteel,
+		/datum/trade_hub_request/industrial_power_tools,
+		/datum/trade_hub_request/industrial_glass,
+		/datum/trade_hub_request/industrial_gold,
+		/datum/trade_hub_request/industrial_cable,
+		/datum/trade_hub_request/industrial_smes_boards,
+		/datum/trade_hub_request/industrial_multitools,
+		/datum/trade_hub_request/industrial_extra,
+		/datum/trade_hub_request/industrial_uranium,
+		/datum/trade_hub_request/industrial_reinforced_glass,
+		/datum/trade_hub_request/industrial_titanium,
+		/datum/trade_hub_request/industrial_power_drills,
+		/datum/trade_hub_request/security_firing_pins,
+		/datum/trade_hub_request/security_advanced_capacitors,
+		/datum/trade_hub_request/security_high_power_lasers,
+		/datum/trade_hub_request/security_nano_servos,
+	)
+
+/obj/machinery/trade_hub_core/medical
+	name = "Торговый узел «Зелёная Экспансия»"
+	specialization = "Зелёная Экспансия (Элизиум) · снабжение колоний"
+	nt_reputation = 50
+	requests_per_group = 3
+	demand_multipliers = list("Сырьё" = 3, "Продукция" = 1.5)
+	demand_weights = list("Сырьё" = 0.1)
+	catalogue_groups = list(
+		"Outsourced" = "Экспедиционное снабжение",
+		"Emergency" = "Аварийное снабжение",
+	)
+	stock = list(
+		/datum/supply_pack/medical/defibs = 0,
+		/datum/supply_pack/medical/iv_drip = 3,
+		/datum/supply_pack/medical/chemical = 2,
+	)
+	groups = list(
+		/datum/supply_pack/medical/defibs = "Медоборудование",
+		/datum/supply_pack/medical/iv_drip = "Медоборудование",
+		/datum/supply_pack/medical/surgery = "Медоборудование",
+		/datum/supply_pack/medical/chemical = "Медикаменты",
+		/datum/supply_pack/medical/supplies = "Медикаменты",
+		/datum/supply_pack/medical/medipen_variety = "Медикаменты",
+		/datum/supply_pack/organic/seeds = "Гидропоника",
+		/datum/supply_pack/organic/hydroponics/supplies = "Гидропоника",
+		/datum/supply_pack/materials/watertank = "Гидропоника",
+		/datum/supply_pack/service/minerkit = "Экспедиционное снабжение",
+		/datum/supply_pack/misc/exploration_drone = "Экспедиционное снабжение",
+		/datum/supply_pack/misc/exploration_fuel = "Экспедиционное снабжение",
+		/datum/supply_pack/engineering/shuttle_engine = "Аварийное снабжение",
+		/datum/supply_pack/engineering/concrete_mix = "Аварийное снабжение",
+		/datum/supply_pack/materials/wood50 = "Аварийное снабжение",
+		/datum/supply_pack/materials/plastic50 = "Аварийное снабжение",
+	)
+	request_types = list(
+		/datum/trade_hub_request/medical_glass,
+		/datum/trade_hub_request/medical_laser_scalpels,
+		/datum/trade_hub_request/medical_health_analyzers,
+		/datum/trade_hub_request/medical_mechanical_pinches,
+		/datum/trade_hub_request/medical_tomato,
+		/datum/trade_hub_request/medical_aloe,
+		/datum/trade_hub_request/medical_ambrosia,
+		/datum/trade_hub_request/medical_poppies,
+		/datum/trade_hub_request/agricultural_golden_apples,
+		/datum/trade_hub_request/agricultural_cultivators,
+		/datum/trade_hub_request/agricultural_secateurs,
+		/datum/trade_hub_request/agricultural_plant_analyzers,
+		/datum/trade_hub_request/expedition_gas_analyzers,
+		/datum/trade_hub_request/expedition_mesons,
+		/datum/trade_hub_request/expedition_gps,
+		/datum/trade_hub_request/expedition_t_ray_scanners,
+		/datum/trade_hub_request/industrial_titanium,
+		/datum/trade_hub_request/industrial_uranium,
+		/datum/trade_hub_request/industrial_reinforced_glass,
+	)
+
+/obj/machinery/trade_hub_core/agricultural
+	name = "Торговый узел Ol Corp"
+	specialization = "Ol Corp (ТСФ) · агропромышленный холдинг"
+	nt_reputation = 35
+	demand_multipliers = list("Продукция" = 1.2)
+	demand_weights = list("Продукция" = 2)
+	catalogue_groups = list(
+		"Food & Hydroponics" = "Продукты",
+		"Livestock" = "Животноводство",
+	)
+	stock = list(
+		/datum/supply_pack/engineering/tools = 9,
+		/datum/supply_pack/organic/food = 3,
+		/datum/supply_pack/organic/hydroponics/supplies = 0,
+	)
+	groups = list(
+		/datum/supply_pack/engineering/tools = "Гидропоника",
+		/datum/supply_pack/organic/hydroponics/supplies = "Гидропоника",
+		/datum/supply_pack/organic/seeds = "Гидропоника",
+		/datum/supply_pack/organic/exoticseeds = "Гидропоника",
+		/datum/supply_pack/vending/hydro_refills = "Гидропоника",
+		/datum/supply_pack/organic/food = "Продукты",
+	)
+	request_types = list(
+		/datum/trade_hub_request/agricultural_golden_apples,
+		/datum/trade_hub_request/agricultural_cultivators,
+		/datum/trade_hub_request/agricultural_secateurs,
+		/datum/trade_hub_request/agricultural_plant_analyzers,
+		/datum/trade_hub_request/agricultural_wheat,
+		/datum/trade_hub_request/agricultural_rice,
+		/datum/trade_hub_request/agricultural_corn,
+		/datum/trade_hub_request/agricultural_potatoes,
+		/datum/trade_hub_request/agriculture_tomato,
+		/datum/trade_hub_request/agricultural_cabbage,
+		/datum/trade_hub_request/agricultural_carrots,
+		/datum/trade_hub_request/agricultural_pumpkins,
+	)
+
+/obj/machinery/trade_hub_core/research
+	name = "Торговый узел верфей Зувийена"
+	specialization = "Верфи Зувийена (Скреллианский Империум) · судостроение"
+	nt_reputation = 62
+	demand_multipliers = list("Компоненты" = 1.25, "Оборудование" = 1.1)
+	demand_weights = list("Компоненты" = 2)
+	default_stock = 2
+	catalogue_groups = list(
+		"Engine Construction" = "Электроника",
+	)
+	groups = list(
+		/datum/supply_pack/engineering/tools = "Инструменты",
+		/datum/supply_pack/engineering/shuttle_engine = "Инструменты",
+		/datum/supply_pack/engineering/conveyor = "Инструменты",
+		/datum/supply_pack/engineering/shieldgen = "Инструменты",
+		/datum/supply_pack/engineering/engiequipment = "Инструменты",
+		/datum/supply_pack/engineering/power = "Электроника",
+		/datum/supply_pack/engineering/inducers = "Электроника",
+		/datum/supply_pack/engineering/pacman = "Электроника",
+		/datum/supply_pack/science/mod_core = "Научные товары",
+		/datum/supply_pack/science/robotics = "Научные товары",
+		/datum/supply_pack/science/rped = "Научные товары",
+		/datum/supply_pack/emergency/spacesuit = "Аварийное снабжение",
+		/datum/supply_pack/engineering/portapump = "Аварийное снабжение",
+		/datum/supply_pack/engineering/portascrubber = "Аварийное снабжение",
+		/datum/supply_pack/emergency/internals = "Аварийное снабжение",
+	)
+	request_types = list(
+		/datum/trade_hub_request/industrial_iron,
+		/datum/trade_hub_request/industrial_plasma,
+		/datum/trade_hub_request/industrial_silver,
+		/datum/trade_hub_request/industrial_plasteel,
+		/datum/trade_hub_request/industrial_power_tools,
+		/datum/trade_hub_request/industrial_glass,
+		/datum/trade_hub_request/industrial_gold,
+		/datum/trade_hub_request/industrial_cable,
+		/datum/trade_hub_request/industrial_smes_boards,
+		/datum/trade_hub_request/industrial_multitools,
+		/datum/trade_hub_request/research_phasic_scanners,
+		/datum/trade_hub_request/research_quantum_boards,
+		/datum/trade_hub_request/research_ranged_analyzers,
+		/datum/trade_hub_request/research_mining_scanners,
+		/datum/trade_hub_request/industrial_extra,
+		/datum/trade_hub_request/industrial_uranium,
+		/datum/trade_hub_request/industrial_reinforced_glass,
+		/datum/trade_hub_request/industrial_titanium,
+		/datum/trade_hub_request/industrial_power_drills,
+	)
+
+/obj/machinery/trade_hub_core/security
+	name = "Торговый узел WitherVit"
+	specialization = "WitherVit (Вольные Сектора) · аукционные и экспедиционные поставки"
+	nt_reputation = 60
+	demand_multipliers = list("Компоненты" = 1.1, "Оборудование" = 1.2)
+	default_stock = 2
+	catalogue_groups = list(
+		"Outsourced" = "Экспедиционное снабжение",
+	)
+	groups = list(
+		/datum/supply_pack/misc/exploration_drone = "Экспедиционное снабжение",
+		/datum/supply_pack/misc/exploration_fuel = "Экспедиционное снабжение",
+		/datum/supply_pack/service/minerkit = "Экспедиционное снабжение",
+		/datum/supply_pack/service/cargo_supples = "Экспедиционное снабжение",
+		/datum/supply_pack/imports/wind_turbine = "Экспедиционное снабжение",
+		/datum/supply_pack/security/armor = "Снаряжение охраны",
+		/datum/supply_pack/security/helmets = "Снаряжение охраны",
+		/datum/supply_pack/security/sunglasses = "Снаряжение охраны",
+		/datum/supply_pack/security/armory/ship_ammunition/light = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/heavy = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/plasma = "Оружейные поставки",
+		/datum/supply_pack/engineering/tools = "Инструменты",
+		/datum/supply_pack/engineering/shuttle_engine = "Инструменты",
+	)
+	request_types = list(
+		/datum/trade_hub_request/expedition_gas_analyzers,
+		/datum/trade_hub_request/expedition_mesons,
+		/datum/trade_hub_request/expedition_gps,
+		/datum/trade_hub_request/expedition_t_ray_scanners,
+		/datum/trade_hub_request/security_telescopic_shields,
+		/datum/trade_hub_request/security_holosign_projectors,
+		/datum/trade_hub_request/security_huds,
+		/datum/trade_hub_request/security_flashlights,
+		/datum/trade_hub_request/security_firing_pins,
+		/datum/trade_hub_request/security_advanced_capacitors,
+		/datum/trade_hub_request/security_high_power_lasers,
+		/datum/trade_hub_request/security_nano_servos,
+		/datum/trade_hub_request/industrial_iron,
+		/datum/trade_hub_request/industrial_plasma,
+		/datum/trade_hub_request/industrial_silver,
+		/datum/trade_hub_request/industrial_plasteel,
+		/datum/trade_hub_request/industrial_power_tools,
+	)
+
+/obj/machinery/trade_hub_core/service
+	name = "Торговый узел Donk Co."
+	specialization = "Donk Co. · продукты, игрушки и грузоперевозки"
+	nt_reputation = 30
+	syndicate_reputation = 80
+	demand_multipliers = list("Продукция" = 1.1)
+	private_packs = list(/datum/supply_pack/costumes_toys/donk_decoys)
+	groups = list(
+		/datum/supply_pack/service/randomized/donkpockets = "Продукты",
+		/datum/supply_pack/service/randomized/ready_donk = "Продукты",
+		/datum/supply_pack/organic/pizza = "Продукты",
+		/datum/supply_pack/vending/snack = "Продукты",
+		/datum/supply_pack/vending/cola = "Продукты",
+		/datum/supply_pack/imports/foamforce = "Игрушки",
+		/datum/supply_pack/costumes_toys/randomised/toys = "Игрушки",
+		/datum/supply_pack/costumes_toys/lasertag = "Игрушки",
+		/datum/supply_pack/costumes_toys/christmas = "Игрушки",
+		/datum/supply_pack/costumes_toys/donk_decoys = "Игрушки",
+		/datum/supply_pack/service/cargo_supples = "Сервисное снабжение",
+		/datum/supply_pack/service/mule = "Сервисное снабжение",
+		/datum/supply_pack/service/emptycrate = "Сервисное снабжение",
+	)
+	request_types = list(
+		/datum/trade_hub_request/agricultural_wheat,
+		/datum/trade_hub_request/agricultural_rice,
+		/datum/trade_hub_request/agricultural_corn,
+		/datum/trade_hub_request/agricultural_potatoes,
+		/datum/trade_hub_request/donk_cardboard,
+		/datum/trade_hub_request/donk_plastic,
+		/datum/trade_hub_request/service_birthday_cakes,
+		/datum/trade_hub_request/service_burgers,
+		/datum/trade_hub_request/service_donuts,
+		/datum/trade_hub_request/service_pretzels,
+		/datum/trade_hub_request/service_muffins,
+	)
+
+/obj/machinery/trade_hub_core/interdyne
+	name = "Торговый узел Interdyne Pharmaceutics"
+	specialization = "Interdyne Pharmaceutics · клиническая медицина"
+	nt_reputation = 30
+	syndicate_reputation = 80
+	private_packs = list(/datum/supply_pack/medical/interdyne_stimulants)
+	catalogue_groups = list(
+		"Medical" = "Медоборудование",
+	)
+	groups = list(
+		/datum/supply_pack/vending/medical = "Медикаменты",
+		/datum/supply_pack/medical/medipen_variety = "Медикаменты",
+		/datum/supply_pack/medical/chemical = "Медикаменты",
+		/datum/supply_pack/medical/experimentalmedicine = "Медикаменты",
+		/datum/supply_pack/medical/supplies = "Медикаменты",
+		/datum/supply_pack/medical/interdyne_stimulants = "Медикаменты",
+	)
+	request_types = list(
+		/datum/trade_hub_request/medical_glass,
+		/datum/trade_hub_request/medical_laser_scalpels,
+		/datum/trade_hub_request/medical_health_analyzers,
+		/datum/trade_hub_request/medical_mechanical_pinches,
+		/datum/trade_hub_request/medical_tomato,
+		/datum/trade_hub_request/medical_aloe,
+		/datum/trade_hub_request/medical_ambrosia,
+		/datum/trade_hub_request/medical_poppies,
+	)
+
+/obj/machinery/trade_hub_core/corporate
+	name = "Торговый узел NanoTrasen"
+	specialization = "NanoTrasen · корпоративные поставки"
+	nt_reputation = 70
+	patrol_reputation = 90
+	default_stock = 1
+	batch_credit_target = 2000
+	private_packs = list(/datum/supply_pack/emergency/patrol_rescue)
+	catalogue_groups = list(
+		"Engineering" = "Инструменты",
+		"Engine Construction" = "Электроника",
+		"Canisters & Materials" = "Материалы и газы",
+		"Emergency" = "Аварийное снабжение",
+		"Medical" = "Медоборудование",
+		"Science" = "Научные товары",
+		"Outsourced" = "Экспедиционное снабжение",
+		"Food & Hydroponics" = "Продукты",
+		"Livestock" = "Животноводство",
+		"Security" = "Снаряжение охраны",
+		"Armory" = "Оружейные поставки",
+		"Requisitions" = "Оружейные поставки",
+		"Vending Restocks" = "Снабжение автоматов",
+		"Service" = "Сервисное снабжение",
+		"Miscellaneous Supplies" = "Сервисное снабжение",
+		"Costumes & Toys" = "Игрушки",
+		"Imports" = "Импорт",
+	)
+	groups = list(
+		/datum/supply_pack/organic/exoticseeds = "Гидропоника",
+		/datum/supply_pack/organic/seeds = "Гидропоника",
+		/datum/supply_pack/organic/hydroponics/supplies = "Гидропоника",
+		/datum/supply_pack/medical/chemical = "Медикаменты",
+		/datum/supply_pack/medical/medipen_variety = "Медикаменты",
+		/datum/supply_pack/medical/experimentalmedicine = "Медикаменты",
+		/datum/supply_pack/emergency/patrol_rescue = "Аварийное снабжение",
+		/datum/supply_pack/security/armory/ship_ammunition/light = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/heavy = "Оружейные поставки",
+		/datum/supply_pack/security/armory/ship_ammunition/plasma = "Оружейные поставки",
+	)
+	request_types = list(
+		/datum/trade_hub_request/industrial_iron,
+		/datum/trade_hub_request/industrial_plasma,
+		/datum/trade_hub_request/industrial_power_tools,
+		/datum/trade_hub_request/industrial_gold,
+		/datum/trade_hub_request/industrial_cable,
+		/datum/trade_hub_request/industrial_smes_boards,
+		/datum/trade_hub_request/industrial_extra/corporate_material_rods,
+		/datum/trade_hub_request/industrial_glass/corporate_material_glass,
+		/datum/trade_hub_request/industrial_uranium,
+		/datum/trade_hub_request/industrial_titanium,
+		/datum/trade_hub_request/industrial_power_drills,
+		/datum/trade_hub_request/medical_laser_scalpels,
+		/datum/trade_hub_request/medical_health_analyzers,
+		/datum/trade_hub_request/medical_mechanical_pinches,
+		/datum/trade_hub_request/medical_aloe,
+		/datum/trade_hub_request/medical_ambrosia,
+		/datum/trade_hub_request/medical_poppies,
+		/datum/trade_hub_request/agricultural_golden_apples,
+		/datum/trade_hub_request/agricultural_cultivators,
+		/datum/trade_hub_request/agricultural_secateurs,
+		/datum/trade_hub_request/agricultural_plant_analyzers,
+		/datum/trade_hub_request/agricultural_wheat,
+		/datum/trade_hub_request/agricultural_rice,
+		/datum/trade_hub_request/agricultural_corn,
+		/datum/trade_hub_request/agricultural_potatoes,
+		/datum/trade_hub_request/agriculture_tomato,
+		/datum/trade_hub_request/agricultural_cabbage,
+		/datum/trade_hub_request/agricultural_carrots,
+		/datum/trade_hub_request/agricultural_pumpkins,
+		/datum/trade_hub_request/research_phasic_scanners,
+		/datum/trade_hub_request/research_quantum_boards,
+		/datum/trade_hub_request/research_ranged_analyzers,
+		/datum/trade_hub_request/research_mining_scanners,
+		/datum/trade_hub_request/expedition_gas_analyzers,
+		/datum/trade_hub_request/expedition_mesons,
+		/datum/trade_hub_request/expedition_gps,
+		/datum/trade_hub_request/expedition_t_ray_scanners,
+		/datum/trade_hub_request/security_telescopic_shields,
+		/datum/trade_hub_request/security_holosign_projectors,
+		/datum/trade_hub_request/security_huds,
+		/datum/trade_hub_request/security_flashlights,
+		/datum/trade_hub_request/security_firing_pins,
+		/datum/trade_hub_request/security_advanced_capacitors,
+		/datum/trade_hub_request/security_high_power_lasers,
+		/datum/trade_hub_request/security_nano_servos,
+		/datum/trade_hub_request/service_birthday_cakes,
+		/datum/trade_hub_request/service_burgers,
+		/datum/trade_hub_request/service_donuts,
+		/datum/trade_hub_request/service_pretzels,
+		/datum/trade_hub_request/service_muffins,
+		/datum/trade_hub_request/donk_cardboard,
+		/datum/trade_hub_request/donk_plastic,
+		/datum/trade_hub_request/corporate_vend_lights,
+		/datum/trade_hub_request/corporate_vend_batteries,
+		/datum/trade_hub_request/industrial_silver/corporate_import_silver,
+		/datum/trade_hub_request/industrial_plasteel/corporate_import_plasteel,
+		/datum/trade_hub_request/corporate_bluespace_bins,
+		/datum/trade_hub_request/corporate_quadratic_capacitors,
+		/datum/trade_hub_request/corporate_quadultra_lasers,
+		/datum/trade_hub_request/corporate_odysseus_torsos,
+		/datum/trade_hub_request/corporate_ai_boards,
+		/datum/trade_hub_request/corporate_odysseus_main_boards,
+		/datum/trade_hub_request/corporate_odysseus_peripheral_boards,
+	)
+
+/obj/machinery/trade_hub_core/corporate/get_pack_group(datum/supply_pack/pack)
+	if(pack.type in corporate_pack_types)
+		return "Корпоративные проекты"
+	return ..()
+
+/datum/supply_pack/security/armory/ship_ammunition
+	order_flags = ORDER_TRADE_HUB_ONLY
+
+/datum/supply_pack/security/armory/ship_ammunition/light
+	name = "Кассета лёгкой автопушки (30 снарядов)"
+	desc = "Полная кассета кинетических снарядов для лёгкой корабельной автопушки."
+	crate_name = "ящик с боеприпасами для лёгкой автопушки"
+	cost = CARGO_CRATE_VALUE * 1.5
+	contains = list(/obj/item/stack/stationtrauma_autocannon_shell/full)
+
+/datum/supply_pack/security/armory/ship_ammunition/heavy
+	name = "Кассета тяжёлой автопушки (8 снарядов)"
+	desc = "Полная кассета кинетических снарядов для тяжёлой корабельной автопушки."
+	crate_name = "ящик с боеприпасами для тяжёлой автопушки"
+	cost = CARGO_CRATE_VALUE * 2
+	contains = list(/obj/item/stack/stationtrauma_autocannon_shell/heavy/full)
+
+/datum/supply_pack/security/armory/ship_ammunition/plasma
+	name = "Кассета плазменной пушки (4 картриджа)"
+	desc = "Четыре сменных картриджа для тяжёлой корабельной плазменной пушки."
+	crate_name = "ящик с плазменными картриджами"
+	cost = CARGO_CRATE_VALUE * 3
+	contains = list(/obj/item/stack/stationtrauma_autocannon_shell/plasma/full)
+
+/datum/supply_pack/costumes_toys/donk_decoys
+	name = "Donk Force: адаптивные декорации"
+	desc = "Три адаптивные фигуры и мелок для смены их внешности из специальной серии Donk Force."
+	crate_name = "ящик декораций Donk Force"
+	crate_type = /obj/structure/closet/crate/freezer/donk
+	order_flags = ORDER_TRADE_HUB_ONLY
+	cost = CARGO_CRATE_VALUE * 6
+	contains = list(/obj/item/storage/box/syndie_kit/cutouts)
+
+/datum/supply_pack/medical/interdyne_stimulants
+	name = "Interdyne: полевые стимуляторы"
+	desc = "Два модифицированных автоинъектора из закрытой клинической серии Interdyne."
+	crate_name = "ящик полевых препаратов Interdyne"
+	access_view = NONE
+	crate_type = /obj/structure/closet/crate/medical
+	order_flags = ORDER_TRADE_HUB_ONLY
+	cost = CARGO_CRATE_VALUE * 10
+	contains = list(/obj/item/reagent_containers/hypospray/medipen/stimpack/traitor = 2)
+
+/datum/supply_pack/emergency/patrol_rescue
+	name = "NanoTrasen: патрульный реанимационный комплект"
+	desc = "Компактный дефибриллятор флота NanoTrasen и две аптечки для выездной команды."
+	crate_name = "реанимационный комплект патруля НТ"
+	order_flags = ORDER_TRADE_HUB_ONLY
+	cost = CARGO_CRATE_VALUE * 15
+	contains = list(
+		/obj/item/defibrillator/compact/combat/nanotrasen,
+		/obj/item/storage/medkit/regular = 2,
+	)

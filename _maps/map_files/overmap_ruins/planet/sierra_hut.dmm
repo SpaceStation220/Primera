@@ -1,0 +1,174 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE | Layout: SierraBay/SierraBay12 contributors; CC BY-SA 3.0; adapted machinery, inhabitants and loot use local TG types. | https://github.com/SierraBay/SierraBay12/blob/8623b35f6943130998002e94cf001a9c6ccb3f4c/maps/random_ruins/exoplanet_ruins/hut/hut.dmm
+"aa" = (
+/turf/template_noop,
+/area/template_noop)
+"av" = (
+/obj/effect/spawner/random/maintenance,
+/obj/effect/spawner/random/exotic/technology,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"aF" = (
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"aI" = (
+/obj/machinery/stationtrauma_sample_analyzer,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"aN" = (
+/obj/effect/spawner/structure/window/reinforced,
+/turf/open/floor/plating,
+/area/expedition_planet/barren)
+"aP" = (
+/turf/closed/wall,
+/area/expedition_planet/barren)
+"aR" = (
+/obj/structure/bookcase,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"aT" = (
+/obj/structure/filingcabinet,
+/obj/effect/decal/cleanable/cobweb,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"aX" = (
+/obj/structure/rack,
+/obj/item/clothing/glasses/hud/health,
+/obj/effect/spawner/random/exotic/technology,
+/obj/effect/spawner/random/exotic/technology,
+/obj/effect/spawner/random/clothing/beret_or_rabbitears,
+/obj/effect/spawner/random/mod/maint,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"aY" = (
+/obj/machinery/rnd/server,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"fz" = (
+/obj/structure/bed,
+/obj/item/bedsheet/rainbow,
+/obj/effect/spawner/random/food_or_drink/booze,
+/obj/effect/spawner/random/trash/garbage,
+/turf/open/floor/carpet,
+/area/expedition_planet/barren)
+"rQ" = (
+/obj/machinery/door/airlock,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"sl" = (
+/obj/structure/sign/warning/biohazard{
+	pixel_y = 32
+	},
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"sI" = (
+/obj/structure/closet/crate/freezer/surplus_limbs,
+/obj/effect/decal/cleanable/cobweb,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"ti" = (
+/obj/structure/table/wood,
+/obj/item/paper_bin,
+/obj/effect/spawner/random/clothing/beret_or_rabbitears,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"wI" = (
+/obj/effect/spawner/random/trash/garbage,
+/obj/machinery/door/airlock,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"yR" = (
+/obj/vehicle/ridden/wheelchair,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"AD" = (
+/obj/item/paper{
+	name = "полевой журнал: Хижина полевого исследователя";
+	 default_raw_text = "Объект: Хижина полевого исследователя. Отмечены следы длительного отсутствия обслуживания. Сохранность груза и оборудования не подтверждена. Перед вскрытием отсеков проверить атмосферу; найденные материалы и носители сохранить вместе с местом обнаружения."
+	},
+/obj/item/pen/fourcolor,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"BB" = (
+/mob/living/basic/bot/medbot,
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+"Eb" = (
+/obj/structure/stone_tile,
+/turf/template_noop,
+/area/expedition_planet/barren)
+"UB" = (
+/obj/structure/curtain,
+/turf/open/floor/carpet,
+/area/expedition_planet/barren)
+"ZV" = (
+/obj/structure/table/wood,
+/obj/item/flashlight/lamp,
+/obj/structure/sign/warning/biohazard{
+	pixel_y = -32
+	},
+/turf/open/floor/iron/dark,
+/area/expedition_planet/barren)
+
+(1,1,1) = {"
+aP
+aP
+aP
+aN
+aP
+aP
+aP
+"}
+(2,1,1) = {"
+aP
+aT
+av
+aX
+aI
+aY
+aP
+"}
+(3,1,1) = {"
+aP
+aR
+aF
+aF
+AD
+ZV
+aP
+"}
+(4,1,1) = {"
+aP
+sI
+aF
+BB
+yR
+ti
+aP
+"}
+(5,1,1) = {"
+aP
+aP
+aP
+sl
+aP
+aP
+aP
+"}
+(6,1,1) = {"
+aa
+wI
+rQ
+aF
+UB
+fz
+aP
+"}
+(7,1,1) = {"
+Eb
+aP
+aP
+aP
+aP
+aP
+aP
+"}

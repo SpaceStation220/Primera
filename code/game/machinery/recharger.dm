@@ -20,6 +20,7 @@
 		/obj/item/modular_computer,
 		/obj/item/telephone/mobile,
 		/obj/item/gun/ballistic/automatic/battle_rifle,
+		/obj/item/stock_parts/power_store/cell/exploreverse,
 	))
 
 /obj/machinery/recharger/RefreshParts()

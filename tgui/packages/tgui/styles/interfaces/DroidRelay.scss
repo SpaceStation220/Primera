@@ -1,0 +1,388 @@
+.DroidRelay {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+  padding: 8px;
+  font-variant-numeric: tabular-nums;
+
+  .Button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 30px;
+    min-width: 32px;
+    margin: 0;
+    border: 1px solid transparent;
+    color: var(--color-text);
+    font: inherit;
+    line-height: 1.25;
+    white-space: normal;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    &[aria-pressed='true'] {
+      color: var(--color-text);
+      background-color: color-mix(in srgb, var(--color-primary) 43%, var(--color-base));
+      border-color: var(--color-border-secondary);
+    }
+  }
+
+  :is(button, select, input, summary):focus-visible {
+    outline: 2px solid var(--color-border-secondary);
+    outline-offset: -2px;
+  }
+
+  p {
+    margin: 6px 0 0;
+  }
+
+  &__header,
+  &__nav,
+  &__tools,
+  &__row,
+  &__target {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  &__header,
+  &__row--spaced {
+    justify-content: space-between;
+  }
+
+  &__row {
+    flex-wrap: wrap;
+  }
+
+  &__row--spaced {
+    margin-top: 8px;
+  }
+
+  .DroidRelay__productionLink:not(:disabled) {
+    color: var(--color-good);
+    border-color: var(--color-good);
+    background: color-mix(in srgb, var(--color-good) 16%, var(--color-base));
+  }
+
+  &__nav {
+    flex: 1;
+    min-width: 0;
+
+    .Button {
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 34px;
+    }
+
+    span {
+      font-weight: bold;
+    }
+  }
+
+  &__scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 2px;
+  }
+
+  &__unit {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(48px, 6em) auto;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__unit .DroidRelay__unitSelect {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    text-align: left;
+    overflow-wrap: anywhere;
+    min-height: 38px;
+  }
+
+  &__health {
+    display: grid;
+    gap: 2px;
+    text-align: center;
+
+    .ProgressBar {
+      min-height: 6px;
+    }
+  }
+
+  &__hostileActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px;
+
+    .Button:first-child {
+      justify-content: flex-start;
+      text-align: left;
+    }
+  }
+
+  &__hostiles {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 0;
+      overflow-wrap: anywhere;
+      border-bottom: 1px solid var(--color-border);
+    }
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  &__help {
+    padding: 2px 6px 6px;
+
+    summary {
+      width: fit-content;
+      padding: 5px 0;
+      cursor: pointer;
+    }
+  }
+
+  &__target {
+    justify-content: space-between;
+    padding: 2px 4px 2px 8px;
+    background: var(--color-base);
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  &__stock {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10em), 1fr));
+    gap: 4px;
+  }
+
+  &__stockItem {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    gap: 5px;
+    padding: 2px 4px;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+
+    &:has(:checked) {
+      border-color: var(--color-border-secondary);
+    }
+
+    input {
+      accent-color: var(--color-primary);
+    }
+
+    img {
+      flex: 0 0 auto;
+      image-rendering: pixelated;
+    }
+  }
+
+  &__form {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 5px 8px;
+
+    select {
+      width: 100%;
+      min-width: 0;
+      min-height: 30px;
+      padding: 0 6px;
+      text-overflow: ellipsis;
+      font: inherit;
+      color: var(--color-text);
+      background: var(--color-base);
+      border: 1px solid var(--color-border-secondary);
+    }
+  }
+
+  &__footer {
+    display: grid;
+    gap: 4px;
+    padding: 6px 2px 0;
+    border-top: 1px solid var(--color-border);
+
+    p {
+      margin: 0;
+    }
+
+    .Button {
+      min-height: 34px;
+    }
+  }
+}
+
+.DroidFabricator {
+  gap: 10px;
+  overflow-y: auto;
+
+  &__header,
+  &__job {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 10px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  &__header > div > i {
+    margin-inline-end: 8px;
+  }
+
+  &__delivery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+
+  &__stock {
+    flex: 0 0 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+    gap: 4px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__stockItem {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 2px 6px;
+    background: var(--color-base);
+    border: 1px solid var(--color-border);
+    overflow-wrap: anywhere;
+  }
+
+  &__materialName {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+
+    img {
+      flex: 0 0 auto;
+      image-rendering: pixelated;
+    }
+  }
+
+  &__job {
+    background: var(--color-base);
+
+    progress {
+      appearance: none;
+      flex: 0 0 100%;
+      height: 8px;
+      border: 0;
+      color: var(--color-primary);
+      background: var(--color-border);
+    }
+
+    progress::-webkit-progress-bar {
+      background: var(--color-border);
+    }
+
+    progress::-webkit-progress-value {
+      background: var(--color-primary);
+    }
+
+    progress::-moz-progress-bar {
+      background: var(--color-primary);
+    }
+  }
+
+  &__catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+    gap: 8px;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: var(--color-base);
+    border: 1px solid var(--color-border-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  &__cardHeader {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.15em;
+    }
+  }
+
+  &__portrait {
+    display: grid;
+    min-height: 52px;
+    place-items: center;
+    background: hsl(from var(--color-base) h s calc(l - 5));
+
+    img {
+      image-rendering: pixelated;
+    }
+  }
+
+  &__requirements {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 5px 8px;
+    margin: auto 0 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+
+    dd {
+      margin: 0;
+      text-align: right;
+    }
+  }
+
+  &__material {
+    display: contents;
+
+    &[data-shortage='true'] dd {
+      color: var(--color-bad);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .DroidRelay .Button {
+    transition: none;
+  }
+}
