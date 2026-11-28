@@ -1,0 +1,26 @@
+gatekeeper.dmi
+Gatekeeper design generated with OpenAI imagegen on 2026-11-06,
+following Junkkky's references and art direction; pixel adaptation by Codex.
+Design: pale organic ceremonial vestments, small head, elongated regal posture,
+facial ritual markings, no pins or headdress. Four directions, eight idle frames.
+Native canvas: 32x96 pixels, 24-color base with intermediate breathing shades,
+binary transparency.
+Adaptation: filtered proportional underlay, pixel retouch of the face and organic
+plates, fringe removal, idle assembled from one fixed pose per direction.
+BYOND state: idle; S/N/E/W, eight frames, 0.5 seconds per frame.
+dead: static first idle pose in each direction, added for the playable prototype.
+Breathing added on 2026-11-10: tapered chest light/shadow variation, maximum
+6 RGB levels. No pixel displacement; head, shoulders, hands and robe stay fixed.
+No pixels from the reference photographs or concept illustrations were copied.
+License for this original asset: CC BY-SA 3.0, following the project asset license.
+https://creativecommons.org/licenses/by-sa/3.0/
+
+Replaced on 2026-11-21. New four-view concept render of the gatekeeper supplied by Junkkky (event organizer).
+Each view cut out of the concept's dark backdrop and reduced to 64x96 by averaging blocks (slight contrast and
+saturation lift) with a shared 32-colour palette taken from the result; the figure is centred on its tile.
+Hand fixes: one nose pixel in profile, a wider neck in front; front and back made symmetric with the back of
+the head given the front's outline; west is the east view mirrored.
+idle: 12 frames; the chest and arms rise one pixel to breathe while chains with hooks writhe up from the floor
+on both sides (drawn procedurally). dead: the bare standing pose.
+Generator kept outside the repository (Documents/Codex/GateClosure/pinhead_sprite).
+License: CC BY-SA 3.0, following the project asset license. https://creativecommons.org/licenses/by-sa/3.0/
