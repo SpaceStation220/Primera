@@ -10,7 +10,11 @@ import { useMusicUpload } from './InstrumentEditor220/useMusicUpload';
 export function InstrumentPianoRoll220() {
   const { act, data } = useBackend<Data>();
   const apply = useRef<((action?: PlayAction) => boolean) | null>(null);
-  const transfer = useMusicUpload(act, data.music_upload);
+  const transfer = useMusicUpload(
+    act,
+    data.music_upload,
+    data.music_upload_interval,
+  );
   return (
     <Window width={1120} height={880}>
       <Window.Content scrollable>

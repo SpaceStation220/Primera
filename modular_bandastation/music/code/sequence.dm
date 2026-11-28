@@ -11,10 +11,13 @@
 	var/sequence_length = 0
 	var/sequence_cursor = 1
 	var/sequence_offset = 0
+	/// Engine origin: world.time for MIDI sequences, REALTIMEOFDAY for OGG.
 	var/playback_started_at = 0
 	var/list/voice_ends = list()
 	var/list/voice_levels = list()
 	var/list/listener_spatial = list()
+	/// Last dispatched base gain per channel; cleared when a channel is reused.
+	var/list/music_voice_levels_sent = list()
 	var/datum/song/sequence_master
 	var/list/sequence_followers = list()
 	var/channel_starvation = 0
@@ -24,6 +27,9 @@
 	if(playing || !islist(document) || document["version"] != 1)
 		return FALSE
 	var/list/notes = document["notes"]
+	var/compact_notes = document["note_format"] == "tuple-v1"
+	if(!isnull(document["note_format"]) && !compact_notes)
+		return FALSE
 	var/list/tempos = document["tempos"]
 	var/list/tracks = document["tracks"]
 	if(!islist(notes) || length(notes) > MUSIC_SEQUENCE_MAX_NOTES || !islist(tempos) || length(tempos) > 1024 || !islist(tracks) || length(tracks) > 128)
@@ -53,12 +59,14 @@
 	for(var/list/note as anything in notes)
 		if(!islist(note))
 			return FALSE
-		var/start = note["time"]
-		var/duration = note["duration"]
-		var/key = note["key"]
-		var/velocity = note["velocity"]
-		var/channel = note["channel"]
-		var/track = note["track"]
+		if(compact_notes && length(note) != 6)
+			return FALSE
+		var/start = compact_notes ? note[1] : note["time"]
+		var/duration = compact_notes ? note[2] : note["duration"]
+		var/key = compact_notes ? note[3] : note["key"]
+		var/velocity = compact_notes ? note[4] : note["velocity"]
+		var/channel = compact_notes ? note[5] : note["channel"]
+		var/track = compact_notes ? note[6] : note["track"]
 		if(!isnum(start) || !isnum(duration) || !isnum(key) || !isnum(velocity) || !isnum(channel) || !isnum(track))
 			return FALSE
 		if(start < previous_time || start < 0 || duration <= 0 || start + duration > MUSIC_SEQUENCE_MAX_SECONDS || key < 0 || key > 127 || velocity < 1 || velocity > 127 || channel < 0 || channel > 15 || track < 0 || track > 127)
@@ -145,7 +153,7 @@
 		stop_playing()
 		return
 	process_sequence_voices()
-	if(world.time >= last_hearcheck + 5)
+	if(world.time >= last_hearcheck + MUSIC_SPATIAL_UPDATE_INTERVAL)
 		do_hearcheck()
 	if(!can_use_advanced_music(music_player))
 		stop_playing()
@@ -153,29 +161,33 @@
 	if(sequence_master)
 		return
 	var/elapsed = (world.time - playback_started_at) / (1 SECONDS)
+	// Score timestamps can fall between server ticks; do not subtract that quantization from the attack.
+	var/tick_window = max(world.tick_lag, SSinstruments.wait) / (1 SECONDS)
 	var/budget = 64
 	while(sequence_cursor <= length(midi_notes) && budget-- > 0)
 		var/list/note = midi_notes[sequence_cursor]
 		if(note["time"] > elapsed)
 			break
 		sequence_cursor++
-		if(note["time"] + note["duration"] <= elapsed)
+		var/duration = note["duration"] - max(0, elapsed - note["time"] - tick_window)
+		if(duration <= 0)
 			continue
-		play_sequence_note(note, note["time"] + note["duration"] - elapsed)
+		play_sequence_note(note, duration)
 		for(var/datum/song/follower as anything in sequence_followers.Copy())
 			if(QDELETED(follower) || !follower.playing || follower.sequence_master != src)
 				sequence_followers -= follower
 				continue
-			follower.play_sequence_note(note, note["time"] + note["duration"] - elapsed)
-	if(elapsed < sequence_length)
+			follower.play_sequence_note(note, duration)
+	if(sequence_cursor <= length(midi_notes) || elapsed < sequence_length)
 		return
 	if(repeat > 0 || auto_repeat)
 		if(!auto_repeat)
 			repeat--
-		terminate_all_sounds()
-		voice_ends.Cut()
+		// Let the previous cycle's releases finish while the next attacks begin.
 		sequence_cursor = 1
 		playback_started_at += sequence_length SECONDS
+		return
+	if(elapsed < sequence_length + tick_window + MUSIC_MIDI_RELEASE / (1 SECONDS))
 		return
 	stop_playing(TRUE)
 
@@ -205,10 +217,13 @@
 	voice_levels[text_channel] = instrument.volume_multiplier * note["velocity"] / 127
 	var/sound/voice = sound(sample)
 	voice.frequency = frequency
-	var/turf/origin = get_turf(parent)
 	var/output_volume = get_output_volume(volume * voice_levels[text_channel])
 	for(var/mob/listener as anything in hearing_mobs)
-		listener.playsound_local(origin, null, output_volume * get_listener_volume_multiplier(listener), frequency = frequency, sound_to_use = voice, channel = channel, pressure_affected = FALSE, max_distance = instrument_range, falloff_distance = get_sound_falloff_distance(), falloff_exponent = INSTRUMENT_FALLOFF_EXPONENT)
+		if(!listener.client)
+			continue
+		var/list/spatial = listener_spatial[listener]
+		var/turf/origin = spatial?["stereo"] ? get_turf(listener) : (spatial?["origin"] || get_turf(parent))
+		listener.playsound_local(origin, null, output_volume * get_listener_volume_multiplier(listener) * (spatial?["source_gain"] || 1), frequency = frequency, sound_to_use = voice, channel = channel, pressure_affected = FALSE, max_distance = instrument_range, falloff_distance = get_source_falloff_distance(origin), falloff_exponent = INSTRUMENT_FALLOFF_EXPONENT)
 
 /// Unison follows the leader's notes but keeps the follower's own timbre.
 /datum/song/proc/get_sequence_instrument(track)
@@ -229,37 +244,72 @@
 	for(var/channel in voice_ends.Copy())
 		if(world.time < voice_ends[channel])
 			continue
+		if(playback_mode == "sequence" && world.time < voice_ends[channel] + MUSIC_MIDI_RELEASE)
+			var/remaining = (voice_ends[channel] + MUSIC_MIDI_RELEASE - world.time) / MUSIC_MIDI_RELEASE
+			channels_playing[channel] = 100 * remaining
+			var/level = get_output_volume(volume * voice_levels[channel]) * remaining
+			if(!(channel in music_voice_levels_sent) || music_voice_levels_sent[channel] != level)
+				for(var/mob/listener as anything in hearing_mobs)
+					update_music_voice_listener(listener, text2num(channel), level)
+				music_voice_levels_sent[channel] = level
+			continue
 		for(var/mob/listener as anything in hearing_mobs)
-			listener.stop_sound_channel(text2num(channel))
+			if(listener.client)
+				listener.stop_sound_channel(text2num(channel))
 		channels_playing -= channel
 		channels_idle += channel
 		voice_ends -= channel
 		voice_levels -= channel
+		music_voice_levels_sent -= channel
 	trim_idle_channels()
 
 /datum/song/proc/refresh_music_spatial()
-	listener_spatial.Cut()
-	var/turf/source = get_turf(parent)
-	if(!source)
+	var/list/previous_spatial = listener_spatial
+	listener_spatial = list()
+	var/turf/parent_source = get_turf(parent)
+	if(!parent_source)
 		return
+	var/list/sources = get_instrument_sources()
+	var/list/changed_listeners = list()
 	for(var/mob/listener as anything in hearing_mobs)
+		if(!listener.client)
+			continue
 		var/turf/destination = get_turf(listener)
 		if(!destination)
 			continue
+		var/turf/source = music_listener_sources[listener] || parent_source
+		if(!(source in sources))
+			continue
 		var/distance = get_dist_euclidean(source, destination)
-		listener_spatial[listener] = list("x" = source.x - destination.x, "z" = source.y - destination.y, "ratio" = max(0, 1 - CALCULATE_SOUND_VOLUME_RATIO(100, distance, instrument_range, get_sound_falloff_distance(), INSTRUMENT_FALLOFF_EXPONENT)))
+		var/stereo = source != parent_source && distance <= CONCERT_STEREO_RADIUS
+		var/x = stereo ? 0 : source.x - destination.x
+		var/z = stereo ? 0 : source.y - destination.y
+		var/preference = (listener.client.prefs.read_preference(/datum/preference/numeric/volume/sound_instruments) || 0) / 100
+		var/gain = get_file_source_gain(distance, sources[source], source) * preference
+		var/list/spatial = previous_spatial[listener]
+		if(!spatial || spatial["client"] != listener.client || spatial["x"] != x || spatial["z"] != z || spatial["gain"] != gain || spatial["range"] != instrument_range)
+			spatial = list("client" = listener.client, "x" = x, "z" = z, "gain" = gain, "range" = instrument_range, "preference" = preference)
+			changed_listeners += listener
+		spatial["origin"] = source
+		spatial["source_gain"] = sources[source]
+		spatial["stereo"] = stereo
+		listener_spatial[listener] = spatial
 	for(var/channel in channels_playing)
 		var/level = voice_levels[channel] ? get_output_volume(volume * voice_levels[channel]) : (channels_playing[channel] * 0.01 * get_output_volume(volume * using_instrument.volume_multiplier))
-		for(var/mob/listener as anything in hearing_mobs)
+		if(playback_mode == "sequence" && voice_levels[channel])
+			level *= channels_playing[channel] * 0.01
+		var/list/listeners = ((channel in music_voice_levels_sent) && music_voice_levels_sent[channel] == level) ? changed_listeners : listener_spatial
+		for(var/mob/listener as anything in listeners)
 			update_music_voice_listener(listener, text2num(channel), level)
+		music_voice_levels_sent[channel] = level
 
 /datum/song/proc/update_music_voice_listener(mob/listener, channel, level)
 	var/list/spatial = listener_spatial[listener]
-	if(!spatial)
+	if(!spatial || !listener.client || spatial["client"] != listener.client)
 		return
 	var/sound/update = sound(null, channel = channel)
 	update.status = SOUND_UPDATE
-	update.volume = level * spatial["ratio"] * get_listener_volume_multiplier(listener)
+	update.volume = level * spatial["gain"]
 	update.x = spatial["x"]
 	update.z = spatial["z"]
 	update.y = 0

@@ -1,12 +1,104 @@
 import { describe, expect, it } from 'bun:test';
 import {
   appendCueText,
+  parseCueDocument,
   rippleCueTime,
   shiftCues,
   validateCueInterval,
+  validateCues,
 } from './cues';
 
 describe('OGG cue timing', () => {
+  it('reports the particular cue limit and its actual value', () => {
+    expect(() =>
+      validateCues(Array(201).fill({ time: 0, text: 'a' }), 60),
+    ).toThrow('Too many cues: 201; maximum 200.');
+    expect(() =>
+      validateCues(
+        [
+          { time: 0, text: 'a' },
+          { time: 1, text: 'x'.repeat(301) },
+        ],
+        60,
+      ),
+    ).toThrow('Cue 2: 301 characters; maximum 300.');
+    expect(() => validateCues([{ time: -1, text: 'a' }], 60)).toThrow(
+      'Cue 1: time -1 s cannot be negative.',
+    );
+    expect(() => validateCues([{ time: NaN, text: 'a' }], 60)).toThrow(
+      'Cue 1: time must be a finite number of seconds.',
+    );
+    expect(() => appendCueText([], 'a\nb\nc', 5, 8)).toThrow(
+      'Cue 3: time 10 s exceeds OGG duration 8 s.',
+    );
+  });
+
+  it('imports JSON preserving times, spacing and Unicode without binding to a hash', () => {
+    const sheet = {
+      version: 1 as const,
+      audio_hash: 'track',
+      spacing_seconds: 2.5,
+      cues: [
+        { time: 9.125, text: '\u041f\u0435\u0441\u043d\u044f' },
+        { time: 3, text: 'First' },
+      ],
+    };
+    expect(parseCueDocument(JSON.stringify(sheet), 'track', 10)).toEqual({
+      ...sheet,
+      cues: [sheet.cues[1], sheet.cues[0]],
+    });
+    expect(
+      parseCueDocument(
+        JSON.stringify({ ...sheet, spacing_seconds: undefined }),
+        'track',
+        10,
+      ).spacing_seconds,
+    ).toBe(5);
+    expect(parseCueDocument(JSON.stringify(sheet), 'other', 10).audio_hash).toBe(
+      'other',
+    );
+    expect(
+      parseCueDocument(
+        JSON.stringify({ ...sheet, audio_hash: undefined }),
+        'track',
+        10,
+      ).cues,
+    ).toEqual([sheet.cues[1], sheet.cues[0]]);
+  });
+
+  it('distinguishes JSON syntax, format, track, interval and cue errors', () => {
+    const sheet = {
+      version: 1,
+      audio_hash: 'track',
+      cues: [{ time: 9, text: 'a' }],
+    };
+    expect(() => parseCueDocument('{', 'track', 10)).toThrow('Invalid JSON');
+    expect(() => parseCueDocument('null', 'track', 10)).toThrow(
+      'must be an object',
+    );
+    expect(() =>
+      parseCueDocument(JSON.stringify({ ...sheet, version: 2 }), 'track', 10),
+    ).toThrow('version 1');
+    expect(() => parseCueDocument(JSON.stringify(sheet), null, 10)).toThrow(
+      'Load an OGG',
+    );
+    expect(() =>
+      parseCueDocument(JSON.stringify({ ...sheet, cues: null }), 'track', 10),
+    ).toThrow('cues array');
+    expect(() =>
+      parseCueDocument(
+        JSON.stringify({ ...sheet, spacing_seconds: 0 }),
+        'track',
+        10,
+      ),
+    ).toThrow('Interval');
+    expect(() => parseCueDocument(JSON.stringify(sheet), 'track', 8)).toThrow(
+      'Cue 1: time 9 s exceeds OGG duration 8 s.',
+    );
+    expect(() => parseCueDocument(' '.repeat(300001), 'track', 10)).toThrow(
+      '300000 bytes',
+    );
+  });
   it('appends lyric lines at T-second intervals, ignoring blank lines', () => {
     expect(appendCueText([], 'First\r\n\r\nSecond\nThird', 5, 60)).toEqual([
       { time: 0, text: 'First' },
@@ -18,6 +110,27 @@ describe('OGG cue timing', () => {
         (cue) => cue.time,
       ),
     ).toEqual([10, 13]);
+  });
+  it('skips bracketed tags without consuming mass-cue intervals', () => {
+    expect(
+      appendCueText([], '[Verse]\nFirst [quiet]\n[Chorus]\nSecond', 5, 10),
+    ).toEqual([
+      { time: 0, text: 'First' },
+      { time: 5, text: 'Second' },
+    ]);
+    expect(
+      parseCueDocument(
+        JSON.stringify({
+          version: 1,
+          cues: [
+            { time: 1, text: '[Verse]' },
+            { time: 3, text: '[quiet] First' },
+          ],
+        }),
+        'track',
+        10,
+      ).cues,
+    ).toEqual([{ time: 3, text: 'First' }]);
   });
   it('moves every following cue by the edited time delta', () => {
     const original = [0, 5, 12, 20].map((time) => ({

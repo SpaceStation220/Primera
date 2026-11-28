@@ -11,6 +11,7 @@ import {
   Section,
   Stack,
   Tabs,
+  TextArea,
 } from 'tgui-core/components';
 import type { BooleanLike } from 'tgui-core/react';
 import { useBackend } from '../backend';
@@ -41,6 +42,7 @@ export type Data = {
   multi_tracks: { target_id: string | null; delay_beats: number }[];
   advanced_music_access: BooleanLike;
   music_upload?: MusicUploadStatus | null;
+  music_upload_interval?: number;
   sequence_document: MusicDocument;
   cue_document: CueDocument;
   midi_channels: number[];
@@ -80,9 +82,13 @@ export type Data = {
   auto_repeat: BooleanLike;
   playback_mode: string;
   file_track_name?: string | null;
+  file_preparation?: 'none' | 'not_ready' | 'preparing' | 'ready' | 'error';
+  file_listeners_ready?: number;
+  file_listeners_total?: number;
   file_track_length?: string | null;
   file_track_length_seconds: number;
   can_load_file_tracks: BooleanLike;
+  file_upload_pending?: BooleanLike;
   preset_file_tracks: string[];
   loaded_file_tracks: LoadedFileTrack[];
 
@@ -101,7 +107,11 @@ export function InstrumentEditor220() {
   const [showHelp, setShowHelp] = useState(false);
   const applyMidi = useRef<((action?: PlayAction) => boolean) | null>(null);
   const applyOgg = useRef<((action?: PlayAction) => boolean) | null>(null);
-  const transfer = useMusicUpload(act, data.music_upload);
+  const transfer = useMusicUpload(
+    act,
+    data.music_upload,
+    data.music_upload_interval,
+  );
   const [tab, setTab] = useState<'main' | 'midi' | 'library'>(() =>
     data.advanced_music_access && data.playback_mode === 'file'
       ? 'library'
@@ -142,7 +152,7 @@ export function InstrumentEditor220() {
     />
   );
   return (
-    <Window width={960} height={820}>
+    <Window width={760} height={tab === 'midi' ? 520 : 640}>
       <Window.Content scrollable>
         <Tabs>
           <Tabs.Tab
@@ -190,7 +200,12 @@ export function InstrumentEditor220() {
         {tab === 'main' && (
           <>
             <MainPanel />
-            <MusicEditor />
+            <MusicEditor
+              uploading={transfer.busy}
+              upload={(text, done) =>
+                transfer.upload('notes', { version: 1, text }, undefined, done)
+              }
+            />
           </>
         )}
         {tab === 'midi' && !!data.advanced_music_access && (
@@ -200,6 +215,7 @@ export function InstrumentEditor220() {
             uploading={transfer.busy}
             instruments={data.possible_instruments}
             defaultInstrument={data.using_instrument_id}
+            headerControls={<MidiVolume />}
             disabled={!!data.playing || !!data.midi_shared || transfer.busy}
             channels={data.midi_channels}
             position={
@@ -229,26 +245,27 @@ export function InstrumentEditor220() {
             />
           </>
         )}
-        {tab === 'midi' && (
-          <Section>
-            <Stack align="center" justify="end" wrap>
-              <Stack.Item>
-                Volume{' '}
-                <NumberInput
-                  width="5em"
-                  minValue={0}
-                  maxValue={100}
-                  value={data.volume}
-                  step={1}
-                  format={musicInteger}
-                  onChange={(amount) => act('set_volume', { amount })}
-                />
-              </Stack.Item>
-            </Stack>
-          </Section>
-        )}
       </Window.Content>
     </Window>
+  );
+}
+
+export function MidiVolume() {
+  const { act, data } = useBackend<Data>();
+  return (
+    <Box textAlign="center">
+      <Knob
+        size={1.8}
+        value={data.volume}
+        minValue={data.min_volume}
+        maxValue={data.max_volume}
+        step={1}
+        stepPixelSize={6}
+        format={musicInteger}
+        onChange={(_event, amount) => act('set_volume', { amount })}
+      />
+      <Box mt={0.3}>Volume ({musicInteger(data.volume)}%)</Box>
+    </Box>
   );
 }
 
@@ -291,7 +308,9 @@ export function TopBar(props: TopBarProps) {
               <Button
                 icon={playing || midi_start_pending ? 'stop' : 'play'}
                 color={playing || midi_start_pending ? 'average' : 'good'}
-                disabled={uploading}
+                disabled={
+                  uploading || (mode !== 'midi' && !data.advanced_music_access)
+                }
                 onClick={() => onPlay('play_music')}
               >
                 {playing || midi_start_pending ? 'Stop' : 'Start'}
@@ -446,7 +465,9 @@ const LibraryPanel = () => {
             <Button
               fluid
               icon="folder-open"
-              disabled={!!playing || !can_load_file_tracks}
+              disabled={
+                !!playing || !!data.file_upload_pending || !can_load_file_tracks
+              }
               tooltip={
                 can_load_file_tracks
                   ? 'Load an OGG file'
@@ -454,7 +475,7 @@ const LibraryPanel = () => {
               }
               onClick={() => act('import_file_song')}
             >
-              Load OGG
+              {data.file_upload_pending ? 'Receiving OGG' : 'Load OGG'}
             </Button>
             {loaded_file_tracks.length === 0 ? (
               <Box mt={1} color="label">
@@ -507,6 +528,38 @@ const LibraryPanel = () => {
             {file_track_name ? (
               <>
                 <Box bold>{file_track_name}</Box>
+                <Box
+                  mt={0.5}
+                  color={
+                    data.file_preparation === 'ready'
+                      ? 'good'
+                      : data.file_preparation === 'preparing'
+                        ? 'average'
+                        : 'bad'
+                  }
+                >
+                  <Icon
+                    name={
+                      data.file_preparation === 'ready'
+                        ? 'check-circle'
+                        : data.file_preparation === 'preparing'
+                          ? 'spinner'
+                          : 'circle'
+                    }
+                    mr={0.5}
+                  />
+                  {data.file_preparation === 'ready'
+                    ? 'Prepared'
+                    : data.file_preparation === 'preparing'
+                      ? 'Preparing audio'
+                      : data.file_preparation === 'error'
+                        ? 'Preparation failed'
+                        : 'Not prepared'}
+                </Box>
+                <Box mt={0.5} color="label">
+                  Nearby listeners prepared: {data.file_listeners_ready ?? 0} /{' '}
+                  {data.file_listeners_total ?? 0}
+                </Box>
                 <Box mt={0.5} color="label">
                   Detected: {file_track_length}
                 </Box>
@@ -783,9 +836,27 @@ const RightKnobs = () => {
   );
 };
 
-const MusicEditor = () => {
+export const MusicEditor = ({
+  uploading,
+  upload,
+}: {
+  uploading: boolean;
+  upload: (text: string, done: () => void) => void;
+}) => {
   const { act, data } = useBackend<Data>();
   const { bpm, lines } = data;
+  const [showImport, setShowImport] = useState(false);
+  const [notesText, setNotesText] = useState('');
+  const characterCount = [...notesText].length;
+  const importLines = notesText.replace(/\r/g, '').split('\n');
+  const importError =
+    characterCount > 40000
+      ? 'Maximum 40000 characters.'
+      : importLines.length > data.max_lines
+        ? `Maximum ${data.max_lines} lines.`
+        : importLines.some((line) => [...line].length > data.max_line_chars)
+          ? `Maximum ${data.max_line_chars} characters per line.`
+          : '';
 
   return (
     <Collapsible open title="Music Editor" icon="pencil">
@@ -797,7 +868,13 @@ const MusicEditor = () => {
             </Button>
           </Stack.Item>
           <Stack.Item ml={1}>
-            <Button onClick={() => act('import_song')}>Import a Song</Button>
+            <Button
+              disabled={uploading || !!data.playing}
+              selected={showImport}
+              onClick={() => setShowImport(!showImport)}
+            >
+              Import a Song
+            </Button>
           </Stack.Item>
           <Stack.Item grow />
           <Stack.Item>
@@ -841,6 +918,31 @@ const MusicEditor = () => {
             </Button>
           </Stack.Item>
         </Stack>
+
+        {showImport && (
+          <Box mt={1}>
+            <TextArea
+              aria-label="Notes import"
+              fluid
+              height="14em"
+              value={notesText}
+              disabled={uploading}
+              onChange={setNotesText}
+            />
+            <Box color={importError ? 'bad' : 'label'}>
+              {importError || `${characterCount}/40000`}
+            </Box>
+            <Button
+              icon="upload"
+              disabled={
+                uploading || !!data.playing || !notesText || !!importError
+              }
+              onClick={() => upload(notesText, () => setShowImport(false))}
+            >
+              Import notes
+            </Button>
+          </Box>
+        )}
 
         <Box mt={1}>
           {lines.map((line, index) => (

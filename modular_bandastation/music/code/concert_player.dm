@@ -51,17 +51,14 @@
 
 /** Only a master installed in this player's circuit may provide external sources. */
 /obj/machinery/concert_player/proc/get_receivers()
-	var/obj/item/concert_remote/remote = master_component?.remote
-	if(remote?.get_player() == src)
-		return remote.receivers
-	return list()
+	return song.get_concert_receivers()
 
 /** Public start entry point, also used by circuits; it cannot write media. */
-/obj/machinery/concert_player/proc/play_music()
+/obj/machinery/concert_player/proc/play_music(mob/initiator)
 	if(!can_play() || song.playing || world.time < next_start)
 		return FALSE
 	next_start = world.time + 1 SECONDS
-	song.start_playing(src)
+	song.start_playing(initiator || src)
 	return song.playing
 
 /** Stop and release the allocated channel, including before an eject. */
@@ -198,7 +195,7 @@
 			if(song.playing)
 				stop_music()
 			else
-				play_music()
+				play_music(user)
 		if("eject")
 			eject_disk(user)
 		if("volume")

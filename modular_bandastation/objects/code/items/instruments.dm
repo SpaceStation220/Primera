@@ -155,14 +155,14 @@
 		to_chat(user, span_warning("Кто-то сидит за установкой. Сначала отстегните их."))
 		return TRUE
 
-	if(active)
-		stop_playing()
+	song.stop_playing()
 
 	anchored = FALSE
 	update_icon(UPDATE_ICON_STATE)
 
 	var/turf/T = get_turf(src)
 	var/obj/item/instrument/drumskit_folded/I = new /obj/item/instrument/drumskit_folded(T)
+	I.linked = src
 	forceMove(I)
 
 	if(ismob(user) && user.put_in_hands(I))
@@ -209,6 +209,7 @@
 	S.update_icon(UPDATE_ICON_STATE)
 
 	to_chat(user, span_notice("Вы разворачиваете [S.name] и фиксируете её на полу."))
+	linked = null
 	qdel(src)
 	return TRUE
 
