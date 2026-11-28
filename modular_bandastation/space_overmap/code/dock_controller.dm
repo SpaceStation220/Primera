@@ -391,7 +391,7 @@
 	return locate(x - distance * rotation[1] + row_offset * rotation[2], y - distance * rotation[2] - row_offset * rotation[1], z)
 
 /** Validate and publish a new physical destination. Returns a visible reason on failure. */
-/obj/machinery/computer/stationtrauma_dock_controller/proc/publish_slot(initializing = FALSE)
+/obj/machinery/computer/stationtrauma_dock_controller/proc/publish_slot(initializing = FALSE, datum/stationtrauma_overmap_site/space/nukeops_base/private_site)
 	if(!QDELETED(owned_slot) || !anchored || (!initializing && !is_operational) || panel_open || !(dir in GLOB.cardinals))
 		return "Контроллер уже связан с причалом или не готов к регистрации."
 	var/datum/stationtrauma_overmap/space/host = stationtrauma_carrier_at(src)
@@ -406,7 +406,7 @@
 		return "Неверное положение контроллера причала."
 	if(site_id)
 		// Established mapped docks remain visible during repairs. Approach checks the actual route.
-		if((host ? !host.vessel.contains_deck(z) : !(is_station_level(z) || outpost_name)) || !length(stationtrauma_standard_dock_tiles(anchor, dir, slot_width, slot_height, hangar)) || (hangar && !stationtrauma_hangar_top_level(anchor, host)))
+		if((host ? !host.vessel.contains_deck(z) : !(is_station_level(z) || outpost_name || private_site)) || !length(stationtrauma_standard_dock_tiles(anchor, dir, slot_width, slot_height, hangar)) || (hangar && !stationtrauma_hangar_top_level(anchor, host)))
 			return "Разметка причала выходит за границы палубы."
 	else
 		var/problem = stationtrauma_standard_dock_problem(anchor, dir, slot_width, slot_height, host = host, hangar = hangar)
@@ -436,7 +436,7 @@
 			return "Не удалось привязать причал к носителю."
 		slot.published_site = sector.sites[id]
 	else
-		var/datum/stationtrauma_overmap_site/space/site = new
+		var/datum/stationtrauma_overmap_site/space/site = private_site || new /datum/stationtrauma_overmap_site/space
 		slot.published_sector = sector
 		slot.published_site = site
 		site.id = id
@@ -448,7 +448,7 @@
 		sector.sites[id] = site
 		if(outpost_name)
 			sector.register_docking_berth(site, "traffic:outpost:[z]", outpost_name)
-		else
+		else if(!private_site)
 			var/datum/stationtrauma_overmap_site/space/docking_target/station = sector.sites["traffic:station"]
 			sector.register_docking_berth(site, "traffic:station", station?.name || "Станция")
 	owned_slot = slot

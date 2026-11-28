@@ -1,5 +1,19 @@
 /obj/machinery/nuclearbomb/syndicate
 
+/// The assault shuttle's warhead can be rolled out without the station's disk.
+/obj/machinery/nuclearbomb/syndicate/shershen
+	anchored = FALSE
+
+/obj/machinery/nuclearbomb/syndicate/shershen/ui_status(mob/user, datum/ui_state/state)
+	if(istype(loc, /obj/structure/closet/stationtrauma_drop_pod/nukeops))
+		return UI_CLOSE
+	return ..()
+
+/obj/machinery/nuclearbomb/syndicate/shershen/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
+	if(istype(loc, /obj/structure/closet/stationtrauma_drop_pod/nukeops))
+		return FALSE
+	return ..()
+
 /obj/machinery/nuclearbomb/syndicate/get_cinematic_type(detonation_status)
 	switch(detonation_status)
 		// The nuke detonated on station

@@ -132,6 +132,8 @@
 	found += observe_biosignatures(reach, "active")
 	for(var/id in sites)
 		var/datum/stationtrauma_overmap_site/site = sites[id]
+		if(istype(site, /datum/stationtrauma_overmap_site/space/nukeops_berth))
+			continue
 		if(!istype(site, /datum/stationtrauma_overmap_site/space/distress/casualty) && !knows_site(site) && !site.failed && distance_to(site) <= reach)
 			discover_site(site)
 			found++

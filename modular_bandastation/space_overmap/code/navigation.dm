@@ -415,6 +415,7 @@
 		end_approach()
 		stop("Расстыковка прервана")
 		return FALSE
+	vessel.on_departure()
 	if(!QDELETED(slot) && slot.hangar)
 		slot.show_hangar_glow()
 	slot?.clear_berth()
@@ -468,6 +469,10 @@
 	if(!QDELETED(slot) && slot.hangar)
 		slot.play_hangar_shutters()
 	return TRUE
+
+/// Called after a successful departure from a berth.
+/obj/docking_port/mobile/stationtrauma_space/proc/on_departure()
+	return
 
 /** The approach must still own the berth and have propulsion at each commit point. */
 /datum/stationtrauma_overmap/space/proc/departure_gangway_valid(datum/stationtrauma_overmap_site/space/site, obj/docking_port/stationary/stationtrauma_space_station/standard/slot, obj/docking_port/stationary/stationtrauma_space_site/standard/berth, revision)
@@ -641,6 +646,8 @@
 			else if(slot)
 				var/reason = diagnostic["reason"] || "сближение прервано"
 				status = "Стыковка [slot.dock_class] отменена: [reason]"
+			else if(istype(site, /datum/stationtrauma_overmap_site/space/nukeops_berth/eva))
+				status = "Внешняя высадка отменена: площадка перекрыта или сближение прервано"
 			else
 				status = "Стыковка не выполнена: переход перекрыт"
 		return FALSE

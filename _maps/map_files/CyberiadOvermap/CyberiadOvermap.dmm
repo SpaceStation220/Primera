@@ -2628,6 +2628,16 @@
 	},
 /turf/open/space/openspace,
 /area/space)
+"aFP" = (
+/obj/docking_port/stationary/stationtrauma_space_site/nukeops_eva{
+	dir = 1;
+	dheight = 10;
+	dwidth = 9;
+	height = 19;
+	width = 19
+	},
+/turf/open/space/openspace,
+/area/space)
 "aFT" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/chair/stool{
@@ -223792,7 +223802,7 @@ tYD
 tYD
 tYD
 tYD
-tYD
+aFP
 tYD
 tYD
 tYD

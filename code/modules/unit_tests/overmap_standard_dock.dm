@@ -1060,3 +1060,329 @@
 		var/obj/docking_port/stationary/stationtrauma_space_station/standard/runtime/carrier_berth = carrier_site?.berth
 		TEST_ASSERT(istype(carrier_berth) && carrier_berth.controller_valid(), "Trurl's converted controller must operate on its own deck")
 		TEST_ASSERT_EQUAL(carrier_site.host?.vessel.shuttle_id, "overmap_trurl", "The mapped controller must belong to its carrier")
+
+/// Uses the shipped station, base and assault shuttle, including both native dock footprints.
+/datum/unit_test/overmap_nukeops
+	test_flags = UNIT_TEST_MAP_TEST
+	priority = TEST_LONGER
+	var/obj/docking_port/mobile/stationtrauma_space/nukeops/shershen
+	var/datum/team/nuclear/nuke_team
+	var/obj/docking_port/mobile/stationtrauma_space/unit_test_docking/berth_occupant
+	var/obj/docking_port/stationary/stationtrauma_space_site/standard/occupied_berth
+
+/datum/unit_test/overmap_nukeops/Run()
+	if(SSmapping.current_map.space_overmap?["station_id"] != "cyberiad")
+		return
+	try
+		exercise_nukeops()
+	catch(var/exception/failure)
+		discard_shershen()
+		throw failure
+	discard_shershen()
+
+/datum/unit_test/overmap_nukeops/proc/exercise_nukeops()
+	TEST_ASSERT(SSmapping.current_map.space_overmap?["nukeops"], "Cyberiad Overmap must opt into the nuclear operative shuttle")
+	TEST_ASSERT_NULL(SSshuttle.getShuttle("syndi"), "The Shershen must stay out of the starting fleet")
+	nuke_team = allocate(/datum/team/nuclear)
+	shershen = nuke_team.load_overmap_ship()
+	TEST_ASSERT_NOTNULL(shershen, "The nuke team must load the Shershen at its real base")
+	TEST_ASSERT_EQUAL(nuke_team.get_overmap_ship(), shershen, "The mode must track the launched hull")
+	TEST_ASSERT_EQUAL(nuke_team.load_overmap_ship(), shershen, "Repeated activation must keep the same hull")
+	TEST_ASSERT_NULL(SSshuttle.getShuttle("syndicate"), "Loading the Shershen must not launch the legacy infiltrator")
+
+	var/datum/stationtrauma_overmap/space/navigation = shershen.overmap
+	var/datum/stationtrauma_overmap_site/space/nukeops_base/base_dock = navigation.docked
+	TEST_ASSERT(istype(base_dock) && base_dock.physical_docking, "The starting dock must be the physical Syndicate base berth")
+	var/obj/docking_port/stationary/stationtrauma_space_site/standard/start_berth = shershen.get_docked()
+	TEST_ASSERT(istype(start_berth) && length(start_berth.gangways), "Operatives need a real passage from the base to the ship")
+	TEST_ASSERT(is_infiltrator_docked_at_syndiebase(nuke_team), "The result check must recognize the ship physically at the base")
+	var/datum/stationtrauma_overmap/space/cargo = navigation.sector.ships["overmap_cargo_s"]
+	TEST_ASSERT(cargo && !cargo.knows_site(base_dock) && !cargo.select_site(base_dock.id), "The private route must not appear in an ordinary ship's helm")
+
+	var/obj/machinery/portable_atmospherics/canister/tritium/fuel
+	for(var/turf/tile as anything in shershen.return_turfs())
+		var/obj/machinery/atmospherics/components/unary/portables_connector/connector = locate() in tile
+		var/obj/machinery/portable_atmospherics/canister/tritium/canister = locate() in tile
+		if(connector && canister)
+			TEST_ASSERT(canister.connected_port == connector || canister.connect(connector), "The crew must be able to connect the mapped tritium supply")
+			fuel = canister
+			break
+	TEST_ASSERT_NOTNULL(fuel, "The ship must carry a tritium canister at its fuel inlet")
+	var/obj/machinery/atmospherics/components/binary/stationtrauma_fusion_core/reactor = shershen.fusion_core?.resolve()
+	TEST_ASSERT(reactor && (reactor.active || reactor.control("power", null, null)), "The crew must be able to start the reactor")
+	var/ignition_deadline = world.time + 20 SECONDS
+	UNTIL(navigation.engine_fraction() > 0 || world.time >= ignition_deadline)
+	TEST_ASSERT(navigation.set_engines_running(TRUE), "The warmed ship must accept the engine command. [engine_status()]")
+	ignition_deadline = world.time + 10 SECONDS
+	UNTIL(navigation.engine_fraction() > 0 || world.time >= ignition_deadline)
+	TEST_ASSERT(navigation.engine_fraction() > 0, "The enabled engines must deliver actual thrust. [engine_status()]")
+	nuke_team.overmap_war_declared_at = world.time
+	TEST_ASSERT(leave_berth(navigation), "The Shershen must finish a normal departure with the declaration active. [navigation.status]")
+	TEST_ASSERT(nuke_team.overmap_has_departed, "A successful departure must close the war declaration window")
+	TEST_ASSERT(!is_infiltrator_docked_at_syndiebase(nuke_team), "A ship in flight must not count as back at the base")
+
+	// Scope the flight test to real dock movement by starting each approach at its chart coordinates.
+	navigation.stop()
+	var/datum/stationtrauma_overmap_site/space/station_dock = navigation.sector.sites["cyberiad"]
+	TEST_ASSERT_NOTNULL(station_dock?.docking_target, "Cyberiad needs a boardable station destination")
+	if(!exercise_eva(navigation, station_dock, cargo))
+		return
+	navigation.stop()
+	TEST_ASSERT(navigation.select_site(station_dock.docking_target.id), "The pilot must be able to select Cyberiad")
+	navigation.pos_x = station_dock.pos_x
+	navigation.pos_y = station_dock.pos_y
+	if(!exercise_drop_pod(navigation, station_dock))
+		return
+	clear_station_occupancy()
+	TEST_ASSERT(navigation.request_station_boarding(station_dock.docking_target.id), "The shipped hull must be able to initiate boarding")
+	var/datum/stationtrauma_boarding_attempt/station/boarding = navigation.boarding_attempt
+	TEST_ASSERT_NOTNULL(boarding, "The station boarding request must reserve a real berth")
+	deltimer(boarding.commit_timer)
+	boarding.complete()
+	TEST_ASSERT_EQUAL(navigation.docked, station_dock, "Boarding must dock the Shershen at the real station. [navigation.status]")
+	var/obj/docking_port/stationary/stationtrauma_space_site/standard/station_berth = shershen.get_docked()
+	TEST_ASSERT(istype(station_berth) && length(station_berth.gangways), "The station's actual berth must deploy a passage")
+	TEST_ASSERT(!is_infiltrator_docked_at_syndiebase(nuke_team), "Docking at Cyberiad must not count as evacuation")
+	// A native move clears the old gas and power tick before the destination grid starts producing.
+	var/settled_air_cycle = SSair.times_fired + 2
+	var/settled_power_cycle = SSmachines.times_fired + 2
+	var/departure_deadline = world.time + 15 SECONDS
+	UNTIL((SSair.times_fired >= settled_air_cycle && SSmachines.times_fired >= settled_power_cycle && navigation.propulsion_available()) || world.time >= departure_deadline)
+	TEST_ASSERT(SSair.times_fired >= settled_air_cycle && SSmachines.times_fired >= settled_power_cycle, "The moved hull's gas and power grid must finish their native updates")
+	TEST_ASSERT(navigation.propulsion_available(), "Propulsion must resume on the station's deck. [engine_status()]")
+	TEST_ASSERT(leave_berth(navigation), "The same ship must be able to leave Cyberiad. [navigation.status]. [engine_status()]")
+
+	navigation.stop()
+	navigation.pos_x = base_dock.pos_x
+	navigation.pos_y = base_dock.pos_y
+	TEST_ASSERT(navigation.select_site(base_dock.id), "The pilot must be able to select home for the return")
+	TEST_ASSERT(navigation.dock(instant = TRUE), "The Shershen must return to the real base berth. [navigation.status]")
+	TEST_ASSERT(is_infiltrator_docked_at_syndiebase(nuke_team), "Returning the same ship must satisfy the evacuation check")
+	verify_team_capacity()
+
+/// Move the original hull to open space on the station level, then take the normal helm back out.
+/datum/unit_test/overmap_nukeops/proc/exercise_eva(datum/stationtrauma_overmap/space/navigation, datum/stationtrauma_overmap_site/space/station_dock, datum/stationtrauma_overmap/space/cargo)
+	var/datum/stationtrauma_overmap_site/space/nukeops_berth/eva/eva_site = navigation.sector.sites["nukeops_eva"]
+	TEST_ASSERT(istype(eva_site) && eva_site.physical_docking, "The Shershen needs a physical EVA chart site")
+	TEST_ASSERT(!cargo.knows_site(eva_site) && !cargo.select_site(eva_site.id), "An ordinary ship must not see or select the private EVA site")
+	var/obj/docking_port/stationary/stationtrauma_space_site/nukeops_eva/eva_berth = eva_site.berth
+	TEST_ASSERT(istype(eva_berth) && eva_berth.z == station_dock.berth.z && is_station_level(eva_berth.z), "The EVA berth must be on Cyberiad's main level")
+	for(var/turf/tile as anything in eva_berth.return_turfs())
+		TEST_ASSERT(isspaceturf(tile), "Before arrival, the entire EVA footprint must be open space")
+	TEST_ASSERT(navigation.select_site(eva_site.id), "The nuke crew must be able to select the EVA site")
+	navigation.pos_x = eva_site.pos_x
+	navigation.pos_y = eva_site.pos_y
+	TEST_ASSERT(!navigation.dock(), "The EVA fallback must stay unavailable while the station's M berth is free")
+	TEST_ASSERT_EQUAL(shershen.get_docked(), navigation.flight_berth, "A rejected EVA order must leave the hull in free flight")
+
+	var/obj/docking_port/stationary/stationtrauma_space_station/standard/station_slot = station_dock.berth
+	TEST_ASSERT(istype(station_slot) && !station_slot.active_berth, "Cyberiad's M slot must be clear before adding the competing hull")
+	var/turf/anchor = get_turf(station_slot)
+	berth_occupant = new(anchor, list())
+	occupied_berth = new(anchor)
+	occupied_berth.slot = station_slot
+	occupied_berth.ship = berth_occupant
+	station_slot.active_berth = occupied_berth
+	TEST_ASSERT_EQUAL(occupied_berth.get_docked(), berth_occupant, "The M slot must be physically occupied during the fallback")
+	var/turf/vacuum = get_turf(eva_berth)
+	var/vacuum_type = vacuum.type
+	var/turf/obstruction = vacuum.ChangeTurf(/turf/open/floor/plating)
+	var/entered_obstruction = navigation.dock()
+	obstruction.ChangeTurf(vacuum_type)
+	TEST_ASSERT(!entered_obstruction && shershen.get_docked() == navigation.flight_berth, "The outer approach must reject any station floor in the landing footprint")
+	TEST_ASSERT_NULL(eva_site.docking_owner, "A blocked approach must release the fallback reservation")
+	TEST_ASSERT(navigation.dock(), "An occupied M berth must permit a normal EVA approach. [navigation.status]")
+	TEST_ASSERT(navigation.docked == eva_site && shershen.get_docked() == eva_berth && shershen.z == station_dock.berth.z, "The actual hull must move from flight to Cyberiad's level")
+	TEST_ASSERT(!navigation.connection?.active && station_slot.active_berth == occupied_berth && occupied_berth.get_docked() == berth_occupant, "EVA arrival must leave M occupied and build no remote passage")
+	TEST_ASSERT(!is_infiltrator_docked_at_syndiebase(nuke_team), "An EVA approach cannot count as returning to base")
+
+	var/obj/machinery/door/airlock/external/eva_hatch
+	for(var/turf/tile as anything in shershen.return_turfs())
+		eva_hatch = locate(/obj/machinery/door/airlock/external) in tile
+		if(eva_hatch)
+			break
+	TEST_ASSERT_NOTNULL(eva_hatch, "The actual hull must have its ordinary exterior airlock")
+	var/turf/exterior = get_step(eva_hatch, eva_hatch.dir)
+	TEST_ASSERT(isspaceturf(exterior) && exterior.z == station_dock.berth.z && !shershen.is_in_shuttle_bounds(exterior), "The airlock must lead to real station space beyond the hull")
+	var/turf/chamber = get_step(eva_hatch, REVERSE_DIR(eva_hatch.dir))
+	TEST_ASSERT(isfloorturf(chamber) && shershen.shuttle_areas[get_area(chamber)], "The outer airlock must be reachable from inside the ship")
+	var/mob/living/carbon/human/consistent/operative = allocate(/mob/living/carbon/human/consistent, chamber)
+	var/obj/item/clothing/under/syndicate/uniform = allocate(/obj/item/clothing/under/syndicate)
+	TEST_ASSERT(operative.equip_to_slot_if_possible(uniform, ITEM_SLOT_ICLOTHING), "The operative needs the normal uniform to wear credentials")
+	var/obj/item/card/id/advanced/chameleon/elite/card = allocate(/obj/item/card/id/advanced/chameleon/elite)
+	SSid_access.apply_trim_to_card(card, /datum/id_trim/chameleon/operative)
+	TEST_ASSERT(operative.equip_to_slot_if_possible(card, ITEM_SLOT_ID), "The operative must wear a normal Syndicate ID")
+	var/action_deadline = world.time + 15 SECONDS
+	UNTIL(eva_hatch.hasPower() || world.time >= action_deadline)
+	TEST_ASSERT(eva_hatch.hasPower() && eva_hatch.try_to_activate_door(operative), "The operative must be able to open the powered exterior airlock")
+	action_deadline = world.time + 5 SECONDS
+	UNTIL((!eva_hatch.density && !eva_hatch.operating) || world.time >= action_deadline)
+	TEST_ASSERT(!eva_hatch.density && step(operative, eva_hatch.dir) && step(operative, eva_hatch.dir) && operative.loc == exterior, "The operative must be able to walk out into Cyberiad's space")
+	qdel(operative)
+	TEST_ASSERT(eva_hatch.close(), "The crew must be able to close the exterior airlock before departure")
+	action_deadline = world.time + 15 SECONDS
+	UNTIL(navigation.propulsion_available() || world.time >= action_deadline)
+	TEST_ASSERT(navigation.propulsion_available(), "Propulsion must resume after the airlock cycle. [engine_status()]")
+	TEST_ASSERT(leave_berth(navigation), "The original hull must sail back to its native flight berth. [navigation.status]")
+	TEST_ASSERT_NULL(eva_berth.get_docked(), "Departure must release the EVA berth")
+	TEST_ASSERT_NULL(eva_site.docking_owner, "Departure must clear the EVA site's reservation")
+	for(var/turf/tile as anything in eva_berth.return_turfs())
+		TEST_ASSERT(isspaceturf(tile), "Departure must restore the station's open space beneath the hull")
+	TEST_ASSERT(station_slot.active_berth == occupied_berth && occupied_berth.get_docked() == berth_occupant, "Returning to flight must leave the other hull on M")
+	TEST_NOTICE(src, "Verified physical arrival, exterior airlock exit and return from the occupied-berth EVA route")
+	return TRUE
+
+/// Use the mapped launcher, payload, and station while physical boarding has no compatible slot.
+/datum/unit_test/overmap_nukeops/proc/exercise_drop_pod(datum/stationtrauma_overmap/space/navigation, datum/stationtrauma_overmap_site/space/station_dock)
+	var/obj/docking_port/stationary/stationtrauma_space_station/standard/station_slot = station_dock.berth
+	var/target_id = station_dock.docking_target.id
+	TEST_ASSERT(!navigation.request_station_boarding(target_id), "A competing hull at M must prevent physical boarding")
+
+	var/obj/machinery/computer/stationtrauma_drop_pod_console/console
+	for(var/obj/machinery/computer/stationtrauma_drop_pod_console/candidate as anything in SSmachines.get_machines_by_type(/obj/machinery/computer/stationtrauma_drop_pod_console))
+		if(candidate.current_vessel() == shershen)
+			console = candidate
+			break
+	TEST_ASSERT_NOTNULL(console, "The ship must carry a working launch console")
+	var/mob/living/carbon/human/consistent/operator = allocate(/mob/living/carbon/human/consistent, get_turf(console))
+	var/list/launch_data = console.ui_data(operator)
+	TEST_ASSERT(launch_data["launch_ready"] && (target_id in launch_data["drop_sites"]), "The drop console must offer Cyberiad while its M slot is occupied")
+	TEST_ASSERT_EQUAL(length(shershen.drop_launchers), 5, "Five mapped racks must support the whole ten-person team")
+	var/obj/machinery/stationtrauma_drop_launcher/nukeops/rack = shershen.drop_launchers[1]
+	TEST_ASSERT(istype(rack) && rack.assemble_pod(), "A mapped assault rack must accept an assembly order with its shipped iron")
+	var/assembly_deadline = world.time + 15 SECONDS
+	UNTIL(rack.mounted_pod() || world.time >= assembly_deadline)
+	var/obj/structure/closet/stationtrauma_drop_pod/nukeops/pod = rack.mounted_pod()
+	TEST_ASSERT(istype(pod), "The rack must assemble a capsule capable of carrying the bomb")
+	allocated += pod
+	TEST_ASSERT(nuke_team.assign_nuke(), "The team must receive its shipboard bomb and code")
+	var/obj/machinery/nuclearbomb/syndicate/shershen/bomb = nuke_team.tracked_nuke
+	TEST_ASSERT(istype(bomb) && shershen.is_in_shuttle_bounds(bomb), "The assigned bomb must be the actual Shershen payload")
+	allocated += bomb
+	TEST_ASSERT(bomb.r_code == nuke_team.memorized_code && bomb.r_code != NUKE_CODE_UNSET, "The team's code must unlock the assigned bomb")
+	TEST_ASSERT(!bomb.anchored, "The team must be able to move the bomb before recovering the station disk")
+	var/turf/pad = get_turf(pod)
+	var/turf/loading_tile
+	for(var/direction as anything in GLOB.cardinals)
+		var/turf/candidate = get_step(pad, direction)
+		if(isfloorturf(candidate) && !candidate.is_blocked_turf())
+			loading_tile = candidate
+			break
+	TEST_ASSERT_NOTNULL(loading_tile, "The mapped rack needs a clear neighbouring loading tile")
+	operator.forceMove(loading_tile)
+	operator.mock_client = allocate(/datum/client_interface)
+	bomb.forceMove(loading_tile)
+	var/mob/previous_usr = usr
+	bomb.set_anchored(TRUE)
+	usr = operator
+	bomb.MouseDrop(pod)
+	usr = previous_usr
+	TEST_ASSERT_EQUAL(bomb.loc, loading_tile, "The assault pod must refuse to take a secured bomb")
+	bomb.set_anchored(FALSE)
+	usr = operator
+	bomb.MouseDrop(pod)
+	usr = previous_usr
+	TEST_ASSERT_EQUAL(bomb.loc, pod, "A nearby crew member must be able to stow the bomb in the open capsule")
+	var/mob/living/carbon/human/consistent/passenger = allocate(/mob/living/carbon/human/consistent, pad)
+	var/mob/living/carbon/human/consistent/second_passenger = allocate(/mob/living/carbon/human/consistent, pad)
+	TEST_ASSERT(pod.close(operator), "The crew must be able to close the loaded capsule")
+	TEST_ASSERT(passenger.loc == pod && second_passenger.loc == pod && bomb.loc == pod, "The capsule must take two passengers and their released bomb")
+	TEST_ASSERT_EQUAL(bomb.ui_status(passenger, bomb.ui_state(passenger)), UI_CLOSE, "The bomb must remain inaccessible inside the capsule")
+	operator.forceMove(get_turf(console))
+	TEST_ASSERT(console.launch_pod(navigation, pod, target_id, "site", operator), "The console must launch at the station when docking is blocked")
+	var/datum/stationtrauma_drop_flight/flight = pod.flight
+	TEST_ASSERT(flight?.result == "flying" && !pod.can_open(passenger), "The native flight must seal the capsule during transit")
+	allocated += flight
+	var/landing_deadline = flight.arrives_at + 10 SECONDS
+	UNTIL(flight.result != "flying" || world.time >= landing_deadline)
+	TEST_ASSERT_EQUAL(flight.result, "landed", "The native flight timer must land the capsule on Cyberiad")
+	var/turf/landing = get_turf(pod)
+	TEST_ASSERT(is_station_level(landing.z) && istype(get_area(landing), /area/station), "The capsule must land on a station deck")
+	TEST_ASSERT(pod.open(passenger), "Touchdown must allow the passenger to open the hatch")
+	TEST_ASSERT(passenger.loc == landing && second_passenger.loc == landing && bomb.loc == landing, "The passengers and bomb must exit onto Cyberiad together")
+	TEST_ASSERT_EQUAL(station_slot.active_berth, occupied_berth, "The capsule must leave the competing berth occupied")
+	TEST_ASSERT(!navigation.docked && shershen.get_docked() == navigation.flight_berth, "The Shershen must stay in flight throughout the assault insertion")
+	return TRUE
+
+/datum/unit_test/overmap_nukeops/proc/clear_station_occupancy()
+	qdel(berth_occupant, force = TRUE)
+	qdel(occupied_berth, force = TRUE)
+	berth_occupant = null
+	occupied_berth = null
+
+/// Check the real ruleset constructors and the loaded crew starting tiles.
+/datum/unit_test/overmap_nukeops/proc/verify_team_capacity()
+	var/list/operative_rulesets = list(
+		/datum/dynamic_ruleset/roundstart/nukies,
+		/datum/dynamic_ruleset/midround/from_ghosts/nukies,
+	)
+	for(var/ruleset_type in operative_rulesets)
+		var/datum/dynamic_ruleset/live_ruleset = allocate(ruleset_type, list())
+		TEST_ASSERT_EQUAL(live_ruleset.get_antag_cap(60, live_ruleset.max_antag_cap || live_ruleset.min_antag_cap), 10, "Cyberiad Overmap must offer ten slots for [live_ruleset.config_tag]")
+		TEST_ASSERT_EQUAL(live_ruleset.get_antag_cap(60, live_ruleset.min_antag_cap), 5, "The larger team must still start with the existing minimum")
+		TEST_ASSERT_EQUAL(live_ruleset.get_antag_cap(200, live_ruleset.min_antag_cap), 10, "High population must not make the minimum exceed the ten available slots")
+		var/datum/dynamic_ruleset/exported_ruleset = allocate(ruleset_type)
+		TEST_ASSERT_EQUAL(exported_ruleset.get_antag_cap(60, exported_ruleset.max_antag_cap || exported_ruleset.min_antag_cap), 5, "Exported defaults must keep the original maximum")
+
+	var/list/clown_rulesets = list(
+		/datum/dynamic_ruleset/roundstart/nukies/clown,
+		/datum/dynamic_ruleset/midround/from_ghosts/nukies/clown,
+	)
+	for(var/ruleset_type in clown_rulesets)
+		var/datum/dynamic_ruleset/ruleset = allocate(ruleset_type, list())
+		TEST_ASSERT_EQUAL(ruleset.get_antag_cap(60, ruleset.max_antag_cap || ruleset.min_antag_cap), 5, "The clown variant must retain its original maximum")
+
+	var/list/operative_starts = list()
+	for(var/turf/start as anything in GLOB.nukeop_base_start)
+		TEST_ASSERT(isopenturf(start), "Each operative needs a walkable starting tile at the base")
+		operative_starts |= start
+	TEST_ASSERT_EQUAL(length(operative_starts), 10, "Every ordinary team index must have its own base start")
+	TEST_ASSERT_EQUAL(length(GLOB.nukeop_base_leader_start), 1, "The base must have its separate leader start")
+	TEST_ASSERT(!(GLOB.nukeop_base_leader_start[1] in operative_starts), "The leader must not overlap an ordinary base start")
+
+	var/datum/turf_reservation/elevator = SSmapping.lazy_load_template(LAZY_TEMPLATE_KEY_NUKIEELEVATOR)
+	TEST_ASSERT_NOTNULL(elevator, "The roundstart elevator must load")
+	var/list/elevator_starts = list()
+	for(var/turf/start as anything in GLOB.nukeop_elevator_start)
+		TEST_ASSERT(isopenturf(start) && (start in elevator.reserved_turfs), "Each elevator start must be a walkable tile in the loaded elevator")
+		elevator_starts |= start
+	TEST_ASSERT_EQUAL(length(elevator_starts), 10, "The roundstart elevator must have ten distinct starting tiles")
+
+/// Exercise the player helm and wait for the native move and approach to finish.
+/datum/unit_test/overmap_nukeops/proc/leave_berth(datum/stationtrauma_overmap/space/navigation)
+	if(!navigation.sail())
+		return FALSE
+	var/departure_deadline = world.time + 40 SECONDS
+	UNTIL((!navigation.docked && !navigation.approach_started) || world.time >= departure_deadline)
+	return !navigation.docked && !navigation.approach_started && shershen.get_docked() == navigation.flight_berth
+
+/datum/unit_test/overmap_nukeops/proc/engine_status()
+	var/list/nozzle_status = list()
+	for(var/obj/machinery/power/shuttle_engine/engine as anything in shershen.engine_list)
+		var/obj/machinery/atmospherics/components/unary/ship_engine_heater/feed = engine.combustion_feed?.resolve()
+		var/reason = feed ? feed.unavailable_reason() || "ready" : "unbound"
+		nozzle_status += "[COORD(engine)] [reason]"
+	var/obj/machinery/atmospherics/components/binary/stationtrauma_fusion_core/reactor = shershen.fusion_core?.resolve()
+	var/obj/machinery/stationtrauma_combat_power/distributor = shershen.combat_power_ref?.resolve()
+	var/area/distributor_area = get_area(distributor)
+	var/obj/machinery/power/apc/distributor_apc = distributor_area?.apc
+	var/datum/powernet/distributor_grid = distributor_apc?.terminal?.powernet
+	return "Core [reactor?.output]. Nozzles [jointext(nozzle_status, ", ")]. Distributor [distributor?.available_watts], routing [distributor?.can_route(shershen)], APC operating [distributor_apc?.operating], net [distributor_grid?.avail]/[distributor_grid?.load]."
+
+/datum/unit_test/overmap_nukeops/proc/discard_shershen()
+	clear_station_occupancy()
+	if(QDELETED(shershen))
+		return
+	var/datum/stationtrauma_overmap/space/navigation = shershen.overmap
+	var/datum/stationtrauma_overmap_site/space/nukeops_base/base_dock = navigation?.sector?.sites["nukeops_base"]
+	var/obj/docking_port/stationary/stationtrauma_space_station/standard/base_slot = base_dock?.berth
+	if(navigation?.docked && navigation.set_engines_running(TRUE))
+		var/departure_deadline = world.time + 15 SECONDS
+		UNTIL(navigation.propulsion_available() || world.time >= departure_deadline)
+		if(navigation.propulsion_available())
+			navigation.depart(instant = TRUE)
+	qdel(shershen, force = TRUE)
+	if(!QDELETED(base_slot) && !base_slot.active_berth)
+		qdel(base_slot, force = TRUE)
+	shershen = null
+	nuke_team = null

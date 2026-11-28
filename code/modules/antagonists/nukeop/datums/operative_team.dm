@@ -8,6 +8,12 @@
 	var/memorized_code
 	var/list/team_discounts
 	var/datum/weakref/war_button_ref
+	/// The ship supplied to this team on Cyberiad Overmap.
+	var/datum/weakref/overmap_ship_ref
+	/// World time when the team declared war, or null for a covert operation.
+	var/overmap_war_declared_at
+	/// Whether the ship has left the base during this operation.
+	var/overmap_has_departed = FALSE
 
 /datum/team/nuclear/New()
 	..()
@@ -19,6 +25,24 @@
 
 	// when a nuke team is created, the infiltrator has not loaded in yet - it takes some time. so no nuke, we have to wait
 	addtimer(CALLBACK(src, PROC_REF(assign_nuke_delayed)), 5 SECONDS)
+
+/// Resolve the team's ship while the hull still exists.
+/datum/team/nuclear/proc/get_overmap_ship()
+	return overmap_ship_ref?.resolve()
+
+/// Bind the docked ship to the operation whose leader called it in.
+/datum/team/nuclear/proc/load_overmap_ship()
+	if(overmap_ship_ref)
+		return get_overmap_ship()
+	var/obj/docking_port/mobile/stationtrauma_space/nukeops/ship = SSstationtrauma_space_voyage.load_nukeops_shershen()
+	if(!ship)
+		return null
+	var/datum/team/nuclear/assigned_team = ship.nuclear_team_ref?.resolve()
+	if(assigned_team && assigned_team != src)
+		return null
+	overmap_ship_ref = WEAKREF(ship)
+	ship.nuclear_team_ref = WEAKREF(src)
+	return ship
 
 /datum/team/nuclear/roundend_report()
 	var/list/parts = list()
@@ -107,10 +131,12 @@
 
 	var/post_report
 
-	var/war_declared = FALSE
-	for(var/obj/item/circuitboard/computer/syndicate_shuttle/board as anything in GLOB.syndicate_shuttle_boards)
-		if(board.challenge_start_time)
-			war_declared = TRUE
+	var/war_declared = !isnull(overmap_war_declared_at)
+	if(!overmap_ship_ref)
+		for(var/obj/item/circuitboard/computer/syndicate_shuttle/board as anything in GLOB.syndicate_shuttle_boards)
+			if(board.challenge_start_time)
+				war_declared = TRUE
+				break
 
 	var/force_war_button = ""
 
@@ -174,11 +200,17 @@
 	var/turf/spawn_loc
 	if(infil_or_nukebase == SPAWN_AT_INFILTRATOR)
 		var/area/spawn_in
-		// Prioritize EVA then hallway, if neither can be found default to the first area we can find
-		for(var/area_type in list(/area/shuttle/syndicate/eva, /area/shuttle/syndicate/hallway, /area/shuttle/syndicate))
-			spawn_in = locate(area_type) in GLOB.areas // I'd love to use areas_by_type but the Infiltrator is a unique area
-			if(spawn_in)
-				break
+		if(overmap_ship_ref)
+			var/obj/docking_port/mobile/stationtrauma_space/nukeops/ship = get_overmap_ship()
+			for(var/area/compartment as anything in ship?.shuttle_areas)
+				if(compartment.type == /area/shuttle/stationtrauma_space/syndi)
+					spawn_in = compartment
+					break
+		else
+			for(var/area_type in list(/area/shuttle/syndicate/eva, /area/shuttle/syndicate/hallway, /area/shuttle/syndicate))
+				spawn_in = locate(area_type) in GLOB.areas
+				if(spawn_in)
+					break
 
 		var/list/turf/options = list()
 		for(var/turf/open/open_turf in spawn_in?.get_turfs_from_all_zlevels())
@@ -242,7 +274,7 @@
 	var/shuttle_evacuated = EMERGENCY_ESCAPED_OR_ENDGAMED
 	var/shuttle_landed_base = SSshuttle.emergency.is_hijacked()
 	var/disk_rescued = is_disk_rescued()
-	var/syndies_didnt_escape = !is_infiltrator_docked_at_syndiebase()
+	var/syndies_didnt_escape = !is_infiltrator_docked_at_syndiebase(src)
 	var/team_is_dead = are_all_operatives_dead()
 	var/station_was_nuked = GLOB.station_was_nuked
 	var/station_nuke_source = GLOB.station_nuke_source
@@ -296,9 +328,27 @@
 
 	CRASH("[type] - got an undefined / unexpected result.")
 
+/// Returns the transport assigned to the operation, including the legacy infiltrator.
+/proc/get_nukeop_infiltration_ship(datum/team/nuclear/nuke_team)
+	if(nuke_team?.overmap_ship_ref)
+		return nuke_team.get_overmap_ship()
+	if(!nuke_team && SSmapping.current_map?.space_overmap?["nukeops"])
+		for(var/datum/team/nuclear/team in GLOB.antagonist_teams)
+			if(team.overmap_ship_ref)
+				return team.get_overmap_ship()
+	return SSshuttle.getShuttle("syndicate")
+
 /// Returns whether or not syndicate operatives escaped.
-/proc/is_infiltrator_docked_at_syndiebase()
-	var/obj/docking_port/mobile/infiltrator/infiltrator_port = SSshuttle.getShuttle("syndicate")
+/proc/is_infiltrator_docked_at_syndiebase(datum/team/nuclear/nuke_team)
+	var/obj/docking_port/mobile/infiltrator_port = get_nukeop_infiltration_ship(nuke_team)
+	if(istype(infiltrator_port, /obj/docking_port/mobile/stationtrauma_space/nukeops))
+		var/obj/docking_port/mobile/stationtrauma_space/nukeops/ship = infiltrator_port
+		var/datum/stationtrauma_overmap_site/space/nukeops_base/base = ship.overmap?.docked
+		if(!istype(base))
+			return FALSE
+		var/obj/docking_port/stationary/stationtrauma_space_station/standard/slot = base.berth
+		var/obj/docking_port/stationary/stationtrauma_space_site/standard/active_berth = slot?.active_berth
+		return !QDELETED(active_berth) && ship.get_docked() == active_berth
 
 	var/datum/lazy_template/nukie_base/nukie_template = GLOB.lazy_templates[LAZY_TEMPLATE_KEY_NUKIEBASE]
 	if(!nukie_template)
@@ -328,7 +378,18 @@
 		synd_datum?.memorize_code()
 
 /datum/team/nuclear/proc/assign_nuke()
-	var/obj/machinery/nuclearbomb/syndicate/nuke = locate() in SSmachines.get_machines_by_type_and_subtypes(/obj/machinery/nuclearbomb/syndicate)
+	var/obj/docking_port/mobile/stationtrauma_space/nukeops/ship = get_overmap_ship()
+	if(overmap_ship_ref && !ship)
+		return FALSE
+	var/obj/machinery/nuclearbomb/syndicate/nuke
+	for(var/obj/machinery/nuclearbomb/syndicate/candidate as anything in SSmachines.get_machines_by_type_and_subtypes(/obj/machinery/nuclearbomb/syndicate))
+		if(ship)
+			if(!istype(candidate, /obj/machinery/nuclearbomb/syndicate/shershen) || !ship.shuttle_areas[get_area(candidate)] || !ship.is_in_shuttle_bounds(candidate))
+				continue
+		else if(istype(candidate, /obj/machinery/nuclearbomb/syndicate/shershen))
+			continue
+		nuke = candidate
+		break
 	if(!nuke)
 		return FALSE
 
@@ -338,8 +399,9 @@
 		nuke.r_code = memorized_code
 	else //Already set by admins/something else?
 		memorized_code = nuke.r_code
-	for(var/obj/machinery/nuclearbomb/beer/beernuke as anything in SSmachines.get_machines_by_type_and_subtypes(/obj/machinery/nuclearbomb/beer))
-		beernuke.r_code = memorized_code
+	if(!ship)
+		for(var/obj/machinery/nuclearbomb/beer/beernuke as anything in SSmachines.get_machines_by_type_and_subtypes(/obj/machinery/nuclearbomb/beer))
+			beernuke.r_code = memorized_code
 	return TRUE
 
 #undef SPAWN_AT_BASE

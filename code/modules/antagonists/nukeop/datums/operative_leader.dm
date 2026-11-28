@@ -36,7 +36,8 @@
 	. = ..()
 	if(!CONFIG_GET(flag/disable_warops))
 		var/mob/living/carbon/human/leader = owner.current
-		var/obj/item/war_declaration = new challengeitem(leader.drop_location())
+		var/obj/item/nuclear_challenge/war_declaration = new challengeitem(leader.drop_location())
+		war_declaration.nuclear_team_ref = WEAKREF(nuke_team)
 		leader.put_in_hands(war_declaration)
 		nuke_team.war_button_ref = WEAKREF(war_declaration)
 	addtimer(CALLBACK(src, PROC_REF(nuketeam_name_assign)), 0.1 SECONDS)
@@ -65,9 +66,9 @@
 	return capitalize(newname)
 
 /datum/antagonist/nukeop/leader/create_team(datum/team/nuclear/new_team)
+	if(new_team)
+		. = ..()
+	else
+		nuke_team = new /datum/team/nuclear()
 	if(spawn_ship)
 		spawn_infiltrator()
-	if(new_team)
-		return ..()
-	// Leaders always make new teams
-	nuke_team = new /datum/team/nuclear()
