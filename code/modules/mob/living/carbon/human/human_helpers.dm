@@ -6,16 +6,17 @@
 
 //gets assignment from ID or ID inside PDA or PDA itself
 //Useful when player do something with computers
-/mob/living/carbon/human/proc/get_assignment(if_no_id = "No id", if_no_job = "No job", hand_first = TRUE)
+// use_trim keeps role-based consumers independent of cosmetic ID/PDA assignments.
+/mob/living/carbon/human/proc/get_assignment(if_no_id = "No id", if_no_job = "No job", hand_first = TRUE, use_trim = FALSE)
 	var/obj/item/card/id/id = get_idcard(hand_first)
 	if(HAS_TRAIT(src, TRAIT_UNKNOWN_APPEARANCE))
 		return if_no_id
 	if(id)
-		. = id.assignment
+		. = use_trim ? id.get_trim_assignment() : id.assignment
 	else
 		var/obj/item/modular_computer/pda = wear_id
 		if(istype(pda))
-			. = pda.saved_job
+			. = use_trim ? pda.saved_job_role : pda.saved_job
 		else
 			return if_no_id
 	if(!.)

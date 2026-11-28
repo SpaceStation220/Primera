@@ -14,6 +14,8 @@
 			var/selected_title = input[job_title]
 			if((istype(job, /datum/job/donor/representative_ussp) || istype(job, /datum/job/donor/tourist_ussp)) && istext(selected_title))
 				selected_title = replacetextEx(selected_title, " СССП", " КССП")
+			else if(istype(job, /datum/job/donor/representative_free_sectors) && selected_title == "Посол Вольников")
+				selected_title = "Посол Вольных Секторов"
 			if(istype(job) && (selected_title in job.alternate_titles))
 				titles[job_title] = selected_title
 	return titles

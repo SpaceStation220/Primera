@@ -50,6 +50,8 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	 * If a job is absent from the list, it is considered to be "JP_NEVER"
 	 */
 	var/list/job_preferences = list()
+	/// Display titles keyed by the original job title, saved per character.
+	var/list/alt_job_titles = list()
 	/**
 	 * Lazylist of job titles to character slot numbers
 	 * When rolling for a job, if that job is present in this list, we load that slot instead of the active slot

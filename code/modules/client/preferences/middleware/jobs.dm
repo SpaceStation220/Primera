@@ -3,7 +3,25 @@
 		"set_job_preference" = PROC_REF(set_job_preference),
 		"set_job_to_profile" = PROC_REF(set_job_to_profile),
 		"set_donor_job_title" = PROC_REF(set_donor_job_title),
+		"set_alt_job_title" = PROC_REF(set_alt_job_title),
 	)
+
+/// Sets the active character's display title using only the original job's allowlist.
+/datum/preference_middleware/jobs/proc/set_alt_job_title(list/params, mob/user)
+	var/job_title = params["job"]
+	var/chosen_title = params["title"]
+	if(!istext(job_title) || !istext(chosen_title))
+		return FALSE
+	var/datum/job/job = SSjob.get_job(job_title)
+	if(job?.title != job_title || !(job in SSjob.joinable_occupations) || !length(job.alt_titles))
+		return FALSE
+	if(chosen_title == job.title)
+		preferences.alt_job_titles -= job.title
+	else if(chosen_title in job.alt_titles)
+		preferences.alt_job_titles[job.title] = chosen_title
+	else
+		return FALSE
+	return TRUE
 
 /datum/preference_middleware/jobs/proc/set_job_preference(list/params, mob/user)
 	var/job_title = params["job"]
@@ -107,6 +125,7 @@
 			"description" = job.description,
 			"department" = department_name,
 			"donor_tier" = job.required_donator_level,
+			"alt_titles" = job.alt_titles,
 		)
 		if(job.required_donator_level)
 			jobs[job.title]["job_icon"] = icon2base64(get_job_hud_icon(job))
@@ -133,6 +152,7 @@
 			qdel(selection)
 	data["locked_donor_jobs"] = locked_donor_jobs
 	data["donor_job_titles"] = donor_job_titles
+	data["alt_job_titles"] = preferences.alt_job_titles
 
 	data["job_preferences"] = list()
 	for(var/job, priority in preferences.job_preferences)
