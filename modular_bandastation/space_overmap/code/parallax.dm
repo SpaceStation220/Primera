@@ -88,7 +88,8 @@
 		if(location.space_parallax_background == /atom/movable/screen/parallax_layer/planet && !is_station_level(tile.z))
 			return /atom/movable/screen/parallax_layer/layer_3
 		return location.space_parallax_background
-	var/datum/space_level/level = SSmapping.get_level(tile.z)
+	// A client can enter the lobby before mapping registers the compiled z-levels.
+	var/datum/space_level/level = SSmapping.z_list ? SSmapping.get_level(tile.z) : null
 	if(level?.space_parallax_background)
 		return level.space_parallax_background
 	if(!SSmapping.current_map?.space_overmap && !length(SSstationtrauma_space_voyage.sectors))
