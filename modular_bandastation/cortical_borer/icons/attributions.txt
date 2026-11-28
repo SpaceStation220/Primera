@@ -1,0 +1,23 @@
+Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0).
+https://creativecommons.org/licenses/by-sa/3.0/
+
+Source project: Paradise / SS220 Paradise contributors.
+Source revision: d68d62a930207a2ea4ada333d61cad2024856053
+The source DMI metadata does not identify individual authors for these states.
+Asset licensing statement:
+https://github.com/ss220-space/Paradise/blob/d68d62a930207a2ea4ada333d61cad2024856053/README.md#L81
+
+borer.dmi:
+  Source: https://github.com/ss220-space/Paradise/blob/d68d62a930207a2ea4ada333d61cad2024856053/icons/mob/animal.dmi
+  States: brainslug, brainslug_dead.
+
+actions.dmi:
+  Source: https://github.com/ss220-space/Paradise/blob/d68d62a930207a2ea4ada333d61cad2024856053/icons/mob/actions/actions.dmi
+  States: alien_whisper, genetic_cryo, infest, borer_hiding_true,
+          borer_hiding_false, borer_brain, borer_leave.
+
+Changes for BandaStation: extracted the listed states into separate DMI files.
+Pixels, directions and frame metadata are preserved; no art was redrawn.
+
+preview.png: enlarged overview of the same extracted sprites with text labels.
+Derived from borer.dmi and actions.dmi above; distributed under CC BY-SA 3.0.
