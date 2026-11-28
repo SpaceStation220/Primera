@@ -22,29 +22,13 @@
 
 // MARK: Tajaran tail markings
 /datum/bodypart_overlay/mutant/tajaran_tail_markings
-	layers = list(
-		EXTERNAL_FRONT = BODY_FRONT_LAYER,
-		EXTERNAL_BEHIND = BODY_BEHIND_LAYER,
-	)
+	parent_type = /datum/bodypart_overlay/mutant/tail_detail
 	feature_key = FEATURE_TAJARAN_TAIL_MARKINGS
-	var/wagging = FALSE
-	var/tail_markings_key = NONE
+	color_source = ORGAN_COLOR_OVERRIDE
 	var/tajaran_tail_markings_color = "#FFFFFF"
 
 /datum/bodypart_overlay/mutant/tajaran_tail_markings/get_global_feature_list()
 	return SSaccessories.feature_list[FEATURE_TAJARAN_TAIL_MARKINGS]
-
-/datum/bodypart_overlay/mutant/tajaran_tail_markings/get_base_icon_state()
-	return (!isnull(tail_markings_key) ? "[tail_markings_key]_" : "") + (wagging ? "wagging_" : "") + sprite_datum.icon_state
-
-/datum/bodypart_overlay/mutant/tajaran_tail_markings/can_draw_on_bodypart(obj/item/bodypart/bodypart_owner)
-	. = ..()
-	var/mob/living/carbon/human/human = bodypart_owner.owner
-	if(!istype(human))
-		return TRUE
-
-	if(human.wear_suit && (human.wear_suit?.flags_inv & HIDEJUMPSUIT))
-		return FALSE
 
 /datum/bodypart_overlay/mutant/tajaran_tail_markings/override_color(rgb_value)
 	return tajaran_tail_markings_color
@@ -62,37 +46,24 @@
 	if(tail_markings_overlay)
 		return
 
-	var/datum/sprite_accessory/tails/tajaran/tail_sprite_datum = bodypart_overlay.sprite_datum
-
-	if(!istype(tail_sprite_datum))
+	var/mob/living/carbon/human/human = bodypart.owner
+	if(!istype(human))
+		return
+	var/feature_name = human.dna.features[FEATURE_TAJARAN_TAIL_MARKINGS]
+	if(!feature_name || feature_name == SPRITE_ACCESSORY_NONE)
+		return
+	var/datum/sprite_accessory/marking = SSaccessories.feature_list[FEATURE_TAJARAN_TAIL_MARKINGS][feature_name]
+	if(!marking)
 		return
 
-	var/tail_markings_key = tail_sprite_datum.icon_state
-	if(!tail_markings_key)
-		return
-
-	var/mob/living/carbon/human/owner = bodypart.owner
-	var/feature_name = bodypart.owner.dna.features[FEATURE_TAJARAN_TAIL_MARKINGS]
-	if (feature_name && istype(owner, /mob/living/carbon/human))
-		tail_markings_overlay = new
-		tail_markings_overlay.tail_markings_key = tail_markings_key
-		tail_markings_overlay.color_source = ORGAN_COLOR_OVERRIDE
-		tail_markings_overlay.tajaran_tail_markings_color = owner.dna.features[FEATURE_TAJARAN_TAIL_MARKINGS_COLOR]
-		tail_markings_overlay.set_appearance_from_name(feature_name)
-		bodypart.add_bodypart_overlay(tail_markings_overlay)
+	tail_markings_overlay = new
+	tail_markings_overlay.source_tail = bodypart_overlay
+	tail_markings_overlay.sprite_datum = marking
+	tail_markings_overlay.tajaran_tail_markings_color = human.dna.features[FEATURE_TAJARAN_TAIL_MARKINGS_COLOR]
+	bodypart.add_bodypart_overlay(tail_markings_overlay)
 
 /obj/item/organ/tail/tajaran/proc/remove_tail_markings(obj/item/bodypart/bodypart)
 	if(!tail_markings_overlay)
 		return
 	bodypart.remove_bodypart_overlay(tail_markings_overlay)
 	QDEL_NULL(tail_markings_overlay)
-
-/obj/item/organ/tail/tajaran/start_wag(mob/living/carbon/organ_owner, stop_after = INFINITY)
-	if(tail_markings_overlay)
-		tail_markings_overlay.wagging = TRUE
-	return ..()
-
-/obj/item/organ/tail/tajaran/stop_wag(mob/living/carbon/organ_owner)
-	if(tail_markings_overlay)
-		tail_markings_overlay.wagging = FALSE
-	return ..()

@@ -41,7 +41,7 @@
 			receiver.add_mood_event("tail_regained", /datum/mood_event/tail_regained_wrong)
 
 /obj/item/organ/tail/on_bodypart_insert(obj/item/bodypart/bodypart)
-	var/obj/item/organ/spines/our_spines = bodypart.owner.get_organ_slot(ORGAN_SLOT_EXTERNAL_SPINES)
+	var/obj/item/organ/spines/our_spines = bodypart.owner?.get_organ_slot(ORGAN_SLOT_EXTERNAL_SPINES)
 	if(our_spines)
 		try_insert_tail_spines(bodypart)
 	return ..()
@@ -50,23 +50,21 @@
 	remove_tail_spines(bodypart)
 	return ..()
 
-/// If the owner has spines and an appropriate overlay exists, add a tail spines overlay.
+/// Attach the chosen spines so they can follow any compatible shape the tail takes.
 /obj/item/organ/tail/proc/try_insert_tail_spines(obj/item/bodypart/bodypart)
-	// Don't insert another overlay if there already is one.
 	if(tail_spines_overlay)
 		return
-	// If this tail doesn't have a valid set of tail spines, don't insert them
-	var/datum/sprite_accessory/tails/tail_sprite_datum = bodypart_overlay.sprite_datum
-	if(!istype(tail_sprite_datum))
+	// Tail spines share the choice stored in DNA for the back spines.
+	var/feature_name = bodypart?.owner?.dna?.features[FEATURE_SPINES]
+	if(!feature_name || feature_name == SPRITE_ACCESSORY_NONE)
 		return
-	var/tail_spine_key = tail_sprite_datum.spine_key
-	if(!tail_spine_key)
+	var/datum/sprite_accessory/spines = SSaccessories.feature_list[FEATURE_TAILSPINES][feature_name]
+	if(!spines)
 		return
 
 	tail_spines_overlay = new
-	tail_spines_overlay.tail_spine_key = tail_spine_key
-	var/feature_name = bodypart.owner.dna.features[FEATURE_SPINES] //tail spines don't live in DNA, but share feature names with regular spines
-	tail_spines_overlay.set_appearance_from_name(feature_name)
+	tail_spines_overlay.source_tail = bodypart_overlay
+	tail_spines_overlay.sprite_datum = spines
 	bodypart.add_bodypart_overlay(tail_spines_overlay)
 
 /// If we have a tail spines overlay, delete it
@@ -103,8 +101,6 @@
 	var/datum/bodypart_overlay/mutant/tail/accessory = bodypart_overlay
 	wag_flags |= WAG_WAGGING
 	accessory.wagging = TRUE
-	if(tail_spines_overlay) //if there are spines, they should wag with the tail
-		tail_spines_overlay.wagging = TRUE
 	organ_owner.update_body_parts()
 	RegisterSignals(organ_owner, list(COMSIG_MOB_STATCHANGE, SIGNAL_ADDTRAIT(TRAIT_KNOCKEDOUT)), PROC_REF(owner_kod))
 	return TRUE
@@ -127,8 +123,6 @@
 
 	var/datum/bodypart_overlay/mutant/tail/tail_overlay = bodypart_overlay
 	tail_overlay.wagging = FALSE
-	if(tail_spines_overlay) //if there are spines, they should stop wagging with the tail
-		tail_spines_overlay.wagging = FALSE
 	if(isnull(organ_owner))
 		return succeeded
 
@@ -264,8 +258,37 @@
 	name = "fabricated lizard tail"
 	desc = "A fabricated severed lizard tail. This one's made of synthflesh. Probably not usable for lizard wine."
 
+/// Markings and spines follow the same installed tail through restyling and DNA changes.
+/datum/bodypart_overlay/mutant/tail_detail
+	layers = list(
+		EXTERNAL_FRONT = BODY_FRONT_LAYER,
+		EXTERNAL_BEHIND = BODY_BEHIND_LAYER,
+	)
+	/// The tail overlay on the same limb, including while the limb is detached.
+	var/datum/bodypart_overlay/mutant/tail/source_tail
+
+/datum/bodypart_overlay/mutant/tail_detail/Destroy()
+	source_tail = null
+	return ..()
+
+/// Prefix used by this detail's icon states for the tail's current shape.
+/datum/bodypart_overlay/mutant/tail_detail/proc/get_shape_key()
+	return source_tail?.sprite_datum?.icon_state
+
+/datum/bodypart_overlay/mutant/tail_detail/get_base_icon_state()
+	return "[get_shape_key()]_[source_tail?.wagging ? "wagging_" : ""][sprite_datum.icon_state]"
+
+/datum/bodypart_overlay/mutant/tail_detail/can_draw_on_bodypart(obj/item/bodypart/bodypart_owner, mob/living/carbon/owner)
+	return ..() && !(bodypart_owner.owner?.obscured_slots & HIDEJUMPSUIT) && get_shape_key()
+
+/datum/bodypart_overlay/mutant/tail_detail/get_overlay(obj/item/bodypart/limb, layer_index, layer_real)
+	if(!icon_exists(sprite_datum.icon, build_icon_state(layer_index, limb)))
+		return list()
+	return ..()
+
 ///Bodypart overlay for tail spines. Handled by the tail - has no actual organ associated.
 /datum/bodypart_overlay/mutant/tail_spines
+	parent_type = /datum/bodypart_overlay/mutant/tail_detail
 	layers = list(
 		EXTERNAL_ADJACENT = BODY_ADJ_LAYER,
 		EXTERNAL_BEHIND = BODY_BEHIND_LAYER
@@ -273,16 +296,10 @@
 	feature_key = FEATURE_TAILSPINES
 	draw_on_husks = HUSK_OVERLAY_GRAYSCALE
 	offset_location = ENTIRE_BODY
-	///Spines wag when the tail does
-	var/wagging = FALSE
-	/// Key for tail spine states, depends on the shape of the tail. Defined in the tail sprite datum.
-	var/tail_spine_key = NONE
 
-/datum/bodypart_overlay/mutant/tail_spines/get_base_icon_state()
-	return (!isnull(tail_spine_key) ? "[tail_spine_key]_" : "") + (wagging ? "wagging_" : "") + sprite_datum.icon_state // Select the wagging state if appropriate
-
-/datum/bodypart_overlay/mutant/tail_spines/can_draw_on_bodypart(obj/item/bodypart/bodypart_owner, mob/living/carbon/owner)
-	return ..() && !(bodypart_owner.owner?.obscured_slots & HIDEJUMPSUIT)
+/datum/bodypart_overlay/mutant/tail_spines/get_shape_key()
+	var/datum/sprite_accessory/tails/tail_sprite = source_tail?.sprite_datum
+	return istype(tail_sprite) ? tail_sprite.spine_key : NONE
 
 /datum/bodypart_overlay/mutant/tail_spines/set_dye_color(new_color, obj/item/organ/organ)
 	dye_color = new_color //no update_body_parts() call, tail/set_dye_color will do it.
